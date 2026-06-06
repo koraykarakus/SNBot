@@ -22,7 +22,7 @@ add_executable(SNBot
     
     "include/CLoader.h"
     "include/CLogger.h"
- "include/bot_info.h"  "include/CBotManager.h" "src/CBotManager.cpp" "include/vars.h")
+ "include/table_planets.h"  "include/CBotManager.h" "src/CBotManager.cpp" "include/table_vars.h" "include/table_users.h")
 
 # header files
 target_include_directories(SNBot PRIVATE include)

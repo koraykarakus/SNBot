@@ -1,21 +1,19 @@
 ﻿#pragma once
 #include <string>
 
-struct bot_planet_info
+struct table_planets
 {
-    // Temel Bilgiler ve Koordinatlar
-    int id;
-    std::string name;
-    int id_owner;
-    int universe;
-    int galaxy;
-    int system;
-    int planet;
-    int last_update;
-    std::string planet_type; // ENUM için string
-    int destroyed;
+	int id;
+	std::string name;
+	int id_owner;
+	int universe;
+	int galaxy;
+	int system;
+	int planet;
+	int last_update;
+	std::string planet_type;
+	int destroyed;
 
-    // İnşaat Sıraları ve Görsel
     int b_building;
     std::string b_building_id;
     int b_shipyard;
@@ -23,14 +21,12 @@ struct bot_planet_info
     int b_shipyard_plus;
     std::string image;
 
-    // Gezegen Yapısı ve Sıcaklık
     int diameter;
     int field_current;
     int field_max;
     int temp_min;
     int temp_max;
 
-    // Madenler ve Enerji Bilgileri
     std::string eco_hash;
     double metal;
     double metal_perhour;
@@ -44,7 +40,6 @@ struct bot_planet_info
     double energy_used;
     double energy;
 
-    // Bina Kademeleri (Ekonomi / Altyapı)
     int metal_mine;
     int crystal_mine;
     int deuterium_synthesizer;
@@ -62,12 +57,10 @@ struct bot_planet_info
     int ally_deposit;
     int missile_silo;
 
-    // Ay Binaları
     int lunar_base;
     int phalanx;
     int jump_gate;
 
-    // Filo (Büyük Sayılar İçin BIGINT -> unsigned long long)
     unsigned long long small_cargo;
     unsigned long long big_cargo;
     unsigned long long light_hunter;
@@ -86,24 +79,24 @@ struct bot_planet_info
     unsigned long long ev_transporter;
     unsigned long long star_crasher;
     unsigned long long giga_recycler;
-    long long dm_ship; // Tabloda SIGNED BIGINT yapılmış
+    unsigned long long dm_ship; 
     unsigned long long orbital_station;
 
-    // Savunma (BIGINT -> unsigned long long)
+    // (BIGINT -> unsigned long long)
     unsigned long long rocket_launcher;
     unsigned long long light_laser;
     unsigned long long heavy_laser;
     unsigned long long gauss_cannon;
     unsigned long long ion_cannon;
     unsigned long long plasma_turret;
-    int small_protection_shield; // Bunlar TINYINT
+    int small_protection_shield; 
     int planet_protector;
     int big_protection_shield;
     unsigned long long graviton_cannon;
     unsigned long long interceptor_misil;
     unsigned long long interplanetary_misil;
 
-    // Üretim Yüzdeleri (ENUM için string)
+    
     std::string metal_mine_percent;
     std::string crystal_mine_percent;
     std::string deuterium_synthesizer_percent;
@@ -111,7 +104,6 @@ struct bot_planet_info
     std::string fusion_plant_percent;
     std::string solar_satellite_percent;
 
-    // Ekstra Bot ve Sistem Bilgileri
     int last_jump_time;
     double debris_metal;
     double debris_crystal;
@@ -120,8 +112,7 @@ struct bot_planet_info
     int last_relocate;
     unsigned long long version;
 
-    // Constructor (Tüm verileri güvenli başlangıç değerlerine çekiyoruz)
-    bot_planet_info()
+    table_planets()
         : id(0)
         , name("")
         , id_owner(0)
@@ -223,83 +214,3 @@ struct bot_planet_info
     }
 };
 
-struct bot_info
-{
-    // Temel ve Giriş Bilgileri
-    int id;
-    std::string strUserName;
-
-    // Altyapı ve Konum Bilgileri
-    int id_planet;
-    int universe;
-    int galaxy;
-    int system;
-    int planet;
-
-    // Araştırma ve Kuyruk Bilgileri
-    int b_tech_planet;
-    int b_tech;
-    int b_tech_id;
-    std::string b_tech_queue;
-
-    // Teknolojiler
-    int spy_tech;
-    int computer_tech;
-    int military_tech;
-    int armor_tech;
-    int shield_tech;
-    int energy_tech;
-    int hyperspace_tech;
-    int combustion_tech;
-    int impulse_motor_tech;
-    int hyperspace_motor_tech;
-    int laser_tech;
-    int ion_tech;
-    int plasma_tech;
-    int intergalactic_tech;
-    int expedition_tech;
-    int metal_proc_tech;
-    int crystal_proc_tech;
-    int deuterium_proc_tech;
-    int graviton_tech;
-
-    // Bot Durumu ve Gezegenleri
-    bool is_bot;
-    std::vector<bot_planet_info> vecPlanets;
-
-    // Constructor (Tüm alanlar güvenli değerlerle başlatılıyor)
-    bot_info()
-        : id(0)
-        , strUserName("")
-        , id_planet(0)
-        , universe(0)
-        , galaxy(0)
-        , system(0)
-        , planet(0)
-        , b_tech_planet(0)
-        , b_tech(0)
-        , b_tech_id(0)
-        , b_tech_queue("")
-        , spy_tech(0)
-        , computer_tech(0)
-        , military_tech(0)
-        , armor_tech(0)
-        , shield_tech(0)
-        , energy_tech(0)
-        , hyperspace_tech(0)
-        , combustion_tech(0)
-        , impulse_motor_tech(0)
-        , hyperspace_motor_tech(0)
-        , laser_tech(0)
-        , ion_tech(0)
-        , plasma_tech(0)
-        , intergalactic_tech(0)
-        , expedition_tech(0)
-        , metal_proc_tech(0)
-        , crystal_proc_tech(0)
-        , deuterium_proc_tech(0)
-        , graviton_tech(0)
-        , is_bot(false)
-    {
-    }
-};

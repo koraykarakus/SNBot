@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include <vector>
 #include <unordered_map>
-#include "bot_info.h" 
-#include "vars.h"
+#include "table_users.h"
+#include "table_vars.h"
 
 class CBotManager 
 {
@@ -11,15 +11,15 @@ private:
 	time_t m_timeLastRun;
 	bool m_bFirstRun;
 
-	std::vector<bot_info> m_vecBots;
-	std::unordered_map<int, GameVarItem> m_mapGameVars;
+	std::vector<table_users> m_vecBots;
+	std::unordered_map<int, table_vars> m_mapGameVars;
 public:
 	CBotManager();
 	~CBotManager();
 
 	void Run();
 
-	inline void AddBot(const bot_info& bot)
+	inline void AddBot(const table_users& bot)
 	{
 		m_vecBots.push_back(bot);
 	}
@@ -34,17 +34,17 @@ public:
 		m_mapGameVars.clear();
 	}
 
-	inline void AddGameVar(int elementID, const GameVarItem& item)
+	inline void AddGameVar(int elementID, const table_vars& item)
 	{
 		m_mapGameVars[elementID] = item;
 	}
 
-	const std::vector<bot_info>& GetBots() const
+	const std::vector<table_users>& GetBots() const
 	{
 		return m_vecBots;
 	}
 
-	inline bot_info* GetBotRef(int botId) 
+	inline table_users* GetBotRef(int botId)
 	{
 		for (auto& bot : m_vecBots) 
 		{

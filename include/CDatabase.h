@@ -2,8 +2,7 @@
 
 #include <mysql/mysql.h>
 #include <string>
-#include "SimpleIni.h"
-#include "CBotManager.h"
+
 
 class CDatabase
 {

@@ -3,6 +3,8 @@
 #include "CDatabase.h"
 #include "CBotManager.h"
 
+CLoader g_Loader;
+
 CLoader::CLoader()
 {
 }

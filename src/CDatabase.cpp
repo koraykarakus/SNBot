@@ -1,6 +1,10 @@
 ﻿#include "CDatabase.h"
 #include "CLogger.h"
 #include "CBotManager.h"
+#include "SimpleIni.h"
+#include "table_users.h"
+#include "table_vars.h"
+
 #include <filesystem>
 
 CDatabase g_Database;
@@ -140,7 +144,7 @@ bool CDatabase::LoadBots()
     MYSQL_ROW row;
     while ((row = mysql_fetch_row(result)))
     {
-        bot_info bot;
+        table_users bot;
 
         // Tablo şemana göre milimetrik index eşlemesi:
         bot.id = row[0] ? std::stoi(row[0]) : 0;
@@ -216,8 +220,8 @@ bool CDatabase::LoadBots()
     MYSQL_ROW plRow;
     while ((plRow = mysql_fetch_row(plResult)))
     {
-        // 1. Tablonun kolon sırasına göre bot_planet_info struct'ını dolduruyoruz
-        bot_planet_info pl;
+        // 1. Tablonun kolon sırasına göre table_planets struct'ını dolduruyoruz
+        table_planets pl;
 
         pl.id = plRow[0] ? std::stoi(plRow[0]) : 0;
         pl.name = plRow[1] ? plRow[1] : "";
@@ -332,7 +336,7 @@ bool CDatabase::LoadBots()
         pl.version = plRow[96] ? std::stoull(plRow[96]) : 0;
 
         // 2. İşin Büyüsü: Gezegenin sahibini BotManager vasıtasıyla bulup vektörüne atıyoruz
-        bot_info* pTargetBot = g_BotManager.GetBotRef(pl.id_owner);
+        table_users* pTargetBot = g_BotManager.GetBotRef(pl.id_owner);
         if (pTargetBot != nullptr)
         {
             pTargetBot->vecPlanets.push_back(pl);
@@ -351,7 +355,7 @@ bool CDatabase::LoadBots()
 
 bool CDatabase::UpdateBots()
 {
-    const std::vector<bot_info>& pBots = g_BotManager.GetBots();
+    const std::vector<table_users>& pBots = g_BotManager.GetBots();
 
     if (pBots.empty())
     {
@@ -382,7 +386,7 @@ bool CDatabase::UpdateBots()
         "graviton_tech = VALUES(graviton_tech);";
 
     // Tüm gezegenleri tek bir havuzda toplamak için geçici vektör
-    std::vector<bot_planet_info> vecAllPlanets;
+    std::vector<table_planets> vecAllPlanets;
 
     // Botları 50'şerli gruplarla veritabanına gönderiyoruz
     for (size_t i = 0; i < pBots.size(); i += BATCH_SIZE)
@@ -647,7 +651,7 @@ bool CDatabase::LoadVars()
 
         if (!row[0] || !row[1]) continue; // Kritik alanlar boşsa atla
 
-        GameVarItem item;
+        table_vars item;
         item.elementID = std::stoi(row[0]);
         item.name = row[1];
         item.factor = row[5] ? std::stod(row[5]) : 1.0;

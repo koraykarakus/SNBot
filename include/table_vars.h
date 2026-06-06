@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <string>
 
-struct GameVarItem {
+struct table_vars {
     int elementID;
     std::string name;
     double costMetal;     // cost901

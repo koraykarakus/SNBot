@@ -10,3 +10,5 @@ public:
 	bool LoadVarsFromDatabase();
 	void ShutDown();
 };
+
+extern CLoader g_Loader;

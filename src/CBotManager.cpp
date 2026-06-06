@@ -148,7 +148,7 @@ void CBotManager::HandleBuildings()
                 continue;
             }
 
-            const GameVarItem& varItem = it->second;
+            const table_vars& varItem = it->second;
             int current_level = current_levels[target_element_id];
             int level_up = current_level + 1;
 
