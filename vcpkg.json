@@ -4,6 +4,7 @@
   "dependencies": [
     "spdlog",
     "curl",
-    "libmariadb"
+    "libmariadb",
+    "simpleini"
   ]
 }

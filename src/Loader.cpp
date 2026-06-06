@@ -48,10 +48,7 @@ bool Loader::Init()
 
 bool Loader::LoadBotsFromDatabase() 
 {
-
-    g_pDBAgent->LoadBots();
-
-    return true;
+    return g_pDBAgent->LoadBots();
 }
 
 void Loader::ShutDown()
@@ -72,6 +69,4 @@ void Loader::ShutDown()
 
     // cleanup curl
     curl_global_cleanup();
-
-   
 }
