@@ -1,11 +1,12 @@
 #pragma once
 
-class Loader
+class CLoader
 {
 public:
-	Loader();
-	~Loader();
+	CLoader();
+	~CLoader();
 	bool Init();
 	bool LoadBotsFromDatabase();
+	bool LoadVarsFromDatabase();
 	void ShutDown();
 };

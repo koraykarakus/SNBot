@@ -3,8 +3,9 @@
 #include <mysql/mysql.h>
 #include <string>
 #include "SimpleIni.h"
+#include "CBotManager.h"
 
-class DBAgent
+class CDatabase
 {
 private:
     MYSQL* m_pConn;
@@ -14,13 +15,17 @@ private:
     std::string m_strDBName;
     std::string m_strDBPrefix;
 public:
-    DBAgent();
-    ~DBAgent();
+    CDatabase();
+    ~CDatabase();
     void Init();
 
     bool Connect();
     void Disconnect();
     bool LoadBots();
+    bool LoadVars();
+    bool UpdateBots();
 
     MYSQL* GetConnection() const { return m_pConn; }
 };
+
+extern CDatabase g_Database;

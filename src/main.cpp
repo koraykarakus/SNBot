@@ -7,10 +7,11 @@
 #include <csignal>
 #include <mutex>
 #include <condition_variable>
-#include "Loader.h"
-#include "logger.h"
+#include "CLoader.h"
+#include "CLogger.h"
+#include "CBotManager.h"
 
-Loader* g_pLoader;
+CLoader* g_pLoader;
 std::mutex g_shutdownMutex;
 std::condition_variable g_shutdownCV;
 bool g_bRunning = true;
@@ -40,20 +41,24 @@ int main()
 	// terminate signal from sys
 	std::signal(SIGTERM, SignalHandler);
 
-	g_pLoader = new Loader();
+	g_pLoader = new CLoader();
 
 	if (!g_pLoader->Init())
 	{
-		Logger::Error("Initialization failed!\n");
+		CLogger::Error("Initialization failed!\n");
 		delete g_pLoader;
 		g_pLoader = nullptr;
 		return 1;
 	}
 
-	Logger::Info("Sunucu baglantilari dinlemeye basladi...");
+	CLogger::Info("Sunucu baglantilari dinlemeye basladi...");
 
 	std::cout << "\nTest server started successfully. "
 		"Press Ctrl+C to exit.\n";
+
+	// --- BOT THREAD BAŞLATMA ---
+	// g_BotManager.Run() fonksiyonunu arka planda çalışacak şekilde yeni bir thread'e bağlıyoruz.
+	std::thread botThread(&CBotManager::Run, &g_BotManager);
 
 	// --- ANA THREAD BEKLEME MODU ---
 	// Bu kısım işlemciyi %0 yükle bekletir. 
@@ -65,6 +70,14 @@ int main()
 
 	// --- GÜVENLİ KAPATMA (SAFE SHUTDOWN) ---
 	std::cout << "Server shutting down, please wait...\n";
+	
+	// Bot thread'inin güvenli bir şekilde mevcut döngüsünü bitirmesini bekliyoruz.
+	// (Tabii Run() fonksiyonu içerisindeki döngü g_bRunning durumuna bakmalı)
+	if (botThread.joinable())
+	{
+		botThread.join();
+		CLogger::Info("Bot thread basariyla sonlandirildi.");
+	}
 
 	// save user info and free memory
 	g_pLoader->ShutDown();
@@ -73,3 +86,4 @@ int main()
 	std::cout << "Server shutdown complete. Exiting program.\n";
 	return 0;
 }
+

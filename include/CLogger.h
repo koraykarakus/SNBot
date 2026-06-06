@@ -5,7 +5,7 @@
 #include <spdlog/spdlog.h>
 #include <spdlog/fmt/fmt.h>
 
-class Logger
+class CLogger
 {
 public:
     static void Trace(const std::string& msg);
