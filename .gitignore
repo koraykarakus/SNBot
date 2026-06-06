@@ -1,0 +1,15 @@
+# Visual Studio 
+.vs/
+**/.vs/
+*.user
+*.aps
+*.suo
+
+# CMake çıktı output
+/[Bb]uild/
+/out/
+
+# MSBuild / 
+*.sln
+*.vcxproj
+*.vcxproj.filters
