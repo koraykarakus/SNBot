@@ -31,7 +31,7 @@ void CBotManager::Run()
     // Eğer veriler yüklenmeden sunucu kapatıldıysa thread'i bitir
     if (!g_bRunning) return;
 
-    CLogger::Info("[Run] Bot ana döngüsü baslatiliyor. Harita Boyutu: {}", m_mapGameVars.size());
+    CLogger::Info("[Run] Bot ana döngüsü baslatiliyor. Harita Boyutu: {}", m_mapVars.size());
 
     // 2. DÖNGÜ: Botların asıl işi yapacağı sonsuz döngü (g_bLoaded artık TRUE!)
     while (g_bRunning)
@@ -161,9 +161,9 @@ void CBotManager::HandleBuildings()
             }
 
             // ARTIK MAPPING YOK! Doğrudan listeden bulduğumuz ID'yi haritada aratıyoruz
-            auto it = m_mapGameVars.find(target_element_id);
-            CLogger::Info("[Run Debug] Harita Boyutu: {}", m_mapGameVars.size());
-            if (it == m_mapGameVars.end())
+            auto it = m_mapVars.find(target_element_id);
+            CLogger::Info("[Run Debug] Harita Boyutu: {}", m_mapVars.size());
+            if (it == m_mapVars.end())
             {
                 CLogger::Error("WRONG ELEMENT ID:{} , NOT FOUND !", target_element_id);
                 continue;

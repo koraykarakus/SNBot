@@ -632,8 +632,7 @@ bool CDatabase::LoadVars()
         return false;
     }
 
-    // Yüklemeden önce mevcut haritayı temizleyelim
-    g_pBotManager->ClearVars(); // BotManager içinde m_mapGameVars.clear() yapan fonksiyon
+    g_pBotManager->ClearVars();
 
     MYSQL_ROW row;
     int loadedCount = 0;
