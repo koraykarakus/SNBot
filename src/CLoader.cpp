@@ -48,5 +48,4 @@ bool CLoader::LoadConfigFromDatabase()
 void CLoader::ShutDown()
 {
     // cleanup memory
-
 }

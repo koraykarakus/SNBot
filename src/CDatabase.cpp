@@ -321,7 +321,7 @@ bool CDatabase::LoadBots()
         pl.resource[502] = plRow[82] ? std::stoull(plRow[82]) : 0; // interceptor_misil
         pl.resource[503] = plRow[83] ? std::stoull(plRow[83]) : 0; // interplanetary_misil
 
-        // Yüzdeler
+        // production
         pl.metal_mine_percent = plRow[84] ? plRow[84] : "10";
         pl.crystal_mine_percent = plRow[85] ? plRow[85] : "10";
         pl.deuterium_synthesizer_percent = plRow[86] ? plRow[86] : "10";
@@ -329,7 +329,7 @@ bool CDatabase::LoadBots()
         pl.fusion_plant_percent = plRow[88] ? plRow[88] : "10";
         pl.solar_satellite_percent = plRow[89] ? plRow[89] : "10";
 
-        // Ekstra Sistem Değerleri
+        // galaxy related
         pl.last_jump_time = plRow[90] ? std::stoi(plRow[90]) : 0;
         pl.debris_metal = plRow[91] ? std::stod(plRow[91]) : 0.0;
         pl.debris_crystal = plRow[92] ? std::stod(plRow[92]) : 0.0;
@@ -338,7 +338,7 @@ bool CDatabase::LoadBots()
         pl.last_relocate = plRow[95] ? std::stoi(plRow[95]) : 0;
         pl.version = plRow[96] ? std::stoull(plRow[96]) : 0;
 
-        // 2. İşin Büyüsü: Gezegenin sahibini BotManager vasıtasıyla bulup vektörüne atıyoruz
+        // find bot with planet id_owner
         table_users* pTargetBot = g_pBotManager->GetBotRef(pl.id_owner);
         if (pTargetBot != nullptr)
         {

@@ -53,11 +53,11 @@ int main()
 
 	if (!g_pLoader->Init())
 	{
-		CLogger::Error("Loader : Initialization failed!\n");
+		CLogger::Error("[Main] : g_pLoader->Init() failed!\n");
 		return 1;
 	}
 
-	CLogger::Info("server started successfully.\nPress Ctrl+C to exit.\n");
+	CLogger::Info("[Main] : server started successfully.Press Ctrl+C to exit.\n");
 
 	// thread for bot handlers.
 	std::thread botThread(&CBotManager::Run, g_pBotManager);
@@ -68,23 +68,24 @@ int main()
 		g_shutdownCV.wait(lock, [] { return !g_bRunning; });
 	}
 
-	// --- GÜVENLİ KAPATMA (SAFE SHUTDOWN) ---
-	CLogger::Info("Server shutting down, please wait...\n");
+	// --- safe shutdown ---
+	CLogger::Info("[Main] : server shutting down, please wait...\n");
 
 	// Bot thread'inin güvenli bir şekilde mevcut döngüsünü bitirmesini bekliyoruz.
 	// (Tabii Run() fonksiyonu içerisindeki döngü g_bRunning durumuna bakmalı)
 	if (botThread.joinable())
 	{
 		botThread.join();
-		CLogger::Info("Bot thread ended by success.\n");
+		CLogger::Info("[Main] : bot thread ended by success.\n");
 	}
+
+	g_pLoader->ShutDown();
 
 	delete g_pLoader;
 	delete g_pDatabase;
 	delete g_pBotManager;
 	// TODO: save user info and free memory if needed
-	g_pLoader->ShutDown();
-	std::cout << "Server shutdown complete. Exiting program.\n";
+	CLogger::Info("[Main] : server shutdown complete. Exiting program.\n");
 	return 0;
 }
 

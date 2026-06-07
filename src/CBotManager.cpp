@@ -6,11 +6,10 @@
 extern bool g_bRunning;
 
 CBotManager::CBotManager()
+    : m_vecBots{}
+    , m_bFirstRun(true)
+    , m_timeLastRun(0)
 {
-	// todo: reserve if constant number of boss as user input
-	m_vecBots = {};
-    m_bFirstRun = true;
-    m_timeLastRun = 0;
 }
 
 CBotManager::~CBotManager()
