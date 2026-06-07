@@ -53,7 +53,7 @@ int main()
 
 	if (!g_pLoader->Init())
 	{
-		CLogger::Error("Initialization failed!\n");
+		CLogger::Error("Loader : Initialization failed!\n");
 		return 1;
 	}
 

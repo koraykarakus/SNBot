@@ -41,7 +41,7 @@ public:
 		m_mapConfig.clear();
 	}
 
-	inline void AddGameVar(int elementID, const table_vars& item)
+	inline void AddVar(int elementID, const table_vars& item)
 	{
 		m_mapVars[elementID] = item;
 	}
@@ -67,7 +67,7 @@ public:
 	}
 
 	// handlers
-	std::string GetElementNameByIndex(int index);
+	void HandleResourceUpdate();
 	void HandleBuildings();
 
 };

@@ -14,8 +14,6 @@ CLoader::~CLoader()
 
 bool CLoader::Init()
 {
-    // init game constants
-
     if (!g_pDatabase->Connect())
     {
         return false;

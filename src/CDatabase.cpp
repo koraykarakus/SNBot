@@ -74,7 +74,7 @@ bool CDatabase::Connect()
 
     if (m_pConn == nullptr)
     {
-        CLogger::Error("mysql_init failed");
+        CLogger::Error("[CDatabase] - mysql_init failed");
         return false;
     }
 
@@ -93,7 +93,7 @@ bool CDatabase::Connect()
         nullptr,
         0))
     {
-        CLogger::Error("MySQL Connection Failed. Error: {} ({})", mysql_error(m_pConn), mysql_errno(m_pConn));
+        CLogger::Error("[CDatabase] - MySQL Connection Failed. Error: {} ({})", mysql_error(m_pConn), mysql_errno(m_pConn));
 
         // Şimdi güvenle kapatabiliriz
         mysql_close(m_pConn);
@@ -115,28 +115,27 @@ void CDatabase::Disconnect()
 
 bool CDatabase::LoadBots()
 {
-    // -------------------------------------------------------------------------
-    // STEP 1: USERS TABLE
-    // -------------------------------------------------------------------------
-    std::string strQuery = "SELECT * FROM `" + m_strDBPrefix + "users` WHERE is_bot = 1";
+	std::string strQuery = "SELECT * FROM `" + m_strDBPrefix + "users` WHERE is_bot = 1";
 
     if (mysql_query(m_pConn, strQuery.c_str()))
     {
-        CLogger::Error("Query Error (Users): {}", mysql_error(m_pConn));
+        CLogger::Error("[CDatabase] - Query Error (Users): {}", mysql_error(m_pConn));
         return false;
     }
 
     MYSQL_RES* result = mysql_store_result(m_pConn);
-    if (!result)
+    if (result == nullptr)
     {
-        if (mysql_field_count(m_pConn) > 0) {
-            CLogger::Error("Retrieve result error (Users): {}", mysql_error(m_pConn));
+        if (mysql_field_count(m_pConn) > 0) 
+        {
+            CLogger::Error("[CDatabase] - Retrieve result error (Users): {}", mysql_error(m_pConn));
         }
+
         return false;
     }
 
     uint64_t rowCount = mysql_num_rows(result);
-    CLogger::Info("Found {} bots in database.", rowCount);
+    CLogger::Info("[CDatabase] - Found {} bots in database.", rowCount);
 
     g_pBotManager->ClearBots();
 
@@ -145,24 +144,23 @@ bool CDatabase::LoadBots()
     {
         table_users bot;
 
-        // Tablo şemana göre milimetrik index eşlemesi:
         bot.id = row[0] ? std::stoi(row[0]) : 0;
         bot.strUserName = row[1] ? row[1] : "";
 
-        // Araya giren şemadaki diğer kolonları atlayarak struct alanlarını dolduruyoruz
+        // fill the struct with respect to index order.
         bot.id_planet = row[9] ? std::stoi(row[9]) : 0;
         bot.universe = row[10] ? std::stoi(row[10]) : 0;
         bot.galaxy = row[11] ? std::stoi(row[11]) : 0;
         bot.system = row[12] ? std::stoi(row[12]) : 0;
         bot.planet = row[13] ? std::stoi(row[13]) : 0;
 
-        // Araştırma kuyruk bilgileri (Tam 32. indexten başlıyor)
+        // Research queue starts at index 32
         bot.b_tech_planet = row[32] ? std::stoi(row[32]) : 0;
         bot.b_tech = row[33] ? std::stoi(row[33]) : 0;
         bot.b_tech_id = row[34] ? std::stoi(row[34]) : 0;
         bot.b_tech_queue = row[35] ? row[35] : "";
 
-        // Teknolojiler ardışık olarak devam ediyor
+        // technologies
         bot.spy_tech = row[36] ? std::stoi(row[36]) : 0;
         bot.computer_tech = row[37] ? std::stoi(row[37]) : 0;
         bot.military_tech = row[38] ? std::stoi(row[38]) : 0;
@@ -183,48 +181,52 @@ bool CDatabase::LoadBots()
         bot.deuterium_proc_tech = row[53] ? std::stoi(row[53]) : 0;
         bot.graviton_tech = row[54] ? std::stoi(row[54]) : 0;
 
-        // En sondaki is_bot kolonu (Tam 99. index)
+        // column is_bot to simplify
         bot.is_bot = row[99] ? (std::stoi(row[99]) != 0) : false;
 
         g_pBotManager->AddBot(bot);
-        CLogger::Info("Bot Loaded -> ID: {}, Name: {}", bot.id, bot.strUserName);
+        CLogger::Info("[CDatabase] - Bot Loaded -> ID: {}, Name: {}", bot.id, bot.strUserName);
     }
     mysql_free_result(result);
 
-    // Eğer hiç bot yüklenmediyse gezegen aramaya gerek yok
-    if (rowCount == 0) return true;
+    // if bot number is 0, no point searching for bot planets
+    if (rowCount == 0) 
+    {
+        return true;
+    }
 
     // -------------------------------------------------------------------------
-    // STEP 2: GEZEGENLERİ (PLANETS) YÜKLE VE BOTLARLA EŞLEŞTİR
+    // STEP 2: Load Bot planets and match them
     // -------------------------------------------------------------------------
     std::string strPlanetQuery = "SELECT * FROM `" + m_strDBPrefix + "planets` WHERE is_bot = 1";
 
     if (mysql_query(m_pConn, strPlanetQuery.c_str()))
     {
-        CLogger::Error("Query Error (Planets): {}", mysql_error(m_pConn));
+        CLogger::Error("[CDatabase] - Query Error (Planets): {}", mysql_error(m_pConn));
         return false;
     }
 
     MYSQL_RES* plResult = mysql_store_result(m_pConn);
-    if (!plResult)
+    if (plResult == nullptr)
     {
-        if (mysql_field_count(m_pConn) > 0) {
-            CLogger::Error("Retrieve result error (Planets): {}", mysql_error(m_pConn));
+        if (mysql_field_count(m_pConn) > 0) 
+        {
+            CLogger::Error("[CDatabase] - Retrieve result error (Planets): {}", mysql_error(m_pConn));
         }
+
         return false;
     }
 
-    CLogger::Info("Loading planets and linking to bots...");
+    CLogger::Info("[CDatabase] - Loading planets and linking to bots...");
 
     MYSQL_ROW plRow;
     while ((plRow = mysql_fetch_row(plResult)))
     {
-        // 1. Tablonun kolon sırasına göre table_planets struct'ını dolduruyoruz
         table_planets pl;
 
         pl.id = plRow[0] ? std::stoi(plRow[0]) : 0;
         pl.name = plRow[1] ? plRow[1] : "";
-        pl.id_owner = plRow[2] ? std::stoi(plRow[2]) : 0; // Sahip botun ID'si
+        pl.id_owner = plRow[2] ? std::stoi(plRow[2]) : 0; 
         pl.universe = plRow[3] ? std::stoi(plRow[3]) : 0;
         pl.galaxy = plRow[4] ? std::stoi(plRow[4]) : 0;
         pl.system = plRow[5] ? std::stoi(plRow[5]) : 0;
@@ -348,7 +350,7 @@ bool CDatabase::LoadBots()
     }
 
     mysql_free_result(plResult);
-    CLogger::Info("All bots and planets loaded successfully.");
+    CLogger::Info("[CDatabase] - All bots and planets loaded successfully.");
     return true;
 }
 
@@ -361,12 +363,15 @@ bool CDatabase::UpdateBots()
         return true;
     }
 
-    if (m_pConn == nullptr) return false;
+    if (m_pConn == nullptr) 
+    {
+        return false;
+    }
 
-    const size_t BATCH_SIZE = 50; // Hem botlar hem gezegenler için paket boyutu
+    const size_t BATCH_SIZE = 50; // update amount per query
 
     // =========================================================================
-    // KISIM 1: BOT TEKNOLOJİLERİNİ GÜNCELLE (USERS TABLOSU)
+    // PART 1: UPDATE BOT RESEARCH (USERS TABLE)
     // =========================================================================
     const std::string strUserHeader = "INSERT INTO `" + m_strDBPrefix + "users` ("
         "id, b_tech_planet, b_tech, b_tech_id, b_tech_queue, spy_tech, computer_tech, "
@@ -384,10 +389,9 @@ bool CDatabase::UpdateBots()
         "metal_proc_tech = VALUES(metal_proc_tech), crystal_proc_tech = VALUES(crystal_proc_tech), deuterium_proc_tech = VALUES(deuterium_proc_tech), "
         "graviton_tech = VALUES(graviton_tech);";
 
-    // Tüm gezegenleri tek bir havuzda toplamak için geçici vektör
+    // store all planets in same vector
     std::vector<table_planets> vecAllPlanets;
 
-    // Botları 50'şerli gruplarla veritabanına gönderiyoruz
     for (size_t i = 0; i < pBots.size(); i += BATCH_SIZE)
     {
         std::string strQuery = strUserHeader;
@@ -397,8 +401,8 @@ bool CDatabase::UpdateBots()
         {
             const auto& cBot = pBots[k];
 
-            // Gezegenleri daha sonra toplu işlemek üzere havaza topluyoruz
-            for (const auto& planet : cBot.vecPlanets) {
+            for (const auto& planet : cBot.vecPlanets) 
+            {
                 vecAllPlanets.push_back(planet);
             }
 
@@ -429,7 +433,8 @@ bool CDatabase::UpdateBots()
             strQuery += std::to_string(cBot.graviton_tech);
             strQuery += ")";
 
-            if (k < endIndex - 1) {
+            if (k < endIndex - 1) 
+            {
                 strQuery += ", ";
             }
         }
@@ -438,13 +443,13 @@ bool CDatabase::UpdateBots()
 
         if (mysql_query(m_pConn, strQuery.c_str()) != 0)
         {
-            CLogger::Error("[CDatabase] UpdateBots (Users) Paket Hatasi (Index {}-{}): {}", i, endIndex - 1, mysql_error(m_pConn));
+            CLogger::Error("[CDatabase] - UpdateBots (Users) Paket Hatasi (Index {}-{}): {}", i, endIndex - 1, mysql_error(m_pConn));
             return false;
         }
     }
 
     // =========================================================================
-    // KISIM 2: GEZEGENLERİ GÜNCELLE (PLANETS TABLOSU) - 50'şerli Paketlerle
+    // PART 2: UPDATE PLANETS (PLANETS TABLE) 
     // =========================================================================
     if (vecAllPlanets.empty())
     {
@@ -600,12 +605,12 @@ bool CDatabase::UpdateBots()
 
         if (mysql_query(m_pConn, strQuery.c_str()) != 0)
         {
-            CLogger::Error("[CDatabase] UpdateBots (Planets) Paket Hatasi (Index {}-{}): {}", i, endIndex - 1, mysql_error(m_pConn));
+            CLogger::Error("[CDatabase] - UpdateBots (Planets) Paket Hatasi (Index {}-{}): {}", i, endIndex - 1, mysql_error(m_pConn));
             return false;
         }
     }
 
-    CLogger::Info("[CDatabase] All bots and their planets updated successfully in database.");
+    CLogger::Info("[CDatabase] - All bots and their planets updated successfully in database.");
     return true;
 }
 
@@ -613,7 +618,7 @@ bool CDatabase::LoadVars()
 {
     if (m_pConn == nullptr)
     {
-        CLogger::Error("[CDatabase] LoadVars Hatasi: Veritabanı bağlantısı yok.");
+        CLogger::Error("[CDatabase] - LoadVars error: no database connection.");
         return false;
     }
 
@@ -621,25 +626,25 @@ bool CDatabase::LoadVars()
 
     if (mysql_query(m_pConn, strQuery.c_str()) != 0)
     {
-        CLogger::Error("[CDatabase] LoadVars Sorgu Hatasi: {}", mysql_error(m_pConn));
+        CLogger::Error("[CDatabase] - LoadVars Query Error: {}", mysql_error(m_pConn));
         return false;
     }
 
     MYSQL_RES* result = mysql_store_result(m_pConn);
     if (result == nullptr)
     {
-        CLogger::Error("[CDatabase] LoadVars Result Alinamadi: {}", mysql_error(m_pConn));
+        CLogger::Error("[CDatabase] - LoadVars Result Missing: {}", mysql_error(m_pConn));
         return false;
     }
 
     g_pBotManager->ClearVars();
 
     MYSQL_ROW row;
-    int loadedCount = 0;
+    int iLoadNum = 0;
 
     while ((row = mysql_fetch_row(result)))
     {
-        // Şemana göre milimetrik index haritası:
+        // It should match with your DB Table, start with 0 and increase
         // row[0] = element_id
         // row[1] = name
         // row[5] = factor
@@ -647,7 +652,12 @@ bool CDatabase::LoadVars()
         // row[8] = cost902 (crystal)
         // row[9] = cost903 (deuterium)
 
-        if (!row[0] || !row[1]) continue; // Kritik alanlar boşsa atla
+        // not really needed, because vars should always be correct
+		if (!row[0]
+			|| !row[1])
+		{
+			continue;
+		}
 
         table_vars item;
         item.elementID = std::stoi(row[0]);
@@ -657,13 +667,13 @@ bool CDatabase::LoadVars()
         item.costCrystal = row[8] ? std::stod(row[8]) : 0.0;
         item.costDeuterium = row[9] ? std::stod(row[9]) : 0.0;
 
-        // İsme göre hızlıca erişebilmek için haritaya (map) ekliyoruz
-        g_pBotManager->AddGameVar(item.elementID, item);
-        loadedCount++;
+        // addVar to map
+        g_pBotManager->AddVar(item.elementID, item);
+        iLoadNum++;
     }
 
     mysql_free_result(result);
-    CLogger::Info("[CDatabase] {} adet oyun degiskeni (vars) basariyla RAM'e yuklendi.", loadedCount);
+    CLogger::Info("[CDatabase] - Vars NUM : {} (vars) has been successfully loaded.", iLoadNum);
 
     return true;
 }
@@ -672,7 +682,7 @@ bool CDatabase::LoadConfig()
 {
     if (m_pConn == nullptr)
     {
-        CLogger::Error("[CDatabase] LoadConfig - no connection.");
+        CLogger::Error("[CDatabase] - LoadConfig - no connection.");
         return false;
     }
 
@@ -680,14 +690,14 @@ bool CDatabase::LoadConfig()
 
     if (mysql_query(m_pConn, strQuery.c_str()) != 0)
     {
-        CLogger::Error("[CDatabase] LoadConfig query error: {}", mysql_error(m_pConn));
+        CLogger::Error("[CDatabase] - LoadConfig query error: {}", mysql_error(m_pConn));
         return false;
     }
 
     MYSQL_RES* result = mysql_store_result(m_pConn);
     if (result == nullptr)
     {
-        CLogger::Error("[CDatabase] LoadConfig Result Error: {}", mysql_error(m_pConn));
+        CLogger::Error("[CDatabase] - LoadConfig Result Error: {}", mysql_error(m_pConn));
         return false;
     }
 
@@ -706,7 +716,7 @@ bool CDatabase::LoadConfig()
     }
 
     mysql_free_result(result);
-    CLogger::Info("[CDatabase] {}x config row has been loaded. ", loadedCount);
+    CLogger::Info("[CDatabase] - {}x config row has been loaded. ", loadedCount);
 
     return true;
 }
