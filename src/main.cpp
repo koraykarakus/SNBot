@@ -10,10 +10,17 @@
 #include "CLoader.h"
 #include "CLogger.h"
 #include "CBotManager.h"
+#include "CDatabase.h"
 
 std::mutex g_shutdownMutex;
 std::condition_variable g_shutdownCV;
 bool g_bRunning = true;
+
+CBotManager* g_pBotManager = nullptr;
+CDatabase* g_pDatabase = nullptr;
+CLoader* g_pLoader = nullptr;
+bool g_bLoaded = false;
+
 
 void SignalHandler(int signal)
 {
@@ -40,7 +47,11 @@ int main()
 	// terminate signal from sys
 	std::signal(SIGTERM, SignalHandler);
 
-	if (!g_Loader.Init())
+	g_pBotManager = new CBotManager();
+	g_pDatabase = new CDatabase();
+	g_pLoader = new CLoader();
+
+	if (!g_pLoader->Init())
 	{
 		CLogger::Error("Initialization failed!\n");
 		return 1;
@@ -49,8 +60,7 @@ int main()
 	CLogger::Info("server started successfully.\nPress Ctrl+C to exit.\n");
 
 	// thread for bot handlers.
-	std::thread botThread(&CBotManager::Run, &g_BotManager);
-
+	std::thread botThread(&CBotManager::Run, g_pBotManager);
 	// --- main thread wait mode ---
 	// SignalHandler triggers wake.
 	{
@@ -69,8 +79,11 @@ int main()
 		CLogger::Info("Bot thread ended by success.");
 	}
 
+	delete g_pLoader;
+	delete g_pDatabase;
+	delete g_pBotManager;
 	// TODO: save user info and free memory if needed
-	g_Loader.ShutDown();
+	g_pLoader->ShutDown();
 	std::cout << "Server shutdown complete. Exiting program.\n";
 	return 0;
 }

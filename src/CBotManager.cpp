@@ -1,10 +1,9 @@
 ﻿#include "CBotManager.h"
 #include "CLogger.h"
 #include "CDatabase.h"
+#include "CLoader.h"
 
 extern bool g_bRunning;
-
-CBotManager g_BotManager;
 
 CBotManager::CBotManager()
 {
@@ -23,36 +22,45 @@ void CBotManager::Run()
 {
     CLogger::Info("Bot yoneticisi thread'i baslatildi.");
 
-    // --- ÖLÜMCÜL NOKTA: Thread'in ölmemesi için döngü şart! ---
+    // 1. DÖNGÜ: Veritabanı yüklenene kadar thread'i güvenli modda bekletiyoruz
+    while (g_bRunning && !g_bLoaded)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
+
+    // Eğer veriler yüklenmeden sunucu kapatıldıysa thread'i bitir
+    if (!g_bRunning) return;
+
+    CLogger::Info("[Run] Bot ana döngüsü baslatiliyor. Harita Boyutu: {}", m_mapGameVars.size());
+
+    // 2. DÖNGÜ: Botların asıl işi yapacağı sonsuz döngü (g_bLoaded artık TRUE!)
     while (g_bRunning)
     {
         time_t timeNow = std::time(nullptr);
 
-        // Eğer ilk run değilse ve 15 saniye dolmadıysa...
+        // 15 saniyelik bekleme süresi kontrolü
         if (!m_bFirstRun && (timeNow < m_timeLastRun + static_cast<time_t>(wait_time)))
         {
-            // return; YAPARSAN THREAD ÖLÜR! 
-            // O yüzden 'continue' diyerek döngünün başına dönüyoruz ve beklemeye devam ediyoruz.
-            std::this_thread::sleep_for(std::chrono::milliseconds(500)); // İşlemciyi yormamak için kısa uyku
+            std::this_thread::sleep_for(std::chrono::milliseconds(500)); // CPU'yu yormamak için kısa uyku
             continue;
         }
 
+        // --- 15 SANİYEDE BİR BURASI ÇALIŞACAK ---
         HandleBuildings();
-        g_Database.UpdateBots();
-        g_Database.LoadBots();
+        g_pDatabase->UpdateBots();
+        g_pDatabase->LoadBots();
         CLogger::Info("Bot buildings has been handled.");
 
         // Durumları güncelle
         m_bFirstRun = false;
         m_timeLastRun = timeNow;
 
-        // Bir sonraki kontrol için 1 saniye uyu
+        // Kontrol sıklığı için küçük uyku
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
     CLogger::Info("Bot yoneticisi döngüden cikti, thread kapatiliyor...");
 }
-
 
 void CBotManager::HandleBuildings()
 {
@@ -60,18 +68,27 @@ void CBotManager::HandleBuildings()
     const std::vector<int> building_list_destroyer = { 4, 1, 1, 4, 1, 1, 4, 1, 4, 2, 2, 2, 4, 1, 2, 4, 3, 3, 3, 4, 4, 3, 4, 3, 2, 4, 3, 6, 6, 12, 22, 24, 24, 8, 8, 12, 12, 24, 8, 17, 17, 18, 18, 18, 25, 25, 17, 10, 25, 22, 22, 12, 12, 12, 24, 24, 24, 20, 20, 4, 1, 1, 4, 2, 2, 2, 2, 1, 4, 3, 1, 9, 8, 21, 21, 31, 4, 1, 2, 1, 9, 10, 11, 4, 2, 2, 1, 4, 3, 2, 8, 22, 27, 27, 27, 27, 27, 28, 28, 25, 9, 10, 11, 4, 22, 1, 2, 3, 12, 12, 32, 33, 34, 32, 33, 32, 33, 34, 32, 33, 32, 33, 34, 34, 4, 3, 1, 18, 10, 9, 11, 31, 21, 21, 21, 4, 3, 2, 1, 34, 33, 32, 34, 18, 8, 8, 20, 20, 20, 23, 23, 23, 9, 10, 11, 26, 26, 26, 26, 6, 6, 6, 4, 1, 2, 18, 31, 19, 20, 21, 9, 10, 11, 1, 19, 8, 8, 4, 1, 3, 33, 34, 32, 23, 23, 6, 6, 4, 2, 3, 1, 9, 10, 26, 33, 34, 9, 4, 11, 2, 2, 3, 26, 18, 18, 18, 6, 6, 6, 18, 7, 19, 19, 19, 31, 31, 19 };
     const std::vector<int> building_list_deathstar = { 4, 1, 1, 4, 1, 1, 4, 1, 4, 2, 2, 2, 4, 1, 2, 4, 3, 3, 3, 4, 4, 3, 4, 3, 2, 4, 3, 6, 6, 12, 22, 24, 24, 8, 8, 12, 12, 24, 8, 17, 17, 18, 18, 18, 25, 25, 17, 10, 25, 22, 22, 12, 12, 12, 24, 24, 24, 20, 20, 4, 1, 1, 4, 2, 2, 2, 2, 1, 4, 3, 1, 9, 8, 21, 21, 31, 4, 1, 2, 1, 9, 10, 11, 4, 2, 2, 1, 4, 3, 2, 8, 22, 27, 27, 27, 27, 27, 28, 28, 25, 9, 10, 11, 4, 22, 1, 2, 3, 12, 12, 32, 33, 34, 32, 33, 32, 33, 34, 32, 33, 32, 33, 34, 34, 4, 3, 1, 18, 10, 9, 11, 31, 21, 21, 21, 4, 3, 2, 1, 34, 33, 32, 34, 18, 8, 8, 20, 20, 20, 23, 23, 23, 9, 10, 11, 26, 26, 26, 26, 6, 6, 6, 4, 1, 2, 18, 31, 19, 20, 21, 9, 10, 11, 1, 19, 8, 8, 4, 1, 3, 33, 34, 32, 23, 23, 6, 6, 4, 2, 3, 1, 9, 10, 26, 33, 34, 9, 4, 11, 2, 2, 3, 26, 18, 18, 18, 6, 6, 6, 18, 7, 19, 19, 19, 31, 31, 19, 4, 3, 1, 4, 2, 1, 3, 32, 32, 33, 34, 32, 33, 34, 23, 10, 9, 11, 26, 4, 1, 2, 3, 12, 12, 8, 12, 12, 35, 8, 8, 9, 10, 11, 10, 9, 19, 20, 21, 19, 20, 21, 19, 20, 21, 19, 20, 21, 4, 2, 3, 4, 1, 2, 3, 31, 31, 31, 31 };
 
-    double game_speed = 1.0;
     time_t currentTime = std::time(nullptr);
 
     for (auto& bot : m_vecBots)
     {
-        const std::vector<int>* pTargetList = (bot.id % 2 != 0) ? &building_list_destroyer : &building_list_deathstar;
-        const std::vector<int>& target_building_list = *pTargetList;
+        // game speed for uni
+        auto it = m_mapConfig.find(bot.universe);
+        if (it == m_mapConfig.end())
+        {
+            CLogger::Error("Config tablosunda uni_id '{}' bulunamadi!", bot.universe);
+            continue;
+        }
+        const table_config& config = it->second;
+        unsigned long long game_speed = std::floor(config.game_speed / 2500);
+        // game speed for uni
 
         for (auto& planet : bot.vecPlanets)
         {
-            if (planet.b_building > 0 || bot.b_tech > 0)
+            if (planet.b_building > 0 
+                || bot.b_tech > 0)
             {
+                CLogger::Info("SKIP [botID: {} - planetID: {}], building already !",bot.id,planet.id);
                 continue;
             }
 
@@ -121,6 +138,9 @@ void CBotManager::HandleBuildings()
             int simulated_levels[200] = { 0 };
             int target_element_id = -1;
 
+            const std::vector<int>* pTargetList = (bot.id % 2 != 0) ? &building_list_destroyer : &building_list_deathstar;
+            const std::vector<int>& target_building_list = *pTargetList;
+
             // Listeyi tarıyoruz (Artık listeden çıkan değer direkt gerçek ID)
             for (size_t m = 0; m < target_building_list.size(); ++m)
             {
@@ -142,9 +162,10 @@ void CBotManager::HandleBuildings()
 
             // ARTIK MAPPING YOK! Doğrudan listeden bulduğumuz ID'yi haritada aratıyoruz
             auto it = m_mapGameVars.find(target_element_id);
+            CLogger::Info("[Run Debug] Harita Boyutu: {}", m_mapGameVars.size());
             if (it == m_mapGameVars.end())
             {
-                CLogger::Error("Vars tablosunda element_id '{}' bulunamadi!", target_element_id);
+                CLogger::Error("WRONG ELEMENT ID:{} , NOT FOUND !", target_element_id);
                 continue;
             }
 
@@ -156,8 +177,11 @@ void CBotManager::HandleBuildings()
             double required_crystal = std::round(varItem.costCrystal * std::pow(varItem.factor, current_level));
             double required_deuterium = std::round(varItem.costDeuterium * std::pow(varItem.factor, current_level));
 
-            if (planet.metal < required_metal || planet.crystal < required_crystal || planet.deuterium < required_deuterium)
+            if (planet.metal < required_metal 
+                || planet.crystal < required_crystal 
+                || planet.deuterium < required_deuterium)
             {
+                CLogger::Info("SKIP [botID: {} - planetID: {}], resources not sufficient !", bot.id, planet.id);
                 continue;
             }
 

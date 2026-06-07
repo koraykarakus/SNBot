@@ -8,7 +8,9 @@ public:
 	bool Init();
 	bool LoadBotsFromDatabase();
 	bool LoadVarsFromDatabase();
+	bool LoadConfigFromDatabase();
 	void ShutDown();
 };
 
-extern CLoader g_Loader;
+extern CLoader* g_pLoader;
+extern bool g_bLoaded;

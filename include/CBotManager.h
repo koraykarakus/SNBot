@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include "table_users.h"
 #include "table_vars.h"
+#include "table_config.h"
 
 class CBotManager 
 {
@@ -13,6 +14,7 @@ private:
 
 	std::vector<table_users> m_vecBots;
 	std::unordered_map<int, table_vars> m_mapGameVars;
+	std::unordered_map<int, table_config> m_mapConfig; // for multiverse
 public:
 	CBotManager();
 	~CBotManager();
@@ -34,9 +36,19 @@ public:
 		m_mapGameVars.clear();
 	}
 
+	inline void ClearConfig()
+	{
+		m_mapConfig.clear();
+	}
+
 	inline void AddGameVar(int elementID, const table_vars& item)
 	{
 		m_mapGameVars[elementID] = item;
+	}
+
+	inline void AddConfig(int uni, const table_config& item)
+	{
+		m_mapConfig[uni] = item;
 	}
 
 	const std::vector<table_users>& GetBots() const
@@ -60,4 +72,4 @@ public:
 
 };
 
-extern CBotManager g_BotManager;
+extern CBotManager* g_pBotManager;

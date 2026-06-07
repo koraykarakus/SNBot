@@ -3,7 +3,6 @@
 #include "CDatabase.h"
 #include "CBotManager.h"
 
-CLoader g_Loader;
 
 CLoader::CLoader()
 {
@@ -17,28 +16,35 @@ bool CLoader::Init()
 {
     // init game constants
 
-    if (!g_Database.Connect())
+    if (!g_pDatabase->Connect())
     {
         return false;
     }
 
     if (!LoadBotsFromDatabase()
-        || !LoadVarsFromDatabase())
+        || !LoadVarsFromDatabase()
+        || !LoadConfigFromDatabase())
     {
         return false;
     }
 
+    g_bLoaded = true;
     return true;
 }
 
 bool CLoader::LoadBotsFromDatabase()
 {
-    return g_Database.LoadBots();
+    return g_pDatabase->LoadBots();
 }
 
 bool CLoader::LoadVarsFromDatabase() 
 {
-    return g_Database.LoadVars();
+    return g_pDatabase->LoadVars();
+}
+
+bool CLoader::LoadConfigFromDatabase()
+{
+    return g_pDatabase->LoadConfig();
 }
 
 void CLoader::ShutDown()

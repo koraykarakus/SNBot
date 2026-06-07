@@ -4,10 +4,9 @@
 #include "SimpleIni.h"
 #include "table_users.h"
 #include "table_vars.h"
+#include "table_config.h"
 
 #include <filesystem>
-
-CDatabase g_Database;
 
 CDatabase::CDatabase()
     : m_pConn(nullptr)
@@ -139,7 +138,7 @@ bool CDatabase::LoadBots()
     uint64_t rowCount = mysql_num_rows(result);
     CLogger::Info("Found {} bots in database.", rowCount);
 
-    g_BotManager.ClearBots();
+    g_pBotManager->ClearBots();
 
     MYSQL_ROW row;
     while ((row = mysql_fetch_row(result)))
@@ -187,7 +186,7 @@ bool CDatabase::LoadBots()
         // En sondaki is_bot kolonu (Tam 99. index)
         bot.is_bot = row[99] ? (std::stoi(row[99]) != 0) : false;
 
-        g_BotManager.AddBot(bot);
+        g_pBotManager->AddBot(bot);
         CLogger::Info("Bot Loaded -> ID: {}, Name: {}", bot.id, bot.strUserName);
     }
     mysql_free_result(result);
@@ -336,7 +335,7 @@ bool CDatabase::LoadBots()
         pl.version = plRow[96] ? std::stoull(plRow[96]) : 0;
 
         // 2. İşin Büyüsü: Gezegenin sahibini BotManager vasıtasıyla bulup vektörüne atıyoruz
-        table_users* pTargetBot = g_BotManager.GetBotRef(pl.id_owner);
+        table_users* pTargetBot = g_pBotManager->GetBotRef(pl.id_owner);
         if (pTargetBot != nullptr)
         {
             pTargetBot->vecPlanets.push_back(pl);
@@ -355,7 +354,7 @@ bool CDatabase::LoadBots()
 
 bool CDatabase::UpdateBots()
 {
-    const std::vector<table_users>& pBots = g_BotManager.GetBots();
+    const std::vector<table_users>& pBots = g_pBotManager->GetBots();
 
     if (pBots.empty())
     {
@@ -634,7 +633,7 @@ bool CDatabase::LoadVars()
     }
 
     // Yüklemeden önce mevcut haritayı temizleyelim
-    g_BotManager.ClearVars(); // BotManager içinde m_mapGameVars.clear() yapan fonksiyon
+    g_pBotManager->ClearVars(); // BotManager içinde m_mapGameVars.clear() yapan fonksiyon
 
     MYSQL_ROW row;
     int loadedCount = 0;
@@ -660,12 +659,55 @@ bool CDatabase::LoadVars()
         item.costDeuterium = row[9] ? std::stod(row[9]) : 0.0;
 
         // İsme göre hızlıca erişebilmek için haritaya (map) ekliyoruz
-        g_BotManager.AddGameVar(item.elementID, item);
+        g_pBotManager->AddGameVar(item.elementID, item);
         loadedCount++;
     }
 
     mysql_free_result(result);
     CLogger::Info("[CDatabase] {} adet oyun degiskeni (vars) basariyla RAM'e yuklendi.", loadedCount);
+
+    return true;
+}
+
+bool CDatabase::LoadConfig() 
+{
+    if (m_pConn == nullptr)
+    {
+        CLogger::Error("[CDatabase] LoadConfig - no connection.");
+        return false;
+    }
+
+    std::string strQuery = "SELECT * FROM `" + m_strDBPrefix + "config`";
+
+    if (mysql_query(m_pConn, strQuery.c_str()) != 0)
+    {
+        CLogger::Error("[CDatabase] LoadConfig query error: {}", mysql_error(m_pConn));
+        return false;
+    }
+
+    MYSQL_RES* result = mysql_store_result(m_pConn);
+    if (result == nullptr)
+    {
+        CLogger::Error("[CDatabase] LoadConfig Result Error: {}", mysql_error(m_pConn));
+        return false;
+    }
+
+	g_pBotManager->ClearConfig();
+
+    MYSQL_ROW row;
+    int loadedCount = 0;
+
+    while ((row = mysql_fetch_row(result)))
+    {
+        table_config item;
+        item.uni = std::stoi(row[0]);
+        item.game_speed = std::stoll(row[4]);
+        g_pBotManager->AddConfig(item.uni, item);
+        loadedCount++;
+    }
+
+    mysql_free_result(result);
+    CLogger::Info("[CDatabase] {}x config row has been loaded. ", loadedCount);
 
     return true;
 }

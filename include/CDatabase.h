@@ -22,9 +22,10 @@ public:
     void Disconnect();
     bool LoadBots();
     bool LoadVars();
+    bool LoadConfig();
     bool UpdateBots();
 
     MYSQL* GetConnection() const { return m_pConn; }
 };
 
-extern CDatabase g_Database;
+extern CDatabase* g_pDatabase;
