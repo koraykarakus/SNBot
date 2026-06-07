@@ -76,7 +76,7 @@ int main()
 	if (botThread.joinable())
 	{
 		botThread.join();
-		CLogger::Info("Bot thread ended by success.");
+		CLogger::Info("Bot thread ended by success.\n");
 	}
 
 	delete g_pLoader;

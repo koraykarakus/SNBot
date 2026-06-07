@@ -5,10 +5,24 @@
 #include "table_vars.h"
 #include "table_config.h"
 
+template <typename T>
+const T& GetMax(const T& a, const T& b)
+{
+	return (a < b) ? b : a;
+}
+
+template <typename T>
+const T& GetMin(const T& a, const T& b)
+{
+	return (b < a) ? b : a;
+}
+
+using PhpArray = std::vector<std::string>;
+
 class CBotManager 
 {
 private:
-	static const int wait_time = 1 * 60;
+	static const int wait_time = 1 * 30;
 	time_t m_timeLastRun;
 	bool m_bFirstRun;
 
@@ -66,9 +80,31 @@ public:
 		return nullptr;
 	}
 
+	const table_config* GetConfigByUniID(int uni) const
+	{
+		auto it = m_mapConfig.find(uni);
+		if (it == m_mapConfig.end())
+		{
+			return nullptr;
+		}
+		return &it->second;
+	}
+
 	// handlers
 	void HandleResourceUpdate();
 	void HandleBuildings();
+	
+	// resource update helpers
+	bool BuildingQueue(table_planets& planet);
+	bool ResearchQueue(table_users& user);
+	void UpdateResource(table_planets& planet);
+	void UpdateCache(table_planets& planet);
+	void ExecCalc(table_planets& planet, time_t production_time);
+
+
+	// php helpers
+	PhpArray php_unserialize(const std::string& serialized_data);
+	std::string php_serialize(const PhpArray& arr);
 
 };
 
