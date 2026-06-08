@@ -92,7 +92,7 @@ void CBotManager::HandleResourceUpdate()
                 ResearchQueue(bot);
             }
 
-            UpdateResource(planet);
+            UpdateResource(planet, bot);
             
         }
     }
@@ -185,7 +185,7 @@ bool CBotManager::ResearchQueue(table_users& user)
     return true;
 }
 
-void CBotManager::UpdateResource(table_planets& planet)
+void CBotManager::UpdateResource(table_planets& planet, table_users& user)
 {
     time_t timeNow = std::time(nullptr);
     time_t production_time = timeNow - planet.last_update;
@@ -209,14 +209,154 @@ void CBotManager::UpdateResource(table_planets& planet)
             }
         }
         */
+        UpdateCache(planet, user);
         ExecCalc(planet, production_time);
     }
 }
 
-void CBotManager::UpdateCache(table_planets& planet) 
+
+void CBotManager::UpdateCache(table_planets& planet, table_users& user)
 {
-    // todo
+    const table_config* pConfig = GetConfigByUniID(planet.universe);
+
+    if (pConfig == nullptr)
+    {
+        CLogger::Info("ExecCalc - Config for bot not found !");
+        return;
+    }
+
+    int metal_basic_income = pConfig->metal_basic_income;
+    int crystal_basic_income = pConfig->crystal_basic_income;
+    int deuterium_basic_income = pConfig->deuterium_basic_income;
+    if (planet.planet_type == 3)
+    {
+        metal_basic_income = 0;
+        crystal_basic_income = 0;
+        deuterium_basic_income = 0;
+    }
+
+    std::map<int, std::map<std::string, int>> temp = {
+        {901, {{"max", 0}, {"plus", 0}, {"minus", 0}}},
+        {902, {{"max", 0}, {"plus", 0}, {"minus", 0}}},
+        {903, {{"max", 0}, {"plus", 0}, {"minus", 0}}},
+        {911, {{"plus", 0}, {"minus", 0}}} 
+    };
+    
+    int build_temp = planet.temp_max;
+    int build_energy = user.resource[113];
+    int build_level = 0;
+
+    // prod_id = 22, 23, 24
+    for(const auto prod_id : G_RESLIST.storage)
+    {
+        // id = 901,902,903
+        for(const auto id : G_RESLIST.resstype[1])
+        {
+            build_level = planet.resource[prod_id];
+
+            if (id == 901 && prod_id == 22)
+            {
+                temp[901]["max"] += round(floor(2.5 * pow(1.8331954764, build_level)) * 5000);
+            }
+            else if (id == 902 && prod_id == 23)
+            {
+                temp[902]["max"] += round(floor(2.5 * pow(1.8331954764, build_level)) * 5000);
+            }
+            else if (id == 903 && prod_id == 24)
+            {
+                temp[903]["max"] += round(floor(2.5 * pow(1.8331954764, build_level)) * 5000);
+            }
+
+        }
+    }
+
+    std::vector<int> ress_ids;
+    ress_ids.reserve(G_RESLIST.resstype[1].size() + G_RESLIST.resstype[2].size());
+    ress_ids.insert(ress_ids.end(), G_RESLIST.resstype[1].begin(), G_RESLIST.resstype[1].end());
+    ress_ids.insert(ress_ids.end(), G_RESLIST.resstype[2].begin(), G_RESLIST.resstype[2].end());
+
+    // 1,2,3,4,12,212
+    for(const auto prod_id : G_RESLIST.prod)
+    {
+        int build_level_factor = 0;
+        build_level = planet.resource[prod_id];
+        int production = 0, consumption = 0;
+        if (prod_id == 1)
+        {
+            build_level_factor = std::stoi(planet.metal_mine_percent);
+            production = (30 * build_level * pow((1.1), build_level)) * (0.1 * build_level_factor);
+            temp[901]["plus"] += production;
+            consumption = -(10 * build_level * pow((1.1), build_level)) * (0.1 * build_level_factor);
+            temp[911]["minus"] += consumption;
+        }
+        else if (prod_id == 2)
+        {
+            build_level_factor = std::stoi(planet.crystal_mine_percent);
+            production = (20 * build_level * pow((1.1), build_level)) * (0.1 * build_level_factor);
+            temp[902]["plus"] += production;
+            consumption = -(10 * build_level * pow((1.1), build_level)) * (0.1 * build_level_factor);
+            temp[911]["minus"] += consumption;
+        }
+        else if (prod_id == 3)
+        {
+            build_level_factor = std::stoi(planet.deuterium_synthesizer_percent);
+            production = (10 * build_level * pow((1.1), build_level) * (-0.002 * build_temp + 1.28) * (0.1 * build_level_factor));
+            temp[903]["plus"] += production;
+            consumption = -(30 * build_level * pow((1.1), build_level)) * (0.1 * build_level_factor);
+            temp[911]["minus"] += consumption;
+        }
+        else if (prod_id == 4)
+        {
+            build_level_factor = std::stoi(planet.solar_plant_percent);
+            production = (20 * build_level * pow((1.1), build_level)) * (0.1 * build_level_factor);
+            temp[911]["plus"] += production;
+        }
+        else if (prod_id == 12)
+        {
+            build_level_factor = std::stoi(planet.fusion_plant_percent);
+            production = 30 * build_level * pow(1.05 + (build_energy * 0.01), build_level) * (0.1 * build_level_factor);
+            temp[911]["plus"] += production;
+            consumption = -(10 * build_level * pow(1.1, build_level) * (0.1 * build_level_factor));
+            temp[903]["minus"] += consumption;
+        }
+        else if (prod_id == 212)
+        {
+            build_level_factor = std::stoi(planet.solar_satellite_percent);
+            production = (((build_temp + 160) / 6)* (0.1 * build_level_factor)* build_level);
+            temp[911]["plus"] += production;
+        }
+
+        
+    }
+
+    planet.metal_max = temp[901]["max"] * pConfig->storage_multiplier * (1 + user.factor["ResourceStorage"]);
+    planet.crystal_max = temp[902]["max"] * pConfig->storage_multiplier * (1 + user.factor["ResourceStorage"]);
+    planet.deuterium_max = temp[903]["max"] * pConfig->storage_multiplier * (1 + user.factor["ResourceStorage"]);
+    
+    CLogger::Info("UpdateCache : metal_max:{},crystal_max:{},deu_max:{},bot_id:{}", 
+        planet.metal_max, 
+        planet.crystal_max, 
+        planet.deuterium_max, 
+        user.id);
+    
+    planet.energy = std::round(temp[911]["plus"] * pConfig->energySpeed * (1 + user.factor["Energy"]));
+    planet.energy_used = temp[911]["minus"] * pConfig->energySpeed;
+    if (planet.energy_used == 0)
+    {
+        planet.metal_perhour = 0;
+        planet.crystal_perhour = 0;
+        planet.deuterium_perhour = 0;
+    }
+    else
+    {
+        double prod_level = GetMin(static_cast<double>(1), planet.energy / std::abs(planet.energy_used));
+
+        planet.metal_perhour = (temp[901]["plus"] * (1 + user.factor["Resource"] + 0.02 * user.resource[131]) * prod_level + temp[901]["minus"]) * pConfig->resource_multiplier;
+        planet.crystal_perhour = (temp[902]["plus"] * (1 + user.factor["Resource"] + 0.02 * user.resource[132]) * prod_level + temp[902]["minus"]) * pConfig->resource_multiplier;
+        planet.deuterium_perhour = (temp[903]["plus"] * (1 + user.factor["Resource"] + 0.02 * user.resource[133]) * prod_level + temp[903]["minus"]) * pConfig->resource_multiplier;
+    }
 }
+
 
 void CBotManager::ExecCalc(table_planets& planet, time_t production_time)
 {
@@ -424,15 +564,30 @@ void CBotManager::HandleBuildings()
             int current_level = current_levels[target_element_id];
             int level_up = current_level + 1;
 
-            double required_metal = std::round(varItem.costMetal * std::pow(varItem.factor, current_level));
-            double required_crystal = std::round(varItem.costCrystal * std::pow(varItem.factor, current_level));
-            double required_deuterium = std::round(varItem.costDeuterium * std::pow(varItem.factor, current_level));
+            double required_metal = std::round(varItem.cost901 * std::pow(varItem.factor, current_level));
+            double required_crystal = std::round(varItem.cost902 * std::pow(varItem.factor, current_level));
+            double required_deuterium = std::round(varItem.cost903 * std::pow(varItem.factor, current_level));
 
             if (planet.metal < required_metal 
                 || planet.crystal < required_crystal 
                 || planet.deuterium < required_deuterium)
             {
-                CLogger::Info("[CBotManager] - SKIP [botID:{} - planetID:{}], not enough resources for element id :{}\n", bot.id, planet.id, varItem.elementID);
+                CLogger::Info("[CBotManager] - SKIP [botID:{} - planetID:{}]\n"
+                    "coordinates:[{}:{}:{}] - email:[{}] \n"
+                    "not enough resources for element id:{} \n"
+                    "required: [metal:{}|crystal:{}|deu:{}]\n"
+                    "have: [metal:{}|crystal:{}|deu:{}]\n", 
+                    bot.id, 
+                    planet.id,
+                    planet.galaxy,planet.system,planet.planet,
+                    bot.email,
+                    varItem.element_id, 
+                    required_metal, 
+                    required_crystal, 
+                    required_deuterium,
+                    planet.metal,
+                    planet.crystal,
+                    planet.deuterium);
                 continue;
             }
 
@@ -448,7 +603,7 @@ void CBotManager::HandleBuildings()
                 time_t endTime = currentTime + static_cast<time_t>(buildTime);
                 planet.b_building = endTime;
 
-                planet.b_building_id = "a:1:{i:0;a:5:{i:0;i:" + std::to_string(varItem.elementID) +
+                planet.b_building_id = "a:1:{i:0;a:5:{i:0;i:" + std::to_string(varItem.element_id) +
                     ";i:1;i:" + std::to_string(level_up) +
                     ";i:2;i:" + std::to_string(static_cast<int>(buildTime)) +
                     ";i:3;i:" + std::to_string(endTime) + ";i:4;s:5:\"build\";}}";
@@ -464,10 +619,10 @@ void CBotManager::HandleBuildings()
 
                 bot.b_tech_planet = planet.id;
                 bot.b_tech = endTime;
-                bot.b_tech_id = varItem.elementID;
+                bot.b_tech_id = varItem.element_id;
 
                 // todo : check this order
-                bot.b_tech_queue = "a:1:{i:0;a:5:{i:0;i:" + std::to_string(varItem.elementID) +
+                bot.b_tech_queue = "a:1:{i:0;a:5:{i:0;i:" + std::to_string(varItem.element_id) +
                     ";i:1;i:" + std::to_string(level_up) +
                     ";i:2;i:" + std::to_string(static_cast<int>(buildTime)) +
                     ";i:3;i:" + std::to_string(endTime) +

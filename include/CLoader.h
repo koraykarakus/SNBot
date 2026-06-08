@@ -9,6 +9,7 @@ public:
 	bool LoadBotsFromDatabase();
 	bool LoadVarsFromDatabase();
 	bool LoadConfigFromDatabase();
+	bool SetBotFactors();
 	void ShutDown();
 };
 

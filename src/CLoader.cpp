@@ -19,9 +19,9 @@ bool CLoader::Init()
         return false;
     }
 
-    if (!LoadBotsFromDatabase()
-        || !LoadVarsFromDatabase()
-        || !LoadConfigFromDatabase())
+    if (!LoadVarsFromDatabase()
+        || !LoadConfigFromDatabase()
+        || !LoadBotsFromDatabase())
     {
         return false;
     }

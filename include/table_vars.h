@@ -2,10 +2,10 @@
 #include <string>
 
 struct table_vars {
-    int elementID;
-    std::string name;
-    double costMetal;     // cost901
-    double costCrystal;   // cost902
-    double costDeuterium; // cost903
-    double factor;
+	int element_id;
+	std::string name;
+	unsigned long long cost901;
+	unsigned long long cost902;
+	unsigned long long cost903;
+	float factor;
 };

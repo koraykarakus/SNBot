@@ -146,6 +146,7 @@ bool CDatabase::LoadBots()
 
         bot.id = row[0] ? std::stoi(row[0]) : 0;
         bot.strUserName = row[1] ? row[1] : "";
+        bot.email = row[3] ? row[3] : "";
 
         // fill the struct with respect to index order.
         bot.id_planet = row[9] ? std::stoi(row[9]) : 0;
@@ -185,7 +186,7 @@ bool CDatabase::LoadBots()
 
         // column is_bot to simplify
         bot.is_bot = row[99] ? (std::stoi(row[99]) != 0) : false;
-
+        bot.SetFactor();
         g_pBotManager->AddBot(bot);
         CLogger::Info("[CDatabase] - Bot Loaded -> ID: {}, Name: {}", bot.id, bot.strUserName);
     }
@@ -646,33 +647,151 @@ bool CDatabase::LoadVars()
 
     while ((row = mysql_fetch_row(result)))
     {
-        // It should match with your DB Table, start with 0 and increase
-        // row[0] = element_id
-        // row[1] = name
-        // row[5] = factor
-        // row[7] = cost901 (metal)
-        // row[8] = cost902 (crystal)
-        // row[9] = cost903 (deuterium)
-
-        // not really needed, because vars should always be correct
-		if (!row[0]
-			|| !row[1])
-		{
-			continue;
-		}
+        // row[0] = element_id, row[1] = name
+        if (!row[0] || !row[1])
+        {
+            continue;
+        }
 
         table_vars item;
-        item.elementID = std::stoi(row[0]);
+        item.element_id = std::stoi(row[0]);
         item.name = row[1];
-        item.factor = row[5] ? std::stod(row[5]) : 1.0;
-        item.costMetal = row[7] ? std::stod(row[7]) : 0.0;
-        item.costCrystal = row[8] ? std::stod(row[8]) : 0.0;
-        item.costDeuterium = row[9] ? std::stod(row[9]) : 0.0;
 
-        // addVar to map
-        g_pBotManager->AddVar(item.elementID, item);
+        item.factor = row[5] ? std::stof(row[5]) : 1.0;
+        item.cost901 = row[7] ? std::stoll(row[7]) : 0;  
+        item.cost902 = row[8] ? std::stoll(row[8]) : 0;
+        item.cost903 = row[9] ? std::stoll(row[9]) : 0;
+
+        int id = item.element_id;
+
+        // 1. PHP: $RESOURCE
+        G_RESOURCE[id] = item.name;
+
+        // 2. PHP: $COMBATCAPS (Sırasıyla attack ve defend kolonları)
+        G_COMBATCAPS[id].attack = row[22] ? std::stod(row[22]) : 0.0; // attack
+        G_COMBATCAPS[id].shield = row[23] ? std::stod(row[23]) : 0.0; // defend (shield)
+
+        // 3. PHP: $PRICELIST -> cost & Temel veriler
+        G_PRICELIST[id].cost[901] = item.cost901;
+        G_PRICELIST[id].cost[902] = item.cost902;
+        G_PRICELIST[id].cost[903] = item.cost903;
+        G_PRICELIST[id].cost[911] = row[10] ? std::stod(row[10]) : 0.0; // cost911 (energy)
+        G_PRICELIST[id].cost[921] = row[11] ? std::stod(row[11]) : 0.0; // cost921 (dark matter)
+
+        G_PRICELIST[id].factor = item.factor;
+        G_PRICELIST[id].max = row[6] ? std::stoi(row[6]) : 0;   // max_level
+        G_PRICELIST[id].consumption = row[12] ? std::stod(row[12]) : 0.0; // consumption1
+        G_PRICELIST[id].consumption2 = row[13] ? std::stod(row[13]) : 0.0; // consumption2
+        G_PRICELIST[id].speed = row[15] ? std::stod(row[15]) : 0.0; // speed1
+        G_PRICELIST[id].speed2 = row[16] ? std::stod(row[16]) : 0.0; // speed2
+        G_PRICELIST[id].capacity = row[21] ? std::stod(row[21]) : 0.0; // capacity
+        G_PRICELIST[id].tech = row[14] ? std::stoi(row[14]) : 0;   // speed_tech
+        G_PRICELIST[id].time = row[24] ? std::stod(row[24]) : 0.0; // time_bonus
+
+        // PHP: $PRICELIST -> bonus alanları ve unit (çarpan/birim) değerleri
+        G_PRICELIST[id].bonus["Attack"] = { row[25] ? std::stod(row[25]) : 0.0, row[43] ? std::stoi(row[43]) : 0 }; // bonus_attack , _unit
+        G_PRICELIST[id].bonus["Defensive"] = { row[26] ? std::stod(row[26]) : 0.0, row[44] ? std::stoi(row[44]) : 0 }; // bonus_defensive , _unit
+        G_PRICELIST[id].bonus["Shield"] = { row[27] ? std::stod(row[27]) : 0.0, row[45] ? std::stoi(row[45]) : 0 }; // bonus_shield , _unit
+        G_PRICELIST[id].bonus["BuildTime"] = { row[28] ? std::stod(row[28]) : 0.0, row[46] ? std::stoi(row[46]) : 0 }; // bonus_build_time , _unit
+        G_PRICELIST[id].bonus["ResearchTime"] = { row[29] ? std::stod(row[29]) : 0.0, row[47] ? std::stoi(row[47]) : 0 }; // bonus_research_time , _unit
+        G_PRICELIST[id].bonus["Resource"] = { row[32] ? std::stod(row[32]) : 0.0, row[50] ? std::stoi(row[50]) : 0 }; // bonus_resource , _unit
+        G_PRICELIST[id].bonus["Energy"] = { row[33] ? std::stod(row[33]) : 0.0, row[51] ? std::stoi(row[51]) : 0 }; // bonus_energy , _unit
+
+        // 4. PHP: $PRODGRID -> production
+        G_PRODGRID[id].production[901] = row[62] ? row[62] : ""; // production901
+        G_PRODGRID[id].production[902] = row[63] ? row[63] : ""; // production902
+        G_PRODGRID[id].production[903] = row[64] ? row[64] : ""; // production903
+        G_PRODGRID[id].production[911] = row[65] ? row[65] : ""; // production911
+        G_PRODGRID[id].production[921] = row[66] ? row[66] : ""; // production921
+
+        // PHP: $PRODGRID -> storage
+        G_PRODGRID[id].storage[901] = row[67] ? row[67] : ""; // storage901
+        G_PRODGRID[id].storage[902] = row[68] ? row[68] : ""; // storage902
+        G_PRODGRID[id].storage[903] = row[69] ? row[69] : ""; // storage903
+
+        // PHP: array_filter($PRODGRID...['production'])
+        if (!G_PRODGRID[id].production[901].empty()
+            || !G_PRODGRID[id].production[902].empty()
+            || !G_PRODGRID[id].production[903].empty()
+            || !G_PRODGRID[id].production[911].empty())
+        {
+            G_RESLIST.prod.push_back(id);
+        }
+
+        // PHP: array_filter($PRODGRID...['storage'])
+        if (!G_PRODGRID[id].storage[901].empty()
+            || !G_PRODGRID[id].storage[902].empty()
+            || !G_PRODGRID[id].storage[903].empty())
+        {
+            G_RESLIST.storage.push_back(id);
+        }
+
+        // PHP: Bonus toplamı kontrolü
+        double checkBonus = 0.0;
+        for (const auto& b : G_PRICELIST[id].bonus) {
+            checkBonus += b.second.value;
+        }
+        if (checkBonus != 0.0)
+        {
+            G_RESLIST.bonus.push_back(id);
+        }
+
+        // PHP: if ($varsRow['one_per_planet'] == 1)
+        if (row[4] && std::stoi(row[4]) == 1) // one_per_planet kolonu
+        {
+            G_RESLIST.one.push_back(id);
+        }
+
+        // PHP: switch ($varsRow['class'])
+        int itemClass = row[2] ? std::stoi(row[2]) : -1; // class kolonu (0, 100, 200 vb.)
+        switch (itemClass)
+        {
+        case 0:
+            G_RESLIST.build.push_back(id);
+            // PHP: $tmp = explode(',', $varsRow['on_planet_type']);
+            if (row[4]) // on_planet_type kolonu ("1,2,3")
+            {
+                std::stringstream ss(row[4]);
+                std::string token;
+                while (std::getline(ss, token, ',')) {
+                    if (!token.empty()) {
+                        int type = std::stoi(token);
+                        G_RESLIST.allow[type].push_back(id);
+                    }
+                }
+            }
+            break;
+        case 100:  G_RESLIST.tech.push_back(id);      break;
+        case 200:  G_RESLIST.fleet.push_back(id);     break;
+        case 400:  G_RESLIST.defense.push_back(id);   break;
+        case 500:  G_RESLIST.missile.push_back(id);   break;
+        case 600:  G_RESLIST.officers.push_back(id);  break;
+        case 700:  G_RESLIST.dmfunc.push_back(id);    break;
+        }
+
+        // Orijinal haritaya kayıt fonksiyonun
+        g_pBotManager->AddVar(item.element_id, item);
         iLoadNum++;
     }
+
+    // --- VERİTABANINDA OLMAYAN EKSTRA ID'LERİN MANUEL EKLENMESİ ---
+
+// 1. G_RESOURCE Tanımlamaları
+    G_RESOURCE[901] = "metal";
+    G_RESOURCE[902] = "crystal";
+    G_RESOURCE[903] = "deuterium";
+    G_RESOURCE[911] = "energy";
+    G_RESOURCE[921] = "darkmatter";
+
+    // 2. G_RESLIST -> ressources listesi [901, 902, 903, 911, 921]
+    G_RESLIST.ressources.insert(G_RESLIST.ressources.end(), { 901, 902, 903, 911, 921 });
+
+    // 3. G_RESLIST -> resstype listeleri
+    G_RESLIST.resstype[1].insert(G_RESLIST.resstype[1].end(), { 901, 902, 903 });
+    G_RESLIST.resstype[2].push_back(911);
+    G_RESLIST.resstype[3].push_back(921);
+
+    // --- EKLEME BİTİŞİ ---
 
     mysql_free_result(result);
     CLogger::Info("[CDatabase] - Vars NUM : {} (vars) has been successfully loaded.", iLoadNum);
@@ -714,10 +833,12 @@ bool CDatabase::LoadConfig()
         item.uni = std::stoi(row[0]);
         item.game_speed = std::stoll(row[4]);
         item.resource_multiplier = std::stoi(row[6]);
+        item.storage_multiplier = std::stoi(row[7]);
         item.metal_basic_income = std::stoi(row[18]);
         item.crystal_basic_income = std::stoi(row[19]);
         item.deuterium_basic_income = std::stoi(row[20]);
         item.max_overflow = std::stod(row[92]);
+        item.energySpeed = std::stoi(row[114]);
 
         g_pBotManager->AddConfig(item.uni, item);
         loadedCount++;

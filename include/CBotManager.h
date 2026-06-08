@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include <vector>
 #include <unordered_map>
+#include <map>
+#include "globals.h"
 #include "table_users.h"
 #include "table_vars.h"
 #include "table_config.h"
@@ -16,6 +18,7 @@ const T& GetMin(const T& a, const T& b)
 {
 	return (b < a) ? b : a;
 }
+
 
 using PhpArray = std::vector<std::string>;
 
@@ -97,8 +100,8 @@ public:
 	// resource update helpers
 	bool BuildingQueue(table_planets& planet);
 	bool ResearchQueue(table_users& user);
-	void UpdateResource(table_planets& planet);
-	void UpdateCache(table_planets& planet);
+	void UpdateResource(table_planets& planet, table_users& user);
+	void UpdateCache(table_planets& planet, table_users& user);
 	void ExecCalc(table_planets& planet, time_t production_time);
 
 
