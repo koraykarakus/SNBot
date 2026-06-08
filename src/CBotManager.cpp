@@ -214,7 +214,6 @@ void CBotManager::UpdateResource(table_planets& planet, table_users& user)
     }
 }
 
-
 void CBotManager::UpdateCache(table_planets& planet, table_users& user)
 {
     const table_config* pConfig = GetConfigByUniID(planet.universe);
@@ -357,7 +356,6 @@ void CBotManager::UpdateCache(table_planets& planet, table_users& user)
     }
 }
 
-
 void CBotManager::ExecCalc(table_planets& planet, time_t production_time)
 {
     if (planet.planet_type == 3)
@@ -418,19 +416,17 @@ void CBotManager::HandleBuildings()
 {
     // same as vars table's ids, increased by one to make it more understandable.
     const std::vector<int> building_list_destroyer = {
-    4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 1, 2, 4, 1, 2, 3,
-    22, 23, 24,
-    4, 1, 1, 2, 4, 1, 2, 3, 4, 1, 2, 3,
-    22, 23, 24,
-    4, 1, 1, 2, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 1, 2, 4, 1, 2, 3,
-    4, 1, 2, 3, 4, 1, 1, 2,
-    22, 23, 24, 22, 23, 24,
-    4, 1, 2, 3, 4, 1, 2, 3,
-    6, 6, 31, 31, 31, 1, 1, 2, 3, 8, 8, 9, 10, 14, 14, 15,
-    21, 21, 21, 1, 2, 3, 12, 12, 12, 17, 17, 18, 18, 18, 25, 25,
-    25, 20, 20, 1, 1, 2, 2, 3, 6, 6, 6, 26, 26, 26, 26, 11,
-    11, 19, 19, 19, 32, 33, 34, 32, 33, 32, 33, 34, 32, 33, 32, 33,
-    34, 34, 1, 2, 3, 27, 27, 27, 27, 27, 28, 28, 7, 31, 31
+        4, 1, 2, 4, 1, 1, 4, 1, 1, 4, 2, 2, 3, 4, 1, 1, 4, 4, 2, 2,
+        3, 4, 3, 4, 1, 1, 4, 2, 2, 3, 3, 4, 4, 1, 1, 22, 23, 24,
+        22, 23, 4, 14, 14, 14, 14, 14, 14, 2, 2, 3, 3, 4, 1, 1, 
+        2, 2, 4, 3, 3, 22, 22, 23, 24, 22, 31, 31, 31, 31, 31, 21,
+        21, 21, 21, 21, 1, 2, 3, 4, 1, 2, 3, 4, 22, 23, 24, 1, 2, 3,
+        14, 21, 21, 14, 14, 22, 23, 24, 1, 2, 3, 1, 4, 4, 4, 24, 
+        31, 31, 31, 21, 21, 14, 113, 113, 113, 113, 115, 115, 115, 115,
+        106, 106, 106, 106, 22, 23, 24, 108, 108, 108, 108, 106, 109,
+        109, 109, 109, 110, 110, 110, 110, 111, 111, 111, 111, 23, 24,
+        22, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 1, 1, 2, 2, 109, 109, 109,
+        111, 111, 111, 110, 110, 110, 2, 22
     };
 
     const std::vector<int> building_list_deathstar = {
@@ -462,8 +458,9 @@ void CBotManager::HandleBuildings()
             CLogger::Error("[CBotManager] - Config map missing : uni_id '{}' not found !\n", bot.universe);
             continue;
         }
-        unsigned long long game_speed = std::floor(pConfig->game_speed / 2500);
+
         // game speed for uni
+        unsigned long long game_speed = std::floor(pConfig->game_speed / 2500);
 
         for (auto& planet : bot.vecPlanets)
         {
@@ -485,8 +482,7 @@ void CBotManager::HandleBuildings()
                 continue;
             }
 
-            // Simülasyon için kademeleri eşleştirirken yine elementID'leri doğrudan indeks gibi kullanabiliriz.
-            // un1_vars tablosunda element_id'ler maksimum 199 (graviton) olduğu için 200 elemanlık bir dizi açıyoruz.
+            
             int current_levels[200] = { 0 };
 
             current_levels[1] = planet.resource[1];
@@ -506,7 +502,7 @@ void CBotManager::HandleBuildings()
             current_levels[36] = planet.resource[34];
             current_levels[44] = planet.resource[44];
 
-            // Teknolojiler (Gerçek ID'leri ile)
+            // tech
             current_levels[106] = bot.resource[106];
             current_levels[108] = bot.resource[108];
             current_levels[109] = bot.resource[109];
@@ -633,7 +629,6 @@ void CBotManager::HandleBuildings()
         }
     }
 }
-
 
 // php helpers
 std::string CBotManager::php_serialize(const PhpArray& arr) {
