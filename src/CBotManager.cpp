@@ -448,6 +448,29 @@ void CBotManager::HandleBuildings()
     27, 27, 28, 28, 7, 35
     };
 
+    const std::vector<int> basic_buildings
+    {
+        4, 1, 2, 4, 1, 1, 4, 1, 1, 4, 2, 2, 3, 4, 1, 1, 4, 4, 2, 2,
+        3, 4, 3, 4, 1, 1, 4, 2, 2, 3, 3, 4, 4, 1, 1, 22, 23, 24,
+        22, 23, 4, 14, 14, 14, 14, 14, 14, 2, 2, 3, 3, 4, 1, 1,
+        2, 2, 4, 3, 3, 22, 22, 23, 24, 22, 31, 31, 31, 31, 31, 21,
+        21, 21, 21, 21, 1, 2, 3, 4, 1, 2, 3, 4, 22, 23, 24, 1, 2, 3,
+        14, 21, 21, 14, 14, 22, 23, 24, 1, 2, 3, 1, 4, 4, 4, 24,
+        31, 31, 31, 21, 21, 14, 113, 113, 113, 113, 115, 115, 115, 115,
+        22, 23, 24,
+        23, 24,
+        22, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 1, 1, 2, 2, 2, 22
+    };
+
+    const std::vector<int> basic_research
+    {
+        113, 113, 113, 113, 115, 115, 115, 115,
+        106, 106, 106, 106, 108, 108, 108, 108, 106, 109,
+        109, 109, 109, 110, 110, 110, 110, 111, 111, 111, 111,
+        109, 109, 109,
+        111, 111, 111, 110, 110, 110,
+    };
+
     time_t currentTime = std::time(nullptr);
 
     for (auto& bot : m_vecBots)
@@ -485,43 +508,18 @@ void CBotManager::HandleBuildings()
             
             int current_levels[200] = { 0 };
 
-            current_levels[1] = planet.resource[1];
-            current_levels[2] = planet.resource[2];
-            current_levels[3] = planet.resource[3];
-            current_levels[4] = planet.resource[4];
-            current_levels[12] = planet.resource[12];
-            current_levels[14] = planet.resource[14];
-            current_levels[15] = planet.resource[15];
-            current_levels[21] = planet.resource[21];
-            current_levels[22] = planet.resource[22];
-            current_levels[23] = planet.resource[23];
-            current_levels[24] = planet.resource[24];
-            current_levels[31] = planet.resource[31];
-            current_levels[33] = planet.resource[33];
-            current_levels[34] = planet.resource[6];
-            current_levels[36] = planet.resource[34];
-            current_levels[44] = planet.resource[44];
+            // buildings
+            for (size_t i = 0; i < 100; i++)
+            {
+                current_levels[i] = planet.resource[i];
+            }
 
-            // tech
-            current_levels[106] = bot.resource[106];
-            current_levels[108] = bot.resource[108];
-            current_levels[109] = bot.resource[109];
-            current_levels[110] = bot.resource[110];
-            current_levels[111] = bot.resource[111];
-            current_levels[113] = bot.resource[113];
-            current_levels[114] = bot.resource[114];
-            current_levels[115] = bot.resource[115];
-            current_levels[116] = bot.resource[116];
-            current_levels[117] = bot.resource[117];
-            current_levels[120] = bot.resource[120];
-            current_levels[121] = bot.resource[121];
-            current_levels[122] = bot.resource[122];
-            current_levels[123] = bot.resource[123];
-            current_levels[124] = bot.resource[124];
-            current_levels[131] = bot.resource[131];
-            current_levels[132] = bot.resource[132];
-            current_levels[133] = bot.resource[133];
-            current_levels[199] = bot.resource[199];
+            // technology
+            for (size_t i = 100; i < 200; i++)
+            {
+                current_levels[i] = planet.resource[i];
+            }
+                        
 
             int simulated_levels[200] = { 0 };
             int target_element_id = -1;

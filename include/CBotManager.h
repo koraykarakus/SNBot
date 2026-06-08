@@ -25,6 +25,15 @@ using PhpArray = std::vector<std::string>;
 class CBotManager 
 {
 private:
+	// thinking about it
+	enum class bot_type 
+	{
+		buildings_prio,
+		fleets_prio,
+		defence_prio,
+		research_prio
+	};
+
 	static const int wait_time = 1 * 30;
 	time_t m_timeLastRun;
 	bool m_bFirstRun;
@@ -93,11 +102,11 @@ public:
 		return &it->second;
 	}
 
-	// handlers
-	void HandleResourceUpdate();
+	// build research, building, fleet or defence
 	void HandleBuildings();
 	
-	// resource update helpers
+	// resource update and its helpers
+	void HandleResourceUpdate();
 	bool BuildingQueue(table_planets& planet);
 	bool ResearchQueue(table_users& user);
 	void UpdateResource(table_planets& planet, table_users& user);
