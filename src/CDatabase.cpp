@@ -26,15 +26,14 @@ CDatabase::~CDatabase()
 
 void CDatabase::Init()
 {
-    // 1. EXE ile aynı klasördeki settings.ini dosyasının yolunu buluyoruz
-    // std::filesystem hem Windows hem Linux platformlarında sorunsuz çalışır.
+    // find path to settings.ini file which is in the same folder with exe
     std::filesystem::path iniPath = std::filesystem::current_path() / "settings.ini";
     std::string iniPathStr = iniPath.string();
 
     CSimpleIniA ini;
-    ini.SetUnicode(); // Türkçe veya özel karakter desteği için
+    ini.SetUnicode(); // support special char set
 
-    // 2. INI dosyasını yüklemeyi dene
+    // load ini file
     SI_Error rc = ini.LoadFile(iniPathStr.c_str());
 
     // create settings.ini if it is not found
@@ -42,14 +41,14 @@ void CDatabase::Init()
     {
         CLogger::Error("settings.ini not found check folder and fill required info !\n");
 
-        // Varsayılan değerleri belleğe yaz
+        // defaults
         ini.SetValue("Database", "Host", "localhost");
         ini.SetValue("Database", "User", "username");
         ini.SetValue("Database", "Password", "password");
         ini.SetValue("Database", "DBName", "steemnova");
         ini.SetValue("Database", "Prefix", "uni1_"); 
 
-        // Değerleri fiziksel olaraksettings.ini dosyasına kaydet
+        // save defaults to ini
         rc = ini.SaveFile(iniPathStr.c_str());
         if (rc < 0) 
         {
@@ -57,8 +56,7 @@ void CDatabase::Init()
         }
     }
 
-    // 3. Değerleri INI dosyasından (veya yeni oluşturulan veriden) sınıfın üye değişkenlerine oku
-    // GetValue fonksiyonunun 3. parametresi, eğer INI'de o key yoksa dönecek olan "fallback" değerdir.
+    // get values and assign members.
     m_strDBHost = ini.GetValue("Database", "Host");
     m_strDBUser = ini.GetValue("Database", "User");
     m_strDBPass = ini.GetValue("Database", "Password");
@@ -95,7 +93,7 @@ bool CDatabase::Connect()
     {
         CLogger::Error("[CDatabase] - MySQL Connection Failed. Error: {} ({})", mysql_error(m_pConn), mysql_errno(m_pConn));
 
-        // Şimdi güvenle kapatabiliriz
+        // close db always
         mysql_close(m_pConn);
         m_pConn = nullptr;
         return false;
@@ -380,7 +378,7 @@ bool CDatabase::UpdateBots()
         "military_tech, armor_tech, shield_tech, energy_tech, hyperspace_tech, "
         "combustion_tech, impulse_motor_tech, hyperspace_motor_tech, laser_tech, "
         "ion_tech, plasma_tech, intergalactic_tech, expedition_tech, "
-        "metal_proc_tech, crystal_proc_tech, deuterium_proc_tech, graviton_tech) VALUES ";
+        "metal_proc_tech, crystal_proc_tech, deuterium_proc_tech, graviton_tech, onlinetime) VALUES ";
 
     const std::string strUserFooter = " ON DUPLICATE KEY UPDATE "
         "b_tech_planet = VALUES(b_tech_planet), b_tech = VALUES(b_tech), b_tech_id = VALUES(b_tech_id), b_tech_queue = VALUES(b_tech_queue), "
@@ -389,7 +387,7 @@ bool CDatabase::UpdateBots()
         "impulse_motor_tech = VALUES(impulse_motor_tech), hyperspace_motor_tech = VALUES(hyperspace_motor_tech), laser_tech = VALUES(laser_tech), "
         "ion_tech = VALUES(ion_tech), plasma_tech = VALUES(plasma_tech), intergalactic_tech = VALUES(intergalactic_tech), expedition_tech = VALUES(expedition_tech), "
         "metal_proc_tech = VALUES(metal_proc_tech), crystal_proc_tech = VALUES(crystal_proc_tech), deuterium_proc_tech = VALUES(deuterium_proc_tech), "
-        "graviton_tech = VALUES(graviton_tech);";
+        "graviton_tech = VALUES(graviton_tech), onlinetime = VALUES(onlinetime);";
 
     // store all planets in same vector
     std::vector<table_planets> vecAllPlanets;
@@ -446,22 +444,30 @@ bool CDatabase::UpdateBots()
             strQuery += std::to_string(cBot.resource[131]) + ", ";
             strQuery += std::to_string(cBot.resource[132]) + ", ";
             strQuery += std::to_string(cBot.resource[133]) + ", ";
-            strQuery += std::to_string(cBot.resource[199]);
-            strQuery += ")";
+            strQuery += std::to_string(cBot.resource[199]) + ", ";
+            strQuery += std::to_string(cBot.onlinetime);
+            strQuery += "), ";
+        }
 
-            if (k < endIndex - 1) 
+        if (strQuery != strUserHeader)
+        {
+			if (strQuery.size() >= 2
+				&& strQuery.substr(strQuery.size() - 2) == ", ")
+			{
+				// remove comma and space
+				strQuery.pop_back();
+				strQuery.pop_back();
+			}
+
+            strQuery += strUserFooter;
+
+            if (mysql_query(m_pConn, strQuery.c_str()) != 0)
             {
-                strQuery += ", ";
+                CLogger::Error("[CDatabase] - UpdateBots (Users) Paket Hatasi (Index {}-{}): {}", i, endIndex - 1, mysql_error(m_pConn));
+                return false;
             }
         }
 
-        strQuery += strUserFooter;
-
-        if (mysql_query(m_pConn, strQuery.c_str()) != 0)
-        {
-            CLogger::Error("[CDatabase] - UpdateBots (Users) Paket Hatasi (Index {}-{}): {}", i, endIndex - 1, mysql_error(m_pConn));
-            return false;
-        }
     }
 
     // =========================================================================
@@ -610,20 +616,30 @@ bool CDatabase::UpdateBots()
             strQuery += std::to_string(pl.is_bot ? 1 : 0) + ", ";
             strQuery += std::to_string(pl.last_relocate) + ", ";
             strQuery += std::to_string(pl.version);
-            strQuery += ")";
+            strQuery += "), ";
 
-            if (k < endIndex - 1) {
-                strQuery += ", ";
+            
+        }
+
+        if (strQuery != strPlanetHeader)
+        {
+			if (strQuery.size() >= 2
+				&& strQuery.substr(strQuery.size() - 2) == ", ")
+			{
+				// remove comma and space
+				strQuery.pop_back();
+				strQuery.pop_back();
+			}
+
+            strQuery += strPlanetFooter;
+
+            if (mysql_query(m_pConn, strQuery.c_str()) != 0)
+            {
+                CLogger::Error("[CDatabase] - UpdateBots (Planets) Paket Hatasi (Index {}-{}): {}", i, endIndex - 1, mysql_error(m_pConn));
+                return false;
             }
         }
-
-        strQuery += strPlanetFooter;
-
-        if (mysql_query(m_pConn, strQuery.c_str()) != 0)
-        {
-            CLogger::Error("[CDatabase] - UpdateBots (Planets) Paket Hatasi (Index {}-{}): {}", i, endIndex - 1, mysql_error(m_pConn));
-            return false;
-        }
+        
     }
 
     CLogger::Info("[CDatabase] - All bots and their planets updated successfully in database.");

@@ -93,7 +93,7 @@ struct table_users
     std::vector<table_planets> vecPlanets;
     std::map<std::string,int> factor;
     play_time playTime;
-    time_t onlinetime;
+    int onlinetime;
 
     // update bot only if it needs update
     bool need_update;

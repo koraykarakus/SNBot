@@ -18,52 +18,42 @@ CBotManager::~CBotManager()
 	m_vecBots.clear();
 }
 
+
+bool CBotManager::IsInTimeRange(int current_hour, int start_time, int end_time)
+{
+    if (start_time == -1 
+        || end_time == -1) 
+        return false;
+
+    // 1. Durum: Normal aralık (Örn: 13-23 arası)
+    // Saat 13:00 ile 22:59 arası true döner. Saat 23:00 olduğu an false döner (durur).
+    if (start_time < end_time)
+    {
+        return (current_hour >= start_time && current_hour < end_time);
+    }
+
+    // 2. Durum: Gece yarısını aşan aralık (Örn: 23-1 arası)
+    // Saat 23:00 ile gece 00:59 arası true döner. Saat 01:00'de false döner (durur).
+    return (current_hour >= start_time || current_hour < end_time);
+}
+
 bool CBotManager::IsPlayingNow(const play_time& bot_info)
 {
     time_t timeNow = std::time(nullptr);
     std::tm* pLocalTime = std::localtime(&timeNow);
     if (!pLocalTime) return false;
+
     int hour = pLocalTime->tm_hour;
 
-    if (bot_info.play_start_time_1 != -1
-        && bot_info.play_end_time_1 != -1)
-    {
-        if (hour >= bot_info.play_start_time_1
-            && hour < bot_info.play_end_time_1)
-        {
-            return true;
-        }
-    }
-
-    if (bot_info.play_start_time_2 != -1
-        && bot_info.play_end_time_2 != -1)
-    {
-        if (hour >= bot_info.play_start_time_2
-            && hour < bot_info.play_end_time_2)
-        {
-            return true;
-        }
-    }
-
-    if (bot_info.play_start_time_3 != -1
-        && bot_info.play_end_time_3 != -1)
-    {
-        if (hour >= bot_info.play_start_time_3
-            && hour < bot_info.play_end_time_3)
-        {
-            return true;
-        }
-    }
-
-    if (bot_info.play_start_time_4 != -1
-        && bot_info.play_end_time_4 != -1)
-    {
-        if (hour >= bot_info.play_start_time_4
-            && hour < bot_info.play_end_time_4)
-        {
-            return true;
-        }
-    }
+    // Kontrolleri sırasıyla yapıyoruz
+    if (IsInTimeRange(hour, bot_info.play_start_time_1, bot_info.play_end_time_1)) 
+        return true;
+    if (IsInTimeRange(hour, bot_info.play_start_time_2, bot_info.play_end_time_2)) 
+        return true;
+    if (IsInTimeRange(hour, bot_info.play_start_time_3, bot_info.play_end_time_3)) 
+        return true;
+    if (IsInTimeRange(hour, bot_info.play_start_time_4, bot_info.play_end_time_4)) 
+        return true;
 
     return false;
 }

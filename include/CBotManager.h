@@ -84,6 +84,7 @@ public:
 	void Run();
 
 	bool IsPlayingNow(const play_time& bot_info);
+	bool IsInTimeRange(int current_hour, int start_time, int end_time);
 
 	inline void AddBot(const table_users& bot)
 	{
