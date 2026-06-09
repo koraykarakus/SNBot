@@ -10,11 +10,62 @@ CBotManager::CBotManager()
     , m_bFirstRun(true)
     , m_timeLastRun(0)
 {
+    
 }
 
 CBotManager::~CBotManager()
 {
 	m_vecBots.clear();
+}
+
+bool CBotManager::IsPlayingNow(const play_time& bot_info)
+{
+    time_t timeNow = std::time(nullptr);
+    std::tm* pLocalTime = std::localtime(&timeNow);
+    if (!pLocalTime) return false;
+    int hour = pLocalTime->tm_hour;
+
+    if (bot_info.play_start_time_1 != -1
+        && bot_info.play_end_time_1 != -1)
+    {
+        if (hour >= bot_info.play_start_time_1
+            && hour < bot_info.play_end_time_1)
+        {
+            return true;
+        }
+    }
+
+    if (bot_info.play_start_time_2 != -1
+        && bot_info.play_end_time_2 != -1)
+    {
+        if (hour >= bot_info.play_start_time_2
+            && hour < bot_info.play_end_time_2)
+        {
+            return true;
+        }
+    }
+
+    if (bot_info.play_start_time_3 != -1
+        && bot_info.play_end_time_3 != -1)
+    {
+        if (hour >= bot_info.play_start_time_3
+            && hour < bot_info.play_end_time_3)
+        {
+            return true;
+        }
+    }
+
+    if (bot_info.play_start_time_4 != -1
+        && bot_info.play_end_time_4 != -1)
+    {
+        if (hour >= bot_info.play_start_time_4
+            && hour < bot_info.play_end_time_4)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void CBotManager::Run()
@@ -70,8 +121,14 @@ void CBotManager::Run()
 
 void CBotManager::HandleResourceUpdate() 
 {
+    time_t timeNow = std::time(nullptr);
     for (auto& bot: m_vecBots)
     {
+        if (!IsPlayingNow(bot.playTime))
+        {
+            continue;
+        }
+
         if (bot.vacation_mode == 1)
         {
             CLogger::Info("Bot is in vacation mode id: {}\n", bot.id);
@@ -450,6 +507,14 @@ void CBotManager::HandleBuildings()
         stlog log;
         log.bot_id = bot.id;
 
+        // is it online now ?
+        if (!IsPlayingNow(bot.playTime))
+        {
+            log.type = 12;
+            vecLog.push_back(log);
+            continue;
+        }
+
         const table_config* pConfig = GetConfigByUniID(bot.universe);
         if (pConfig == nullptr)
         {
@@ -584,7 +649,6 @@ void CBotManager::HandleBuildings()
                         
 
             int tar_building_id = GetTargetBuildID(basic_buildings, current_levels_buildings);
-            CLogger::Info("##TTTTTTTTTTTTTTTTT##{}", tar_building_id);
 
             if (tar_building_id == -1)
             {
@@ -739,6 +803,11 @@ void CBotManager::LogResult(const std::vector<stlog>& logs)
             fmt::format_to(std::back_inserter(buf), 
                 "[CBotManager] - Bot ID {} [Planet: {}] -> Started Building: {} Level {}\n",
                 log.bot_id, log.id_planet, log.building_name, log.building_level);
+            break;
+        case 12:
+            fmt::format_to(std::back_inserter(buf),
+                "[CBotManager] - Bot ID {} Bot is not online now !\n",
+                log.bot_id);
             break;
 		default:
 			fmt::format_to(std::back_inserter(buf), "Bot:{}, Planet:{}\n", log.bot_id, log.id_planet);

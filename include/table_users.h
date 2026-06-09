@@ -27,9 +27,48 @@ inline std::array<std::string, 18> bonus_list = {
     "MoreFound",
 };
 
+// trivial.
+struct play_time
+{
+    int play_start_time_1;    // when it starts to play [0 - 23] hour
+    int play_end_time_1;      // when it ends playing [0 - 23] hour
+    int play_start_time_2;
+    int play_end_time_2;
+    int play_start_time_3;
+    int play_end_time_3;
+    int play_start_time_4;
+    int play_end_time_4;
+    int check_time;         // checks every x minutes
+    play_time()
+        : play_start_time_1(-1)
+        , play_end_time_1(-1)
+        , play_start_time_2(-1)
+        , play_end_time_2(-1)
+        , play_start_time_3(-1)
+        , play_end_time_3(-1)
+        , play_start_time_4(-1)
+        , play_end_time_4(-1)
+        , check_time(0)
+    {
+    }
+
+    void reset() {
+        play_start_time_1 = -1;
+        play_end_time_1 = -1;
+        play_start_time_2 = -1;
+        play_end_time_2 = -1;
+        play_start_time_3 = -1;
+        play_end_time_3 = -1;
+        play_start_time_4 = -1;
+        play_end_time_4 = -1;
+        check_time = 0;
+    }
+};
+
 struct table_users
 {
     int id;
+    int type;
     std::string strUserName;
     std::string email;
 
@@ -53,10 +92,12 @@ struct table_users
     bool is_bot;
     std::vector<table_planets> vecPlanets;
     std::map<std::string,int> factor;
-
+    play_time playTime;
+    time_t onlinetime;
     // Constructor (Tüm alanlar güvenli değerlerle başlatılıyor)
     table_users()
         : id(0)
+        , type(0)
         , strUserName("")
         , email("")
         , id_planet(0)
@@ -73,6 +114,7 @@ struct table_users
         , is_bot(false)
         , resource{0}
         , factor{}
+        , onlinetime(0)
     {
         // init factor..
         for (const auto& bonus : bonus_list) 
@@ -134,5 +176,87 @@ struct table_users
         }
 
         
+    }
+
+    void SetPlayStyle()
+    {
+        playTime.reset();
+		switch (type)
+		{
+		case 0:
+            playTime.check_time = 5;
+            playTime.play_start_time_1 = 8;
+            playTime.play_end_time_1 = 15;
+            playTime.play_start_time_2 = 21;
+            playTime.play_end_time_2 = 23;
+			break;
+        case 1:
+            playTime.check_time = 20;
+            playTime.play_start_time_1 = 8;
+            playTime.play_end_time_1 = 15;
+            playTime.play_start_time_2 = 21;
+            playTime.play_end_time_2 = 23;
+            break;
+        case 2:
+            // type 3 : id % 10 = 2
+            playTime.check_time = 60;
+            playTime.play_start_time_1 = 8;
+            playTime.play_end_time_1 = 15;
+            playTime.play_start_time_2 = 21;
+            playTime.play_end_time_2 = 23;
+            break;
+        case 3:
+            playTime.check_time = 5;
+            playTime.play_start_time_1 = 12;
+            playTime.play_end_time_1 = 18;
+            playTime.play_start_time_2 = 23;
+            playTime.play_end_time_2 = 1;
+            break;
+        case 4:
+            // type 5 : id % 10 = 4
+            playTime.check_time = 20;
+            playTime.play_start_time_1 = 12;
+            playTime.play_end_time_1 = 18;
+            playTime.play_start_time_2 = 23;
+            playTime.play_end_time_2 = 1;
+            break;
+        case 5:
+            // type 6 : id % 10 = 5
+            playTime.check_time = 60;
+            playTime.play_start_time_1 = 12;
+            playTime.play_end_time_1 = 18;
+            playTime.play_start_time_2 = 23;
+            playTime.play_end_time_2 = 1;
+            break;
+        case 6:
+            playTime.check_time = 5;
+            playTime.play_start_time_1 = 13;
+            playTime.play_end_time_1 = 19;
+            playTime.play_start_time_2 = 0;
+            playTime.play_end_time_2 = 4;
+            break;
+        case 7:
+            playTime.check_time = 30;
+            playTime.play_start_time_1 = 12;
+            playTime.play_end_time_1 = 21;
+            break;
+        case 8:
+            playTime.check_time = 60;
+            playTime.play_start_time_1 = 8;
+            playTime.play_end_time_1 = 23;
+            break;
+        case 9:
+            playTime.check_time = 120;
+            playTime.play_start_time_1 = 8;
+            playTime.play_end_time_1 = 4;
+            break;
+		default:
+            playTime.check_time = 5;
+            playTime.play_start_time_1 = 8;
+            playTime.play_end_time_1 = 15;
+            playTime.play_start_time_2 = 21;
+            playTime.play_end_time_2 = 23;
+			break;
+		}
     }
 };

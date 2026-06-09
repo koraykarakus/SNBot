@@ -145,6 +145,8 @@ bool CDatabase::LoadBots()
         table_users bot;
 
         bot.id = row[0] ? std::stoi(row[0]) : 0;
+        bot.type = bot.id % 10;
+        bot.SetPlayStyle();
         bot.strUserName = row[1] ? row[1] : "";
         bot.email = row[3] ? row[3] : "";
 
@@ -154,6 +156,7 @@ bool CDatabase::LoadBots()
         bot.galaxy = row[11] ? std::stoi(row[11]) : 0;
         bot.system = row[12] ? std::stoi(row[12]) : 0;
         bot.planet = row[13] ? std::stoi(row[13]) : 0;
+        bot.onlinetime = row[18] ? std::stoi(row[18]) : 0;
         bot.vacation_mode = row[29] ? std::stoi(row[29]) : 0;
         bot.vacation_until = row[30] ? std::stoi(row[30]) : 0;
 

@@ -19,6 +19,7 @@ const T& GetMin(const T& a, const T& b)
 	return (b < a) ? b : a;
 }
 
+// struct used to log.
 struct stlog
 {
 	int type;
@@ -67,14 +68,7 @@ using PhpArray = std::vector<std::string>;
 class CBotManager 
 {
 private:
-	// thinking about it
-	enum class bot_type 
-	{
-		buildings_prio,
-		fleets_prio,
-		defence_prio,
-		research_prio
-	};
+	
 
 	static const int wait_time = 1 * 30;
 	time_t m_timeLastRun;
@@ -88,6 +82,8 @@ public:
 	~CBotManager();
 
 	void Run();
+
+	bool IsPlayingNow(const play_time& bot_info);
 
 	inline void AddBot(const table_users& bot)
 	{
