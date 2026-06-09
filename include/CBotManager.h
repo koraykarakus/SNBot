@@ -19,6 +19,13 @@ const T& GetMin(const T& a, const T& b)
 	return (b < a) ? b : a;
 }
 
+struct stlog
+{
+	int type = 0;
+	int bot_id = 0;
+	int planet_id = 0;
+	int universe = 0;
+};
 
 using PhpArray = std::vector<std::string>;
 
@@ -104,7 +111,15 @@ public:
 
 	// build research, building, fleet or defence
 	void HandleBuildings();
-	
+	// simulates..
+	int GetTargetBuildID(const std::vector<int> vecList, const int* arrLevels);
+	bool HaveEnoughResources(const table_planets& planet , double* arrCost);
+	void RemoveCostFromPlanet(table_planets& planet, double* arrCost);
+	inline bool IsResearching(const table_users& user) 
+	{
+		return user.b_tech > 0;
+	}
+	void LogResult(const std::vector<stlog>& logs);
 	// resource update and its helpers
 	void HandleResourceUpdate();
 	bool BuildingQueue(table_planets& planet);

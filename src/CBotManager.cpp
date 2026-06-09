@@ -415,39 +415,7 @@ void CBotManager::ExecCalc(table_planets& planet, time_t production_time)
 void CBotManager::HandleBuildings()
 {
     // same as vars table's ids, increased by one to make it more understandable.
-    const std::vector<int> building_list_destroyer = {
-        4, 1, 2, 4, 1, 1, 4, 1, 1, 4, 2, 2, 3, 4, 1, 1, 4, 4, 2, 2,
-        3, 4, 3, 4, 1, 1, 4, 2, 2, 3, 3, 4, 4, 1, 1, 22, 23, 24,
-        22, 23, 4, 14, 14, 14, 14, 14, 14, 2, 2, 3, 3, 4, 1, 1, 
-        2, 2, 4, 3, 3, 22, 22, 23, 24, 22, 31, 31, 31, 31, 31, 21,
-        21, 21, 21, 21, 1, 2, 3, 4, 1, 2, 3, 4, 22, 23, 24, 1, 2, 3,
-        14, 21, 21, 14, 14, 22, 23, 24, 1, 2, 3, 1, 4, 4, 4, 24, 
-        31, 31, 31, 21, 21, 14, 113, 113, 113, 113, 115, 115, 115, 115,
-        106, 106, 106, 106, 22, 23, 24, 108, 108, 108, 108, 106, 109,
-        109, 109, 109, 110, 110, 110, 110, 111, 111, 111, 111, 23, 24,
-        22, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 1, 1, 2, 2, 109, 109, 109,
-        111, 111, 111, 110, 110, 110, 2, 22
-    };
-
-    const std::vector<int> building_list_deathstar = {
-    4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 1, 2, 4, 1, 2, 3,
-    22, 23, 24,
-    4, 1, 1, 2, 4, 1, 2, 3, 4, 1, 2, 3,
-    22, 23, 24,
-    4, 1, 1, 2, 4, 1, 2, 3, 4, 1, 2, 3, 4, 1, 1, 2, 4, 1, 2, 3,
-    4, 1, 2, 3, 4, 1, 1, 2,
-    22, 23, 24, 22, 23, 24,
-    4, 1, 2, 3, 4, 1, 2, 3,
-    1, 1, 2, 2, 3, 3, 23, 23, 23, 12, 12, 12, 12, 12, 8, 8,
-    8, 8, 8, 9, 9, 9, 10, 10, 10, 11, 11, 11, 14, 14, 14, 17,
-    17, 17, 18, 18, 18, 18, 19, 19, 19, 19, 20, 20, 20, 20, 25, 25,
-    25, 25, 26, 26, 26, 26, 26, 6, 6, 6, 6, 6, 6, 6, 6, 31,
-    31, 31, 31, 31, 31, 31, 31, 31, 15, 15, 15, 15, 21, 21, 21, 21,
-    21, 21, 21, 21, 21, 21, 21, 21, 32, 33, 34, 32, 33, 32, 33, 34,
-    32, 33, 32, 33, 34, 34, 32, 32, 33, 34, 32, 33, 34, 27, 27, 27,
-    27, 27, 28, 28, 7, 35
-    };
-
+    
     const std::vector<int> basic_buildings
     {
         4, 1, 2, 4, 1, 1, 4, 1, 1, 4, 2, 2, 3, 4, 1, 1, 4, 4, 2, 2,
@@ -473,22 +441,32 @@ void CBotManager::HandleBuildings()
 
     time_t currentTime = std::time(nullptr);
 
+    // do not log inside for loop..[type_array, paramaters_array]
+    
+
+    std::vector<stlog> logs;
+
     for (auto& bot : m_vecBots)
     {
         const table_config* pConfig = GetConfigByUniID(bot.universe);
         if (pConfig == nullptr)
         {
+            stlog log;
+            log.type = 1;
+            log.bot_id = bot.id;
+            log.universe = bot.universe;
+            logs.push_back(log);
+            
             CLogger::Error("[CBotManager] - Config map missing : uni_id '{}' not found !\n", bot.universe);
             continue;
         }
-
+        
         // game speed for uni
         unsigned long long game_speed = std::floor(pConfig->game_speed / 2500);
 
         for (auto& planet : bot.vecPlanets)
         {
-            if (planet.b_building > 0
-                || bot.b_tech > 0)
+            if (planet.b_building > 0)
             {
                 // todo : this ideally should never happen, same for tech
                 // consider removing
@@ -508,63 +486,114 @@ void CBotManager::HandleBuildings()
             
             int current_levels[200] = { 0 };
 
-            // buildings
-            for (size_t i = 0; i < 100; i++)
+            // buildings and tech
+            for (size_t i = 0; i < 200; i++)
             {
                 current_levels[i] = planet.resource[i];
             }
 
-            // technology
-            for (size_t i = 100; i < 200; i++)
+            if (!IsResearching(bot))
             {
-                current_levels[i] = planet.resource[i];
+                // try research
+                int tar_research_id = GetTargetBuildID(basic_research, current_levels);
+                if (tar_research_id == -1)
+                {
+                    CLogger::Info("[CBotManager] - The list to research has been completed for bot: {}\n", bot.id);
+                }
+                else
+                {
+                    // search id in map
+                    auto it = m_mapVars.find(tar_research_id);
+                    if (it == m_mapVars.end())
+                    {
+                        CLogger::Error("[CBotManager] - WRONG ELEMENT ID:{} , NOT FOUND !\n", tar_research_id);
+                    }
+                    else
+                    {
+                        const table_vars& varItem = it->second;
+                        int current_level = current_levels[tar_research_id];
+                        int level_up = current_level + 1;
+
+                        double array_cost[3] = { 0,0,0 };
+                        array_cost[0] = std::round(varItem.cost901 * std::pow(varItem.factor, current_level));
+                        array_cost[1] = std::round(varItem.cost902 * std::pow(varItem.factor, current_level));
+                        array_cost[2] = std::round(varItem.cost903 * std::pow(varItem.factor, current_level));
+
+                        if (!HaveEnoughResources(planet, array_cost))
+                        {
+                            CLogger::Info("[CBotManager] - SKIP [botID:{} - planetID:{}]\n"
+                                "coordinates:[{}:{}:{}] - email:[{}] \n"
+                                "not enough resources for element id:{} \n"
+                                "required: [metal:{}|crystal:{}|deu:{}]\n"
+                                "have: [metal:{}|crystal:{}|deu:{}]\n",
+                                bot.id,
+                                planet.id,
+                                planet.galaxy, planet.system, planet.planet,
+                                bot.email,
+                                varItem.element_id,
+                                array_cost[0],
+                                array_cost[1],
+                                array_cost[2],
+                                planet.metal,
+                                planet.crystal,
+                                planet.deuterium);
+                           
+                        }
+                        else
+                        {
+                            RemoveCostFromPlanet(planet, array_cost);
+                            
+                            double buildTime = ((array_cost[0] + array_cost[1] + 3.0) / (1000.0 * level_up)) / game_speed * (1.0 + planet.resource[31]);
+                            time_t endTime = currentTime + static_cast<time_t>(buildTime);
+
+                            bot.b_tech_planet = planet.id;
+                            bot.b_tech = endTime;
+                            bot.b_tech_id = varItem.element_id;
+
+                            // todo : check this order
+                            bot.b_tech_queue = "a:1:{i:0;a:5:{i:0;i:" + std::to_string(varItem.element_id) +
+                                ";i:1;i:" + std::to_string(level_up) +
+                                ";i:2;i:" + std::to_string(static_cast<int>(buildTime)) +
+                                ";i:3;i:" + std::to_string(endTime) +
+                                ";i:4;i:" + std::to_string(planet.id) + ";}}";
+
+                            CLogger::Info("[CBotManager] - Bot ID {} [Planet: {}] -> Started Research: {} Level {}\n", bot.id, planet.name, varItem.name, level_up);
+                        }
+
+                        
+
+                    }
+                }
             }
                         
 
-            int simulated_levels[200] = { 0 };
-            int target_element_id = -1;
+            int tar_building_id = GetTargetBuildID(basic_buildings, current_levels);
 
-            const std::vector<int>* pTargetList = (bot.id % 2 != 0) ? &building_list_destroyer : &building_list_deathstar;
-            const std::vector<int>& target_building_list = *pTargetList;
-
-            // Listeyi tarıyoruz (Artık listeden çıkan değer direkt gerçek ID)
-            for (size_t m = 0; m < target_building_list.size(); ++m)
-            {
-                int element_id = target_building_list[m];
-                simulated_levels[element_id]++;
-
-                if (simulated_levels[element_id] > current_levels[element_id])
-                {
-                    target_element_id = element_id;
-                    break;
-                }
-            }
-
-            if (target_element_id == -1)
+            if (tar_building_id == -1)
             {
                 CLogger::Info("[CBotManager] - The list to build has been completed for planet: {}\n", planet.name);
                 continue;
             }
 
             // search id in map
-            auto it = m_mapVars.find(target_element_id);
+            auto it = m_mapVars.find(tar_building_id);
             if (it == m_mapVars.end())
             {
-                CLogger::Error("[CBotManager] - WRONG ELEMENT ID:{} , NOT FOUND !\n", target_element_id);
+                CLogger::Error("[CBotManager] - WRONG ELEMENT ID:{} , NOT FOUND !\n", tar_building_id);
                 continue;
             }
 
             const table_vars& varItem = it->second;
-            int current_level = current_levels[target_element_id];
+            int current_level = current_levels[tar_building_id];
             int level_up = current_level + 1;
 
-            double required_metal = std::round(varItem.cost901 * std::pow(varItem.factor, current_level));
-            double required_crystal = std::round(varItem.cost902 * std::pow(varItem.factor, current_level));
-            double required_deuterium = std::round(varItem.cost903 * std::pow(varItem.factor, current_level));
+            double array_cost[3] = {0,0,0};
 
-            if (planet.metal < required_metal 
-                || planet.crystal < required_crystal 
-                || planet.deuterium < required_deuterium)
+            array_cost[0] = std::round(varItem.cost901 * std::pow(varItem.factor, current_level));
+            array_cost[1] = std::round(varItem.cost902 * std::pow(varItem.factor, current_level));
+            array_cost[2] = std::round(varItem.cost903 * std::pow(varItem.factor, current_level));
+
+            if (!HaveEnoughResources(planet, array_cost))
             {
                 CLogger::Info("[CBotManager] - SKIP [botID:{} - planetID:{}]\n"
                     "coordinates:[{}:{}:{}] - email:[{}] \n"
@@ -576,23 +605,21 @@ void CBotManager::HandleBuildings()
                     planet.galaxy,planet.system,planet.planet,
                     bot.email,
                     varItem.element_id, 
-                    required_metal, 
-                    required_crystal, 
-                    required_deuterium,
+                    array_cost[0],
+                    array_cost[1],
+                    array_cost[2],
                     planet.metal,
                     planet.crystal,
                     planet.deuterium);
                 continue;
             }
 
-            planet.metal -= required_metal;
-            planet.crystal -= required_crystal;
-            planet.deuterium -= required_deuterium;
+            RemoveCostFromPlanet(planet, array_cost);
 
             // it is building if id is less than 100
-            if (target_element_id < 100)
+            if (tar_building_id < 100)
             {
-                double baseTime = (required_metal + required_crystal + 3.0) / (game_speed * (1.0 + planet.resource[14]));
+                double baseTime = (array_cost[0] + array_cost[1] + 3.0) / (game_speed * (1.0 + planet.resource[14]));
                 double buildTime = baseTime * std::pow(0.5, planet.resource[15]) * varItem.factor;
                 time_t endTime = currentTime + static_cast<time_t>(buildTime);
                 planet.b_building = endTime;
@@ -605,27 +632,57 @@ void CBotManager::HandleBuildings()
                 CLogger::Info("[CBotManager] - Bot ID {} [Planet: {}] -> Started Building: {} Level {}\n", 
                     bot.id, planet.name, varItem.name, level_up);
 			}
-			// techno
-			else
-			{
-                double buildTime = ((required_metal + required_crystal + 3.0) / (1000.0 * level_up)) / game_speed * (1.0 + planet.resource[31]);
-                time_t endTime = currentTime + static_cast<time_t>(buildTime);
-
-                bot.b_tech_planet = planet.id;
-                bot.b_tech = endTime;
-                bot.b_tech_id = varItem.element_id;
-
-                // todo : check this order
-                bot.b_tech_queue = "a:1:{i:0;a:5:{i:0;i:" + std::to_string(varItem.element_id) +
-                    ";i:1;i:" + std::to_string(level_up) +
-                    ";i:2;i:" + std::to_string(static_cast<int>(buildTime)) +
-                    ";i:3;i:" + std::to_string(endTime) +
-                    ";i:4;i:" + std::to_string(planet.id) + ";}}";
-
-                CLogger::Info("[CBotManager] - Bot ID {} [Planet: {}] -> Started Research: {} Level {}\n", bot.id, planet.name, varItem.name, level_up);
-            }
+			
         }
     }
+}
+
+void CBotManager::LogResult(const std::vector<stlog>& logs) 
+{
+    fmt::memory_buffer buf;
+
+    // Bu döngü sadece RAM içinde string birleştirir, I/O yapmaz (Çok hızlıdır)
+    for (const auto& log : logs) {
+        fmt::format_to(std::back_inserter(buf), "Bot:{}, Evren:{}\n", log.bot_id, log.universe);
+    }
+
+    // 5000 botun tüm bilgisini TEK BİR SEFERDE diske/konsola yazar. 
+    // I/O işlemi 5000 kez değil, sadece 1 kez çağrılır!
+    spdlog::info("--- TUR LOGLARI ---\n{}", fmt::to_string(buf));
+}
+
+int CBotManager::GetTargetBuildID(const std::vector<int> vecList, const int* arrLevels)
+{
+    int simulated_levels[200] = { 0 };
+    int tar_building_id = -1;
+    // scan the list for buildings
+    for (size_t m = 0; m < vecList.size(); ++m)
+    {
+        int element_id = vecList[m];
+        simulated_levels[element_id]++;
+
+        if (simulated_levels[element_id] > arrLevels[element_id])
+        {
+            tar_building_id = element_id;
+            break;
+        }
+    }
+
+    return tar_building_id;
+}
+
+bool CBotManager::HaveEnoughResources(const table_planets& planet, double* arrCost)
+{
+	return planet.metal >= arrCost[0]
+		&& planet.crystal >= arrCost[1]
+		&& planet.deuterium >= arrCost[2];
+}
+
+void CBotManager::RemoveCostFromPlanet(table_planets& planet, double* arrCost) 
+{
+    planet.metal -= arrCost[0];
+    planet.crystal -= arrCost[1];
+    planet.deuterium -= arrCost[2];
 }
 
 // php helpers
