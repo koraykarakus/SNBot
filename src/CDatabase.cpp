@@ -5,7 +5,7 @@
 #include "table_users.h"
 #include "table_vars.h"
 #include "table_config.h"
-
+#include <fmt/ranges.h>
 #include <filesystem>
 
 CDatabase::CDatabase()
@@ -391,6 +391,8 @@ bool CDatabase::UpdateBots()
 
     // store all planets in same vector
     std::vector<table_planets> vecAllPlanets;
+    std::vector<int> vecIDPlanetsNoUpdate;
+    std::vector<int> vecIDBotsNoUpdate;
 
     for (size_t i = 0; i < pBots.size(); i += BATCH_SIZE)
     {
@@ -406,7 +408,8 @@ bool CDatabase::UpdateBots()
 
                 if (!planet.need_update)
                 {
-                    CLogger::Info("Planet does not need update PID:{}", planet.id);
+                    //CLogger::Info("PID:{} does not need an update", planet.id);
+                    vecIDPlanetsNoUpdate.push_back(planet.id);
                     continue;
                 }
 
@@ -416,7 +419,8 @@ bool CDatabase::UpdateBots()
             // planet might need update.. (finished building etc.)
             if (!cBot.need_update)
             {
-                CLogger::Info("Bot does not need update {}", cBot.id);
+                //CLogger::Info("Bot does not need update {}", cBot.id);
+                vecIDBotsNoUpdate.push_back(cBot.id);
                 continue;
             }
 
@@ -470,6 +474,15 @@ bool CDatabase::UpdateBots()
 
     }
 
+    if (!vecIDPlanetsNoUpdate.empty()
+        || !vecIDBotsNoUpdate.empty())
+    {
+        spdlog::info("PID:[{}], UID:[{}] does not need update",
+            fmt::join(vecIDPlanetsNoUpdate, "],["),
+            fmt::join(vecIDBotsNoUpdate, "],[")
+        );
+    }
+    
     // =========================================================================
     // PART 2: UPDATE PLANETS (PLANETS TABLE) 
     // =========================================================================
