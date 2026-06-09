@@ -418,10 +418,9 @@ void CBotManager::HandleBuildings()
         2, 2, 4, 3, 3, 22, 22, 23, 24, 22, 31, 31, 31, 31, 31, 21,
         21, 21, 21, 21, 1, 2, 3, 4, 1, 2, 3, 4, 22, 23, 24, 1, 2, 3,
         14, 21, 21, 14, 14, 22, 23, 24, 1, 2, 3, 1, 4, 4, 4, 24,
-        31, 31, 31, 21, 21, 14, 113, 113, 113, 113, 115, 115, 115, 115,
-        22, 23, 24,
-        23, 24,
-        22, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 1, 1, 2, 2, 2, 22
+        31, 31, 31, 21, 21, 14, 22, 23, 24, 23, 24,
+        22, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 1, 1, 2, 2, 2, 22,
+        1, 2, 23, 24, 3, 3, 22, 4, 1, 3, 3, 21, 21, 31, 31, 1 
     };
 
     const std::vector<int> basic_research
@@ -429,12 +428,19 @@ void CBotManager::HandleBuildings()
         113, 113, 113, 113, 115, 115, 115, 115,
         106, 106, 106, 106, 108, 108, 108, 108, 106, 109,
         109, 109, 109, 110, 110, 110, 110, 111, 111, 111, 111,
-        109, 109, 109,
-        111, 111, 111, 110, 110, 110,
+        109, 109, 109, 111, 111, 111, 110, 110, 110, 108, 108,
+        108, 108, 106, 106, 117, 117, 117, 117, 124, 124, 124,
+        124, 124, 124, 124, 120, 120, 120, 120, 120, 121, 121,
+        121, 121, 121, 124, 124, 120, 120, 120, 113, 113, 113,
+        113, 106, 120, 120, 122, 122, 122, 122, 122, 108, 108,
+        114, 114, 114, 114, 114, 114, 114, 114, 115, 115, 115,
+        117, 117, 118, 118, 118, 118, 118, 118, 110, 111, 109,
+        131, 131, 131, 131, 131, 132, 132, 132, 132, 132, 133,
+        133, 133, 133, 133, 109, 110, 111, 131, 131, 131, 132,
+        132, 132, 133, 133, 133
     };
 
     time_t currentTime = std::time(nullptr);
-
     
     std::vector<stlog> vecLog;
 
@@ -455,6 +461,12 @@ void CBotManager::HandleBuildings()
         
         // game speed for uni
         unsigned long long game_speed = std::floor(pConfig->game_speed / 2500);
+        int current_levels_tech[200] = { 0 };
+        // tech
+        for (size_t i = 100; i < 200; i++)
+        {
+            current_levels_tech[i] = bot.resource[i];
+        }
 
         for (auto& planet : bot.vecPlanets)
         {
@@ -483,18 +495,20 @@ void CBotManager::HandleBuildings()
             }
 
             
-            int current_levels[200] = { 0 };
 
-            // buildings and tech
-            for (size_t i = 0; i < 200; i++)
+            // buildings
+            int current_levels_buildings[100] = { 0 };
+            for (size_t i = 0; i < 100; i++)
             {
-                current_levels[i] = planet.resource[i];
+                current_levels_buildings[i] = planet.resource[i];
             }
+
+            
 
             if (!IsResearching(bot))
             {
                 // try research
-                int tar_research_id = GetTargetBuildID(basic_research, current_levels);
+                int tar_research_id = GetTargetBuildID(basic_research, current_levels_tech);
                 if (tar_research_id == -1)
                 {
                     log.type = 4;
@@ -513,7 +527,7 @@ void CBotManager::HandleBuildings()
                     else
                     {
                         const table_vars& varItem = it->second;
-                        int current_level = current_levels[tar_research_id];
+                        int current_level = current_levels_tech[tar_research_id];
                         int level_up = current_level + 1;
 
                         double array_cost[3] = { 0,0,0 };
@@ -569,7 +583,8 @@ void CBotManager::HandleBuildings()
             }
                         
 
-            int tar_building_id = GetTargetBuildID(basic_buildings, current_levels);
+            int tar_building_id = GetTargetBuildID(basic_buildings, current_levels_buildings);
+            CLogger::Info("##TTTTTTTTTTTTTTTTT##{}", tar_building_id);
 
             if (tar_building_id == -1)
             {
@@ -589,7 +604,7 @@ void CBotManager::HandleBuildings()
             }
 
             const table_vars& varItem = it->second;
-            int current_level = current_levels[tar_building_id];
+            int current_level = current_levels_buildings[tar_building_id];
             int level_up = current_level + 1;
 
             double array_cost[3] = {0,0,0};
@@ -671,7 +686,7 @@ void CBotManager::LogResult(const std::vector<stlog>& logs)
             break;
         case 4:
             fmt::format_to(std::back_inserter(buf), 
-                "[CBotManager] - The list to research has been completed for bot: {}\n", log.bot_id);
+                "[CBotManager] - Research list has been completed for bot: {}\n", log.bot_id);
             break;
         case 5:
             fmt::format_to(std::back_inserter(buf), "[CBotManager] - wrong element id. bot_id : {}!\n", log.bot_id);
@@ -702,7 +717,9 @@ void CBotManager::LogResult(const std::vector<stlog>& logs)
             break;
             break;
         case 8:
-            fmt::format_to(std::back_inserter(buf), "[CBotManager] - The list to build has been completed for planet: {}\n", log.id_planet);
+            fmt::format_to(std::back_inserter(buf), 
+                "[CBotManager] - building list has been completed for planet: {}\n", 
+                log.id_planet);
             break;
         case 9:
             fmt::format_to(std::back_inserter(buf), "[CBotManager] - WRONG ELEMENT ID:{} , NOT FOUND !\n", log.building_id);
