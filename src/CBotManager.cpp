@@ -113,7 +113,6 @@ bool CBotManager::BuildingQueue(table_planets& planet)
     PhpArray current_queue = php_unserialize(planet.b_building_id);
 
     int element = std::stoi(current_queue[0]);
-    CLogger::Info("CheckPlanetBuildingQueue : element {}\n", element);
 
     int build_end_time = std::stoi(current_queue[3]);
     std::string build_mode = current_queue[4];
@@ -125,7 +124,6 @@ bool CBotManager::BuildingQueue(table_planets& planet)
         {
             planet.field_current += 1;
             planet.resource[element] += 1;
-            CLogger::Info("Built element id:{}\n", element);
         }
         //planet.builded[$element] += 1;
     }
@@ -332,11 +330,7 @@ void CBotManager::UpdateCache(table_planets& planet, table_users& user)
     planet.crystal_max = temp[902]["max"] * pConfig->storage_multiplier * (1 + user.factor["ResourceStorage"]);
     planet.deuterium_max = temp[903]["max"] * pConfig->storage_multiplier * (1 + user.factor["ResourceStorage"]);
     
-    CLogger::Info("UpdateCache : metal_max:{},crystal_max:{},deu_max:{},bot_id:{}", 
-        planet.metal_max, 
-        planet.crystal_max, 
-        planet.deuterium_max, 
-        user.id);
+    
     
     planet.energy = std::round(temp[911]["plus"] * pConfig->energySpeed * (1 + user.factor["Energy"]));
     planet.energy_used = temp[911]["minus"] * pConfig->energySpeed;
@@ -441,23 +435,21 @@ void CBotManager::HandleBuildings()
 
     time_t currentTime = std::time(nullptr);
 
-    // do not log inside for loop..[type_array, paramaters_array]
     
-
-    std::vector<stlog> logs;
+    std::vector<stlog> vecLog;
 
     for (auto& bot : m_vecBots)
     {
+        // do not log inside for loop.. just form a vector and log after loop
+        stlog log;
+        log.bot_id = bot.id;
+
         const table_config* pConfig = GetConfigByUniID(bot.universe);
         if (pConfig == nullptr)
         {
-            stlog log;
-            log.type = 1;
-            log.bot_id = bot.id;
             log.universe = bot.universe;
-            logs.push_back(log);
-            
-            CLogger::Error("[CBotManager] - Config map missing : uni_id '{}' not found !\n", bot.universe);
+            log.type = 1;
+            vecLog.push_back(log);
             continue;
         }
         
@@ -466,6 +458,9 @@ void CBotManager::HandleBuildings()
 
         for (auto& planet : bot.vecPlanets)
         {
+
+            log.id_planet = bot.id_planet;
+
             if (planet.b_building > 0)
             {
                 // todo : this ideally should never happen, same for tech
@@ -477,9 +472,13 @@ void CBotManager::HandleBuildings()
                 {
                     planet.b_building = 0;
                     planet.b_building_id = "";
-                    CLogger::Info("[CBotManager] - corrected a bot with buggy data !\n", bot.id, planet.id);
+                    
+                    log.type = 2;
+                    vecLog.push_back(log);
                 }
-                CLogger::Info("[CBotManager] - SKIP [botID: {} - planetID: {}], building already !\n",bot.id, planet.id);
+
+                log.type = 3;
+                vecLog.push_back(log);
                 continue;
             }
 
@@ -498,7 +497,8 @@ void CBotManager::HandleBuildings()
                 int tar_research_id = GetTargetBuildID(basic_research, current_levels);
                 if (tar_research_id == -1)
                 {
-                    CLogger::Info("[CBotManager] - The list to research has been completed for bot: {}\n", bot.id);
+                    log.type = 4;
+                    vecLog.push_back(log);
                 }
                 else
                 {
@@ -506,7 +506,9 @@ void CBotManager::HandleBuildings()
                     auto it = m_mapVars.find(tar_research_id);
                     if (it == m_mapVars.end())
                     {
-                        CLogger::Error("[CBotManager] - WRONG ELEMENT ID:{} , NOT FOUND !\n", tar_research_id);
+                        log.type = 5;
+                        log.research_id = tar_research_id;
+                        vecLog.push_back(log);
                     }
                     else
                     {
@@ -521,23 +523,20 @@ void CBotManager::HandleBuildings()
 
                         if (!HaveEnoughResources(planet, array_cost))
                         {
-                            CLogger::Info("[CBotManager] - SKIP [botID:{} - planetID:{}]\n"
-                                "coordinates:[{}:{}:{}] - email:[{}] \n"
-                                "not enough resources for element id:{} \n"
-                                "required: [metal:{}|crystal:{}|deu:{}]\n"
-                                "have: [metal:{}|crystal:{}|deu:{}]\n",
-                                bot.id,
-                                planet.id,
-                                planet.galaxy, planet.system, planet.planet,
-                                bot.email,
-                                varItem.element_id,
-                                array_cost[0],
-                                array_cost[1],
-                                array_cost[2],
-                                planet.metal,
-                                planet.crystal,
-                                planet.deuterium);
-                           
+                            log.type = 6;
+                            log.galaxy = planet.galaxy;
+                            log.system = planet.system;
+                            log.planet = planet.planet;
+                            log.email = bot.email;
+                            log.research_id = tar_research_id;
+                            log.cost901 = array_cost[0];
+                            log.cost902 = array_cost[1];
+                            log.cost903 = array_cost[2];
+                            log.planet_metal = planet.metal;
+                            log.planet_crystal = planet.crystal;
+                            log.planet_deu = planet.deuterium;
+                            
+                            vecLog.push_back(log);
                         }
                         else
                         {
@@ -557,7 +556,10 @@ void CBotManager::HandleBuildings()
                                 ";i:3;i:" + std::to_string(endTime) +
                                 ";i:4;i:" + std::to_string(planet.id) + ";}}";
 
-                            CLogger::Info("[CBotManager] - Bot ID {} [Planet: {}] -> Started Research: {} Level {}\n", bot.id, planet.name, varItem.name, level_up);
+                            log.type = 7;
+                            log.research_name = varItem.name;
+                            log.research_level = level_up;
+                            vecLog.push_back(log);
                         }
 
                         
@@ -571,7 +573,8 @@ void CBotManager::HandleBuildings()
 
             if (tar_building_id == -1)
             {
-                CLogger::Info("[CBotManager] - The list to build has been completed for planet: {}\n", planet.name);
+                log.type = 8;
+                vecLog.push_back(log);
                 continue;
             }
 
@@ -579,7 +582,9 @@ void CBotManager::HandleBuildings()
             auto it = m_mapVars.find(tar_building_id);
             if (it == m_mapVars.end())
             {
-                CLogger::Error("[CBotManager] - WRONG ELEMENT ID:{} , NOT FOUND !\n", tar_building_id);
+                log.type = 9;
+                log.building_id = tar_building_id;
+                vecLog.push_back(log);
                 continue;
             }
 
@@ -595,22 +600,20 @@ void CBotManager::HandleBuildings()
 
             if (!HaveEnoughResources(planet, array_cost))
             {
-                CLogger::Info("[CBotManager] - SKIP [botID:{} - planetID:{}]\n"
-                    "coordinates:[{}:{}:{}] - email:[{}] \n"
-                    "not enough resources for element id:{} \n"
-                    "required: [metal:{}|crystal:{}|deu:{}]\n"
-                    "have: [metal:{}|crystal:{}|deu:{}]\n", 
-                    bot.id, 
-                    planet.id,
-                    planet.galaxy,planet.system,planet.planet,
-                    bot.email,
-                    varItem.element_id, 
-                    array_cost[0],
-                    array_cost[1],
-                    array_cost[2],
-                    planet.metal,
-                    planet.crystal,
-                    planet.deuterium);
+                log.type = 10;
+                log.galaxy = planet.galaxy;
+                log.system = planet.system;
+                log.planet = planet.planet;
+                log.email = bot.email;
+                log.building_id = tar_building_id;
+                log.cost901 = array_cost[0];
+                log.cost902 = array_cost[1];
+                log.cost903 = array_cost[2];
+                log.planet_metal = planet.metal;
+                log.planet_crystal = planet.crystal;
+                log.planet_deu = planet.deuterium;
+                vecLog.push_back(log);
+                
                 continue;
             }
 
@@ -629,26 +632,106 @@ void CBotManager::HandleBuildings()
                     ";i:2;i:" + std::to_string(static_cast<int>(buildTime)) +
                     ";i:3;i:" + std::to_string(endTime) + ";i:4;s:5:\"build\";}}";
 
-                CLogger::Info("[CBotManager] - Bot ID {} [Planet: {}] -> Started Building: {} Level {}\n", 
-                    bot.id, planet.name, varItem.name, level_up);
+                log.type = 11;
+                log.building_name = varItem.name;
+                log.building_level = level_up;
+                vecLog.push_back(log);
 			}
 			
         }
     }
+
+    LogResult(vecLog);
 }
 
 void CBotManager::LogResult(const std::vector<stlog>& logs) 
 {
     fmt::memory_buffer buf;
-
+    std::string strMsg;
     // Bu döngü sadece RAM içinde string birleştirir, I/O yapmaz (Çok hızlıdır)
-    for (const auto& log : logs) {
-        fmt::format_to(std::back_inserter(buf), "Bot:{}, Evren:{}\n", log.bot_id, log.universe);
+    for (const auto& log : logs) 
+    {
+		switch (log.type)
+		{
+		case 1:
+            // CLogger::Error("[CBotManager] - Config map missing : uni_id '{}' not found !\n", bot.universe);
+            fmt::format_to(std::back_inserter(buf), 
+                "[CBotManager] - Config map missing : uni_id '{}' not found !\n", log.universe);
+			break;
+        case 2:
+            // CLogger::Info("[CBotManager] - corrected a bot with buggy data !\n", bot.id, planet.id);
+            fmt::format_to(std::back_inserter(buf), 
+                "[CBotManager] - corrected a bot with buggy data id:{}planet_id:{}!\n", 
+                log.bot_id, log.id_planet);
+            break;
+        case 3:
+            fmt::format_to(std::back_inserter(buf), 
+                "[CBotManager] - SKIP [botID: {} - planetID: {}], building already !\n", 
+                log.bot_id, log.id_planet);
+            break;
+        case 4:
+            fmt::format_to(std::back_inserter(buf), 
+                "[CBotManager] - The list to research has been completed for bot: {}\n", log.bot_id);
+            break;
+        case 5:
+            fmt::format_to(std::back_inserter(buf), "[CBotManager] - wrong element id. bot_id : {}!\n", log.bot_id);
+            break;
+        case 6:           
+                fmt::format_to(std::back_inserter(buf), 
+                    "[CBotManager] - SKIP [botID:{} - planetID:{}]\n"
+                    "coordinates:[{}:{}:{}] - email:[{}] \n"
+                    "not enough resources for element id:{} \n"
+                    "required: [metal:{}|crystal:{}|deu:{}]\n"
+                    "have: [metal:{}|crystal:{}|deu:{}]\n",
+                    log.bot_id,
+                    log.id_planet,
+                    log.galaxy, log.system, log.planet,
+                    log.email,
+                    log.research_id,
+                    log.cost901,
+                    log.cost902,
+                    log.cost903,
+                    log.planet_metal,
+                    log.planet_crystal,
+                    log.planet_deu);
+            break;
+        case 7:
+            fmt::format_to(std::back_inserter(buf), 
+                "[CBotManager] - Bot ID {} [Planet: {}] -> Started Research: {} Level {}\n", log.bot_id,
+                log.id_planet, log.research_name, log.research_level);
+            break;
+            break;
+        case 8:
+            fmt::format_to(std::back_inserter(buf), "[CBotManager] - The list to build has been completed for planet: {}\n", log.id_planet);
+            break;
+        case 9:
+            fmt::format_to(std::back_inserter(buf), "[CBotManager] - WRONG ELEMENT ID:{} , NOT FOUND !\n", log.building_id);
+            break;
+        case 10:
+            fmt::format_to(std::back_inserter(buf), 
+                "[CBotManager] - SKIP [botID:{} - planetID:{}]\n"
+                "coordinates:[{}:{}:{}] - email:[{}] \n"
+                "not enough resources for element id:{} \n"
+                "required: [metal:{}|crystal:{}|deu:{}]\n"
+                "have: [metal:{}|crystal:{}|deu:{}]\n",
+                log.bot_id, log.id_planet, log.galaxy, log.system, log.planet,
+                log.email, log.building_id, log.cost901, log.cost902, log.cost903,
+                log.planet_metal, log.planet_crystal, log.planet_deu);
+            break;
+        case 11:
+            fmt::format_to(std::back_inserter(buf), 
+                "[CBotManager] - Bot ID {} [Planet: {}] -> Started Building: {} Level {}\n",
+                log.bot_id, log.id_planet, log.building_name, log.building_level);
+            break;
+		default:
+			fmt::format_to(std::back_inserter(buf), "Bot:{}, Planet:{}\n", log.bot_id, log.id_planet);
+			break;
+		}
     }
 
     // 5000 botun tüm bilgisini TEK BİR SEFERDE diske/konsola yazar. 
     // I/O işlemi 5000 kez değil, sadece 1 kez çağrılır!
-    spdlog::info("--- TUR LOGLARI ---\n{}", fmt::to_string(buf));
+    CLogger::Info("### BUILD LOGS ###\n{}", fmt::to_string(buf));
 }
 
 int CBotManager::GetTargetBuildID(const std::vector<int> vecList, const int* arrLevels)

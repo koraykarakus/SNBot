@@ -21,10 +21,45 @@ const T& GetMin(const T& a, const T& b)
 
 struct stlog
 {
-	int type = 0;
-	int bot_id = 0;
-	int planet_id = 0;
-	int universe = 0;
+	int type;
+	int bot_id;
+	int id_planet;
+	int universe;
+	int research_id;
+	int research_level;
+	int building_id;
+	int building_level;
+	int galaxy;
+	int system;
+	int planet;
+	int cost901;
+	int cost902;
+	int cost903;
+	int planet_metal;
+	int planet_crystal;
+	int planet_deu;
+	std::string research_name;
+	std::string building_name;
+	std::string email;
+	stlog() 
+		: type(0)
+		, bot_id(0)
+		, id_planet(0)
+		, universe(0)
+		, research_id(0)
+		, research_level(0)
+		, building_id(0)
+		, building_level(0)
+		, galaxy(0)
+		, system(0)
+		, planet(0)
+		, cost901(0)
+		, cost902(0)
+		, cost903(0)
+		, planet_metal(0)
+		, planet_crystal(0)
+		, planet_deu(0)
+	{}
 };
 
 using PhpArray = std::vector<std::string>;

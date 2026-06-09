@@ -188,7 +188,6 @@ bool CDatabase::LoadBots()
         bot.is_bot = row[99] ? (std::stoi(row[99]) != 0) : false;
         bot.SetFactor();
         g_pBotManager->AddBot(bot);
-        CLogger::Info("[CDatabase] - Bot Loaded -> ID: {}, Name: {}", bot.id, bot.strUserName);
     }
     mysql_free_result(result);
 
@@ -219,8 +218,6 @@ bool CDatabase::LoadBots()
 
         return false;
     }
-
-    CLogger::Info("[CDatabase] - Loading planets and linking to bots...");
 
     MYSQL_ROW plRow;
     while ((plRow = mysql_fetch_row(plResult)))
@@ -344,7 +341,6 @@ bool CDatabase::LoadBots()
         if (pTargetBot != nullptr)
         {
             pTargetBot->vecPlanets.push_back(pl);
-            CLogger::Info("Planet '{}' [ID: {}] linked to Bot ID: {}", pl.name, pl.id, pl.id_owner);
         }
         else
         {
@@ -353,7 +349,7 @@ bool CDatabase::LoadBots()
     }
 
     mysql_free_result(plResult);
-    CLogger::Info("[CDatabase] - All bots and planets loaded successfully.");
+    CLogger::Info("[CDatabase] ### All bots and planets loaded successfully. ###");
     return true;
 }
 
