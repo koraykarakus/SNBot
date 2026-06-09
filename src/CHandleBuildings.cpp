@@ -121,8 +121,8 @@ void CBotManager::HandleBuildings()
                 else
                 {
                     // search id in map
-                    auto it = m_mapVars.find(tar_research_id);
-                    if (it == m_mapVars.end())
+                    auto it = G_VARS.find(tar_research_id);
+                    if (it == G_VARS.end())
                     {
                         log.type = 5;
                         log.research_id = tar_research_id;
@@ -200,8 +200,8 @@ void CBotManager::HandleBuildings()
             }
 
             // search id in map
-            auto it = m_mapVars.find(tar_building_id);
-            if (it == m_mapVars.end())
+            auto it = G_VARS.find(tar_building_id);
+            if (it == G_VARS.end())
             {
                 log.type = 9;
                 log.building_id = tar_building_id;

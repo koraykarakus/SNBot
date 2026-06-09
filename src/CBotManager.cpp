@@ -69,7 +69,7 @@ void CBotManager::Run()
 		return;
 	}
 
-    CLogger::Info("[CBotManager] - [Run] Bot Main thread starting. vars size : {}\n", m_mapVars.size());
+    CLogger::Info("[CBotManager] - [Run] Bot Main thread starting. vars size : {}\n", G_VARS.size());
 
     // main loop as long as it is running
     while (g_bRunning)

@@ -16,6 +16,9 @@ std::map<int, std::string> G_RESOURCE;
 std::map<int, CombatCaps> G_COMBATCAPS;
 std::map<int, PriceListData> G_PRICELIST;
 std::map<int, ProdGridData> G_PRODGRID;
+std::unordered_map<int, table_vars> G_VARS;
+std::unordered_map<int, table_config> G_CONFIG;
+
 ResListData G_RESLIST;
 
 std::mutex g_shutdownMutex;

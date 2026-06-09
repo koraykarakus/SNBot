@@ -22,7 +22,7 @@ add_executable(SNBot
     
     "include/CLoader.h"
     "include/CLogger.h"
- "include/table_planets.h"  "include/CBotManager.h" "src/CBotManager.cpp" "include/table_vars.h" "include/table_users.h" "include/table_config.h" "include/enums.h" "include/globals.h" "src/CHandleBuildings.cpp" "src/CHandleResourceUpdate.cpp")
+ "include/table_planets.h"  "include/CBotManager.h" "src/CBotManager.cpp"  "include/table_users.h"  "include/enums.h" "include/globals.h" "src/CHandleBuildings.cpp" "src/CHandleResourceUpdate.cpp")
 
 # header files
 target_include_directories(SNBot PRIVATE include)

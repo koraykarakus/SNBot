@@ -3,8 +3,6 @@
 #include "CBotManager.h"
 #include "SimpleIni.h"
 #include "table_users.h"
-#include "table_vars.h"
-#include "table_config.h"
 #include <fmt/ranges.h>
 #include <filesystem>
 
@@ -682,7 +680,7 @@ bool CDatabase::LoadVars()
         return false;
     }
 
-    g_pBotManager->ClearVars();
+    G_VARS.clear();
 
     MYSQL_ROW row;
     int iLoadNum = 0;
@@ -811,8 +809,7 @@ bool CDatabase::LoadVars()
         case 700:  G_RESLIST.dmfunc.push_back(id);    break;
         }
 
-        // Orijinal haritaya kayıt fonksiyonun
-        g_pBotManager->AddVar(item.element_id, item);
+        G_VARS.emplace(item.element_id, item);
         iLoadNum++;
     }
 
@@ -864,7 +861,7 @@ bool CDatabase::LoadConfig()
         return false;
     }
 
-	g_pBotManager->ClearConfig();
+    G_CONFIG.clear();
 
     MYSQL_ROW row;
     int loadedCount = 0;
@@ -882,7 +879,7 @@ bool CDatabase::LoadConfig()
         item.max_overflow = std::stod(row[92]);
         item.energySpeed = std::stoi(row[114]);
 
-        g_pBotManager->AddConfig(item.uni, item);
+        G_CONFIG.emplace(item.uni, item);
         loadedCount++;
     }
 
