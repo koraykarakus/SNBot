@@ -63,6 +63,9 @@ struct table_planets
     int last_relocate;
     unsigned long long version;
 
+    // flag used to decide if planet needs an update.
+    bool need_update;
+
     // Constructor
     table_planets()
         : id(0), name(""), id_owner(0), universe(0)
@@ -84,6 +87,7 @@ struct table_planets
         , is_bot(false)
         , last_relocate(0)
         , version(0)
+        , need_update(false)
     {
     }
 };

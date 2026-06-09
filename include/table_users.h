@@ -94,6 +94,9 @@ struct table_users
     std::map<std::string,int> factor;
     play_time playTime;
     time_t onlinetime;
+
+    // update bot only if it needs update
+    bool need_update;
     // Constructor (Tüm alanlar güvenli değerlerle başlatılıyor)
     table_users()
         : id(0)
@@ -115,6 +118,7 @@ struct table_users
         , resource{0}
         , factor{}
         , onlinetime(0)
+        , need_update(false)
     {
         // init factor..
         for (const auto& bonus : bonus_list) 

@@ -147,10 +147,12 @@ void CBotManager::HandleResourceUpdate()
                 && bot.b_tech < std::time(nullptr))
             {
                 ResearchQueue(bot);
+                bot.need_update = true;
             }
 
             UpdateResource(planet, bot);
-            
+
+            planet.need_update = true;
         }
     }
 
@@ -237,6 +239,7 @@ bool CBotManager::ResearchQueue(table_users& user)
     user.b_tech_id = 0;
     user.b_tech_planet = 0;
     user.b_tech_queue = "";
+    user.need_update = true;
     return true;
 }
 
@@ -639,6 +642,9 @@ void CBotManager::HandleBuildings()
                             log.research_name = varItem.name;
                             log.research_level = level_up;
                             vecLog.push_back(log);
+                            // update it
+                            bot.need_update = true; // research q
+                            planet.need_update = true; // removecost
                         }
 
                         
@@ -697,7 +703,7 @@ void CBotManager::HandleBuildings()
             }
 
             RemoveCostFromPlanet(planet, array_cost);
-
+            planet.need_update;
             // it is building if id is less than 100
             if (tar_building_id < 100)
             {
@@ -715,6 +721,8 @@ void CBotManager::HandleBuildings()
                 log.building_name = varItem.name;
                 log.building_level = level_up;
                 vecLog.push_back(log);
+
+                bot.need_update = true;
 			}
 			
         }

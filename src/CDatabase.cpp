@@ -405,7 +405,21 @@ bool CDatabase::UpdateBots()
 
             for (const auto& planet : cBot.vecPlanets) 
             {
+
+                if (!planet.need_update)
+                {
+                    CLogger::Info("Planet does not need update PID:{}", planet.id);
+                    continue;
+                }
+
                 vecAllPlanets.push_back(planet);
+            }
+
+            // planet might need update.. (finished building etc.)
+            if (!cBot.need_update)
+            {
+                CLogger::Info("Bot does not need update {}", cBot.id);
+                continue;
             }
 
             strQuery += "(";
