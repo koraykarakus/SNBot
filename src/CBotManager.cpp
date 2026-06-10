@@ -87,7 +87,7 @@ void CBotManager::Run()
         // save to db
         g_pDatabase->UpdateBots();
         // reload from db
-        g_pDatabase->LoadBots();
+        // g_pDatabase->LoadBots();
         auto end = GetTimeNow();
 
         // update time and firstrun flag

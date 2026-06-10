@@ -295,7 +295,6 @@ int CBotManager::GetTargetBuildID(const std::vector<int>& vecList, const int* ar
 
 void CBotManager::LogResult(const std::vector<stlog>& logs) const
 {
-    return;
     fmt::memory_buffer buf;
     std::string strMsg;
     // Bu döngü sadece RAM içinde string birleştirir, I/O yapmaz (Çok hızlıdır)

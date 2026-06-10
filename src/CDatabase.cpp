@@ -366,6 +366,7 @@ bool CDatabase::LoadBots()
 
 bool CDatabase::UpdateBots()
 {
+    auto start = GetTimeNow();
     const std::vector<table_users>& pBots = g_pBotManager->GetBots();
 
     if (pBots.empty())
@@ -403,7 +404,7 @@ bool CDatabase::UpdateBots()
     std::vector<table_planets> vecAllPlanets;
     std::vector<int> vecIDPlanetsNoUpdate;
     std::vector<int> vecIDBotsNoUpdate;
-
+    int iPlanetCounter = 0, iBotCounter = 0;
     for (size_t i = 0; i < pBots.size(); i += BATCH_SIZE)
     {
         std::string strQuery = strUserHeader;
@@ -461,6 +462,8 @@ bool CDatabase::UpdateBots()
             strQuery += std::to_string(cBot.resource[199]) + ", ";
             strQuery += std::to_string(cBot.onlinetime);
             strQuery += "), ";
+
+            ++iBotCounter;
         }
 
         if (strQuery != strUserHeader)
@@ -642,7 +645,7 @@ bool CDatabase::UpdateBots()
             strQuery += std::to_string(pl.version);
             strQuery += "), ";
 
-            
+            ++iPlanetCounter;
         }
 
         if (strQuery != strPlanetHeader)
@@ -666,7 +669,12 @@ bool CDatabase::UpdateBots()
         
     }
 
-    CLogger::Info("[CDatabase] - All bots and their planets updated successfully in database.");
+    auto end = GetTimeNow();
+    auto duration_ms = GetElapsedMilliseconds(start, end);
+    auto duration_us = GetElapsedMicroseconds(start, end);
+    CLogger::Info("[CDatabase] - {} bots and {} "
+        "planets updated successfully in database.- time {}ms - {}us]",
+        iBotCounter,iPlanetCounter, duration_ms, duration_us);
     return true;
 }
 
