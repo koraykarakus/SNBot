@@ -26,6 +26,9 @@ struct table_config
 	int deuterium_basic_income;
 	float max_overflow;
 	int energySpeed;
+	int max_galaxy;
+	int max_system;
+	int max_planet;
 	table_config()
 		: uni(0)
 		, game_speed(2500)
@@ -36,6 +39,9 @@ struct table_config
 		, deuterium_basic_income(0)
 		, max_overflow(1.0)
 		, energySpeed(1)
+		, max_galaxy(9)
+		, max_system(499)
+		, max_planet(15)
 	{
 	}
 };

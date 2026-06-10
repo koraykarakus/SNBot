@@ -65,6 +65,8 @@ struct table_planets
 
     // flag used to decide if planet needs an update.
     bool need_update;
+    // flag used to state fleet action
+    bool need_fleet_colony;
 
     // Constructor
     table_planets()
@@ -88,6 +90,7 @@ struct table_planets
         , last_relocate(0)
         , version(0)
         , need_update(false)
+        , need_fleet_colony(false)
     {
     }
 };

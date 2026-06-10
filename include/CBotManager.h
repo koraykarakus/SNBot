@@ -4,6 +4,7 @@
 #include <map>
 #include "globals.h"
 #include "table_users.h"
+#include "table_fleets.h"
 
 template <typename T>
 const T& GetMax(const T& a, const T& b)
@@ -78,6 +79,16 @@ public:
 
 	void Run();
 
+	inline table_vars* GetVarsByID(int id) const 
+	{
+		auto it = G_VARS.find(id);
+		if (it == G_VARS.end())
+		{
+			return nullptr;
+		}
+		return &(it->second);
+	}
+
 	// check if time is in player's daily play duration
 	bool IsPlayingNow(const play_time& bot_info, int hour) const;
 	// compare last click time to this time, some players check 5min,20min etc.
@@ -130,7 +141,17 @@ public:
 	void UpdateResource(table_planets& planet, table_users& user, const time_t timeNow);
 	void UpdateCache(table_planets& planet, table_users& user);
 	void ExecCalc(table_planets& planet, time_t production_time);
-
+	// colonization handler and its helpers
+	void HandleColonization();
+	bool HaveColonyShip(const table_users& user) const;
+	int GetPlanetCountMax(const table_users& user) const;
+	inline size_t GetPlanetCount(const table_users& user) const
+	{
+		return user.vecPlanets.size();
+	}
+	bool HaveSpotForNewPlanet(const table_users& user) const;
+	int FindFirstPlanetCanColonize(const table_users& user, const table_vars* pColonyShip) const;
+	int GetFirstPlanetWithColonyShip(const table_users& user) const;
 
 	// php helpers
 	PhpArray php_unserialize(const std::string& serialized_data);

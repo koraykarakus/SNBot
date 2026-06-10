@@ -89,6 +89,23 @@ struct table_users
     // technologies
     uint8_t resource[200];
 
+    // commanders.
+	int rpg_geologist;
+	int rpg_admiral;
+	int rpg_engineer;
+	int rpg_technocrat;
+	int rpg_espion;
+	int rpg_constructor;
+	int rpg_scientist;
+	int rpg_commander;
+	int rpg_stocker;
+	int rpg_defender;
+	int rpg_destructor;
+	int rpg_general;
+	int rpg_bunker;
+	int rpg_raider;
+	int rpg_emperor;
+
     bool is_bot;
     std::vector<table_planets> vecPlanets;
     std::map<std::string,int> factor;

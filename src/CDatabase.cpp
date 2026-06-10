@@ -187,6 +187,23 @@ bool CDatabase::LoadBots()
         bot.resource[133] = row[53] ? std::stoi(row[53]) : 0;
         bot.resource[199] = row[54] ? std::stoi(row[54]) : 0;
 
+        // commanders.
+        bot.rpg_geologist = row[58] ? std::stoi(row[58]) : 0;
+        bot.rpg_admiral = row[59] ? std::stoi(row[59]) : 0;
+        bot.rpg_engineer = row[60] ? std::stoi(row[60]) : 0;
+        bot.rpg_technocrat = row[61] ? std::stoi(row[61]) : 0;
+        bot.rpg_espion = row[62] ? std::stoi(row[62]) : 0;
+        bot.rpg_constructor = row[63] ? std::stoi(row[63]) : 0;
+        bot.rpg_scientist = row[64] ? std::stoi(row[64]) : 0;
+        bot.rpg_commander = row[65] ? std::stoi(row[65]) : 0;
+        bot.rpg_stocker = row[66] ? std::stoi(row[66]) : 0;
+        bot.rpg_defender = row[67] ? std::stoi(row[67]) : 0;
+        bot.rpg_destructor = row[68] ? std::stoi(row[68]) : 0;
+        bot.rpg_general = row[69] ? std::stoi(row[69]) : 0;
+        bot.rpg_bunker = row[70] ? std::stoi(row[70]) : 0;
+        bot.rpg_raider = row[71] ? std::stoi(row[71]) : 0;
+        bot.rpg_emperor = row[72] ? std::stoi(row[72]) : 0;
+
         // column is_bot to simplify
         bot.is_bot = row[99] ? (std::atoi(row[99]) != 0) : false;
         bot.SetFactor(now);
@@ -898,6 +915,9 @@ bool CDatabase::LoadConfig()
         item.metal_basic_income = std::stoi(row[18]);
         item.crystal_basic_income = std::stoi(row[19]);
         item.deuterium_basic_income = std::stoi(row[20]);
+        item.max_galaxy = std::stoi(row[78]);
+        item.max_system = std::stoi(row[79]);
+        item.max_planet = std::stoi(row[80]);
         item.max_overflow = std::stod(row[92]);
         item.energySpeed = std::stoi(row[114]);
 

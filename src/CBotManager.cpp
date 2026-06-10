@@ -88,6 +88,7 @@ void CBotManager::Run()
         auto start = GetTimeNow();
         HandleResourceUpdate();
         HandleBuildings();
+        HandleColonization();
 
         // save to db
         g_pDatabase->UpdateBots();
