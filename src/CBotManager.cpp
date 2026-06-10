@@ -48,6 +48,11 @@ bool CBotManager::IsPlayingNow(const play_time& bot_info, int hour) const
     return false;
 }
 
+bool CBotManager::IsAway(const table_users& bot, time_t timeNow) const
+{
+    return (bot.playTime.check_time * 60) > (static_cast<int>(timeNow) - bot.onlinetime);
+}
+
 void CBotManager::Run()
 {
     // sleep if not loaded yet.

@@ -60,6 +60,16 @@ void CBotManager::HandleBuildings()
             continue;
         }
 
+        if (IsAway(bot, currentTime))
+        {
+            log.type = 13;
+            log.away_time = GetRemainingAwayTimeInSeconds(bot, currentTime);
+            vecLog.push_back(log);
+            continue;
+        }
+
+        bot.onlinetime = static_cast<int>(currentTime);
+
         const table_config* pConfig = GetConfigByUniID(bot.universe);
         if (pConfig == nullptr)
         {
@@ -81,7 +91,7 @@ void CBotManager::HandleBuildings()
         for (auto& planet : bot.vecPlanets)
         {
 
-            log.id_planet = bot.id_planet;
+            log.id_planet = planet.id;
 
             if (planet.b_building > 0)
             {
@@ -378,6 +388,11 @@ void CBotManager::LogResult(const std::vector<stlog>& logs) const
             fmt::format_to(std::back_inserter(buf),
                 "[CBotManager] - Bot ID {} Bot is not online now !\n",
                 log.bot_id);
+            break;
+        case 13:
+            fmt::format_to(std::back_inserter(buf),
+                "[CBotManager] - Bot ID {} Bot is away for {} seconds...\n",
+                log.bot_id, log.away_time);
             break;
         default:
             fmt::format_to(std::back_inserter(buf), "Bot:{}, Planet:{}\n", log.bot_id, log.id_planet);

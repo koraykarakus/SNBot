@@ -20,6 +20,11 @@ void CBotManager::HandleResourceUpdate()
             continue;
         }
 
+        if (IsAway(bot, timeNow))
+        {
+            continue;
+        }
+
         if (bot.vacation_mode == 1)
         {
             CLogger::Info("Bot is in vacation mode id: {}\n", bot.id);
@@ -125,7 +130,6 @@ bool CBotManager::ResearchQueue(table_users& user, const time_t timeNow)
     user.b_tech_id = 0;
     user.b_tech_planet = 0;
     user.b_tech_queue = "";
-    user.need_update = true;
     return true;
 }
 

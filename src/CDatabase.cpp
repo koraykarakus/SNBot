@@ -367,7 +367,7 @@ bool CDatabase::LoadBots()
 bool CDatabase::UpdateBots()
 {
     auto start = GetTimeNow();
-    const std::vector<table_users>& pBots = g_pBotManager->GetBots();
+    std::vector<table_users>& pBots = g_pBotManager->GetBots();
 
     if (pBots.empty())
     {
@@ -404,6 +404,7 @@ bool CDatabase::UpdateBots()
     std::vector<table_planets> vecAllPlanets;
     std::vector<int> vecIDPlanetsNoUpdate;
     std::vector<int> vecIDBotsNoUpdate;
+
     int iPlanetCounter = 0, iBotCounter = 0;
     for (size_t i = 0; i < pBots.size(); i += BATCH_SIZE)
     {
@@ -412,9 +413,9 @@ bool CDatabase::UpdateBots()
 
         for (size_t k = i; k < endIndex; ++k)
         {
-            const auto& cBot = pBots[k];
+            auto& cBot = pBots[k];
 
-            for (const auto& planet : cBot.vecPlanets) 
+            for (auto& planet : cBot.vecPlanets) 
             {
 
                 if (!planet.need_update)
@@ -423,7 +424,8 @@ bool CDatabase::UpdateBots()
                     vecIDPlanetsNoUpdate.push_back(planet.id);
                     continue;
                 }
-
+                
+                planet.need_update = false;
                 vecAllPlanets.push_back(planet);
             }
 
@@ -463,6 +465,7 @@ bool CDatabase::UpdateBots()
             strQuery += std::to_string(cBot.onlinetime);
             strQuery += "), ";
 
+            cBot.need_update = false;
             ++iBotCounter;
         }
 

@@ -40,6 +40,7 @@ struct stlog
 	std::string research_name;
 	std::string building_name;
 	std::string email;
+	int away_time;
 	stlog() 
 		: type(0)
 		, bot_id(0)
@@ -58,6 +59,7 @@ struct stlog
 		, planet_metal(0)
 		, planet_crystal(0)
 		, planet_deu(0)
+		, away_time(0)
 	{}
 };
 
@@ -76,7 +78,13 @@ public:
 
 	void Run();
 
+	// check if time is in player's daily play duration
 	bool IsPlayingNow(const play_time& bot_info, int hour) const;
+	// compare last click time to this time, some players check 5min,20min etc.
+	bool IsAway(const table_users& bot, time_t timeNow) const;
+	inline int GetRemainingAwayTimeInSeconds(const table_users& bot, time_t timeNow) const {
+		return (bot.playTime.check_time * 60) - (static_cast<int>(timeNow) - bot.onlinetime);
+	}
 	bool IsInTimeRange(int current_hour, int start_time, int end_time) const;
 
 	inline void AddBot(const table_users& bot)
@@ -89,7 +97,7 @@ public:
 		m_vecBots.clear();
 	}
 
-	const std::vector<table_users>& GetBots() const
+	std::vector<table_users>& GetBots()
 	{
 		return m_vecBots;
 	}
