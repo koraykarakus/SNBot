@@ -273,7 +273,7 @@ void CBotManager::HandleBuildings()
     LogResult(vecLog);
 }
 
-int CBotManager::GetTargetBuildID(const std::vector<int> vecList, const int* arrLevels)
+int CBotManager::GetTargetBuildID(const std::vector<int>& vecList, const int* arrLevels)
 {
     int simulated_levels[200] = { 0 };
     int tar_building_id = -1;

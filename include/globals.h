@@ -3,6 +3,8 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <chrono>
+#include <unordered_map>
 
 struct table_vars {
 	int element_id;
@@ -106,4 +108,25 @@ static const table_config* GetConfigByUniID(int uni)
 		return nullptr;
 	}
 	return &it->second;
+}
+
+static std::chrono::steady_clock::time_point GetTimeNow()
+{
+	return std::chrono::steady_clock::now();
+}
+
+static int64_t GetElapsedMilliseconds(
+	const std::chrono::steady_clock::time_point& start,
+	const std::chrono::steady_clock::time_point& end)
+{
+	return std::chrono::duration_cast<std::chrono::milliseconds>(
+		end - start).count();
+}
+
+static int64_t GetElapsedMicroseconds(
+	const std::chrono::steady_clock::time_point& start,
+	const std::chrono::steady_clock::time_point& end)
+{
+	return std::chrono::duration_cast<std::chrono::microseconds>(
+		end - start).count();
 }

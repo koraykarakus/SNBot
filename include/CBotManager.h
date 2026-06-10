@@ -107,7 +107,7 @@ public:
 	// build research, building, fleet or defence
 	void HandleBuildings();
 	// simulates..
-	int GetTargetBuildID(const std::vector<int> vecList, const int* arrLevels);
+	int GetTargetBuildID(const std::vector<int>& vecList, const int* arrLevels);
 	bool HaveEnoughResources(const table_planets& planet , double* arrCost);
 	void RemoveCostFromPlanet(table_planets& planet, double* arrCost);
 	inline bool IsResearching(const table_users& user) 
