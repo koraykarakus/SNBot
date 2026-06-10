@@ -273,7 +273,7 @@ void CBotManager::HandleBuildings()
     LogResult(vecLog);
 }
 
-int CBotManager::GetTargetBuildID(const std::vector<int>& vecList, const int* arrLevels)
+int CBotManager::GetTargetBuildID(const std::vector<int>& vecList, const int* arrLevels) const
 {
     int simulated_levels[200] = { 0 };
     int tar_building_id = -1;
@@ -293,8 +293,9 @@ int CBotManager::GetTargetBuildID(const std::vector<int>& vecList, const int* ar
     return tar_building_id;
 }
 
-void CBotManager::LogResult(const std::vector<stlog>& logs)
+void CBotManager::LogResult(const std::vector<stlog>& logs) const
 {
+    return;
     fmt::memory_buffer buf;
     std::string strMsg;
     // Bu döngü sadece RAM içinde string birleştirir, I/O yapmaz (Çok hızlıdır)

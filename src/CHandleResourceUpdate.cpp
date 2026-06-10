@@ -31,27 +31,25 @@ void CBotManager::HandleResourceUpdate()
         {
             if (planet.b_building != 0)
             {
-                BuildingQueue(planet);
+                BuildingQueue(planet, timeNow);
             }
 
             if (bot.b_tech != 0
-                && bot.b_tech < std::time(nullptr))
+                && bot.b_tech < timeNow)
             {
-                ResearchQueue(bot);
+                ResearchQueue(bot, timeNow);
                 bot.need_update = true;
             }
 
-            UpdateResource(planet, bot);
+            UpdateResource(planet, bot, timeNow);
 
             planet.need_update = true;
         }
     }
-
 }
 
-bool CBotManager::BuildingQueue(table_planets& planet)
+bool CBotManager::BuildingQueue(table_planets& planet, const time_t currentTime)
 {
-    time_t currentTime = std::time(nullptr);
 
     if (planet.b_building_id.empty()
         || planet.b_building > currentTime)
@@ -113,11 +111,8 @@ bool CBotManager::BuildingQueue(table_planets& planet)
     */
 }
 
-bool CBotManager::ResearchQueue(table_users& user)
+bool CBotManager::ResearchQueue(table_users& user, const time_t timeNow)
 {
-    // todo : store time in member
-    time_t timeNow = std::time(nullptr);
-
     if (user.b_tech_id == 0
         || (user.b_tech > timeNow
             && !user.b_tech_queue.empty()))
@@ -134,9 +129,8 @@ bool CBotManager::ResearchQueue(table_users& user)
     return true;
 }
 
-void CBotManager::UpdateResource(table_planets& planet, table_users& user)
+void CBotManager::UpdateResource(table_planets& planet, table_users& user, const time_t timeNow)
 {
-    time_t timeNow = std::time(nullptr);
     time_t production_time = timeNow - planet.last_update;
 
     if (production_time > 0)

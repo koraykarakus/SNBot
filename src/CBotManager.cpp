@@ -18,7 +18,7 @@ CBotManager::~CBotManager()
 	m_vecBots.clear();
 }
 
-bool CBotManager::IsInTimeRange(int current_hour, int start_time, int end_time)
+bool CBotManager::IsInTimeRange(int current_hour, int start_time, int end_time) const
 {
     if (start_time == -1 
         || end_time == -1) 
@@ -34,7 +34,7 @@ bool CBotManager::IsInTimeRange(int current_hour, int start_time, int end_time)
     return (current_hour >= start_time || current_hour < end_time);
 }
 
-bool CBotManager::IsPlayingNow(const play_time& bot_info, int hour)
+bool CBotManager::IsPlayingNow(const play_time& bot_info, int hour) const
 {
     if (IsInTimeRange(hour, bot_info.play_start_time_1, bot_info.play_end_time_1)) 
         return true;
@@ -51,7 +51,7 @@ bool CBotManager::IsPlayingNow(const play_time& bot_info, int hour)
 void CBotManager::Run()
 {
     // sleep if not loaded yet.
-    while (g_bRunning 
+    while (g_bRunning
         && !g_bLoaded)
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
@@ -79,23 +79,23 @@ void CBotManager::Run()
 			continue;
 		}
 
-        auto start = GetTimeNow();
         // handlers.
+        auto start = GetTimeNow();
         HandleResourceUpdate();
         HandleBuildings();
-        
+
         // save to db
         g_pDatabase->UpdateBots();
         // reload from db
         g_pDatabase->LoadBots();
         auto end = GetTimeNow();
-        auto duration_micros = GetElapsedMicroseconds(start, end);
-        double duration_millis = GetElapsedMilliseconds(start, end);
-        CLogger::Info("Bot buildings has been handled. [time: {} us / {} ms]\n", duration_micros, duration_millis);
+
         // update time and firstrun flag
         m_bFirstRun = false;
         m_timeLastRun = timeNow;
-
+        auto duration_micros = GetElapsedMicroseconds(start, end);
+        double duration_millis = GetElapsedMilliseconds(start, end);
+        CLogger::Info("Measured part handle time. [time: {} us / {} ms]\n", duration_micros, duration_millis);
         // sleep
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }

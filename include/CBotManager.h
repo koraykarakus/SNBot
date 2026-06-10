@@ -76,8 +76,8 @@ public:
 
 	void Run();
 
-	bool IsPlayingNow(const play_time& bot_info, int hour);
-	bool IsInTimeRange(int current_hour, int start_time, int end_time);
+	bool IsPlayingNow(const play_time& bot_info, int hour) const;
+	bool IsInTimeRange(int current_hour, int start_time, int end_time) const;
 
 	inline void AddBot(const table_users& bot)
 	{
@@ -107,19 +107,19 @@ public:
 	// build research, building, fleet or defence
 	void HandleBuildings();
 	// simulates..
-	int GetTargetBuildID(const std::vector<int>& vecList, const int* arrLevels);
+	int GetTargetBuildID(const std::vector<int>& vecList, const int* arrLevels) const;
 	bool HaveEnoughResources(const table_planets& planet , double* arrCost);
 	void RemoveCostFromPlanet(table_planets& planet, double* arrCost);
-	inline bool IsResearching(const table_users& user) 
+	inline bool IsResearching(const table_users& user) const
 	{
 		return user.b_tech > 0;
 	}
-	void LogResult(const std::vector<stlog>& logs);
+	void LogResult(const std::vector<stlog>& logs) const;
 	// resource update and its helpers
 	void HandleResourceUpdate();
-	bool BuildingQueue(table_planets& planet);
-	bool ResearchQueue(table_users& user);
-	void UpdateResource(table_planets& planet, table_users& user);
+	bool BuildingQueue(table_planets& planet, const time_t currentTime);
+	bool ResearchQueue(table_users& user, const time_t timeNow);
+	void UpdateResource(table_planets& planet, table_users& user, const time_t timeNow);
 	void UpdateCache(table_planets& planet, table_users& user);
 	void ExecCalc(table_planets& planet, time_t production_time);
 
