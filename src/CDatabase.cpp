@@ -111,8 +111,7 @@ void CDatabase::Disconnect()
 
 bool CDatabase::LoadBots()
 {
-    time_t now = std::time(nullptr);
-    auto start = std::chrono::high_resolution_clock::now();
+    auto start = GetTimeNow();
 	std::string strQuery = "SELECT * FROM `" + m_strDBPrefix + "users` WHERE is_bot = 1";
 
     if (mysql_query(m_pConn, strQuery.c_str()))
@@ -139,10 +138,12 @@ bool CDatabase::LoadBots()
 
     MYSQL_ROW row;
 
+    time_t now = std::time(nullptr); 
+    int ibotCounter = 0; int iPlanetCounter = 0;
     while ((row = mysql_fetch_row(result)))
     {
         table_users bot;
-
+        
         bot.id = row[0] ? std::stoi(row[0]) : 0;
         bot.type = bot.id % 10;
         bot.SetPlayStyle();
@@ -190,6 +191,7 @@ bool CDatabase::LoadBots()
         bot.is_bot = row[99] ? (std::atoi(row[99]) != 0) : false;
         bot.SetFactor(now);
         g_pBotManager->AddBot(bot);
+        ++ibotCounter;
     }
     mysql_free_result(result);
     
@@ -343,6 +345,7 @@ bool CDatabase::LoadBots()
         if (pTargetBot != nullptr)
         {
             pTargetBot->vecPlanets.push_back(std::move(pl));
+            ++iPlanetCounter;
         }
         else
         {
@@ -352,10 +355,12 @@ bool CDatabase::LoadBots()
    
     mysql_free_result(plResult);
    
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration_micros = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-    double duration_millis = duration_micros / 1000.0;
-    CLogger::Info("[CDatabase] ### All bots and planets loaded successfully. ### [time: {} us / {} ms]\n", duration_micros, duration_millis);
+    auto end = GetTimeNow();
+    auto duration_micros = GetElapsedMicroseconds(start, end);
+    double duration_millis = GetElapsedMilliseconds(start, end);
+	CLogger::Info("[CDatabase] ### {} bots and {} planets"
+		"loaded successfully. ### [time:{} us / {} ms]\n",
+		ibotCounter, iPlanetCounter, duration_micros, duration_millis);
     return true;
 }
 
