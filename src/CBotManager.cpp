@@ -100,7 +100,7 @@ void CBotManager::Run()
         m_timeLastRun = timeNow;
         auto duration_micros = GetElapsedMicroseconds(start, end);
         double duration_millis = GetElapsedMilliseconds(start, end);
-        CLogger::Info("Measured part handle time. [time: {} us / {} ms]\n", duration_micros, duration_millis);
+        CLogger::Info("Process handled in [{} microsec / {} milisec]\n", duration_micros, duration_millis);
         // sleep
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
@@ -126,28 +126,29 @@ void CBotManager::RemoveCostFromPlanet(table_planets& planet, double* arrCost)
 std::string CBotManager::php_serialize(const PhpArray& arr) {
     std::stringstream ss;
 
-    // PHP array başlatma: a:Dizi_Boyutu:{
+    // PHP array start: a:size:{
     ss << "a:" << arr.size() << ":{";
 
     for (size_t i = 0; i < arr.size(); ++i) {
-        // Önce PHP array indeksini yaz (i:0;, i:1; vb.)
+        // PHP array index (i:0;, i:1; vb.)
         ss << "i:" << i << ";";
 
-        // Değerin sayı olup olmadığını kontrol et
+        // check if numeric
         const std::string& val = arr[i];
         bool is_number = !val.empty() && val.find_first_not_of("0123456789-") == std::string::npos;
 
-        if (is_number) {
-            // Sayı ise: i:1718000000;
+        if (is_number) 
+        {
+            // number: i:num
             ss << "i:" << val << ";";
         }
         else {
-            // String ise: s:5:"build";
+            // String: s:length:"build";
             ss << "s:" << val.length() << ":\"" << val << "\";";
         }
     }
 
-    ss << "}"; // Kapatma parantezi
+    ss << "}"; 
     return ss.str();
 }
 
