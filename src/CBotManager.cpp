@@ -34,14 +34,8 @@ bool CBotManager::IsInTimeRange(int current_hour, int start_time, int end_time)
     return (current_hour >= start_time || current_hour < end_time);
 }
 
-bool CBotManager::IsPlayingNow(const play_time& bot_info)
+bool CBotManager::IsPlayingNow(const play_time& bot_info, int hour)
 {
-    time_t timeNow = std::time(nullptr);
-    std::tm* pLocalTime = std::localtime(&timeNow);
-    if (!pLocalTime) return false;
-
-    int hour = pLocalTime->tm_hour;
-
     if (IsInTimeRange(hour, bot_info.play_start_time_1, bot_info.play_end_time_1)) 
         return true;
     if (IsInTimeRange(hour, bot_info.play_start_time_2, bot_info.play_end_time_2)) 

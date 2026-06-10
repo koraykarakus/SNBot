@@ -97,7 +97,6 @@ struct table_users
 
     // update bot only if it needs update
     bool need_update;
-    // Constructor (Tüm alanlar güvenli değerlerle başlatılıyor)
     table_users()
         : id(0)
         , type(0)

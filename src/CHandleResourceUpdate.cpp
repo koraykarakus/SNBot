@@ -6,9 +6,16 @@
 void CBotManager::HandleResourceUpdate()
 {
     time_t timeNow = std::time(nullptr);
+    std::tm* pLocalTime = std::localtime(&timeNow);
+    int hour = 0;
+    if (pLocalTime != nullptr)
+    {
+        hour = pLocalTime->tm_hour;
+    }
+
     for (auto& bot : m_vecBots)
     {
-        if (!IsPlayingNow(bot.playTime))
+        if (!IsPlayingNow(bot.playTime, hour))
         {
             continue;
         }

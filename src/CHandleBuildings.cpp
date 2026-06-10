@@ -37,8 +37,14 @@ void CBotManager::HandleBuildings()
     };
 
     time_t currentTime = std::time(nullptr);
-
     std::vector<stlog> vecLog;
+
+    std::tm* pLocalTime = std::localtime(&currentTime); 
+    int hour = 0;
+    if (pLocalTime != nullptr) 
+    {
+        hour = pLocalTime->tm_hour;
+    }
 
     for (auto& bot : m_vecBots)
     {
@@ -47,7 +53,7 @@ void CBotManager::HandleBuildings()
         log.bot_id = bot.id;
 
         // is it online now ?
-        if (!IsPlayingNow(bot.playTime))
+        if (!IsPlayingNow(bot.playTime, hour))
         {
             log.type = 12;
             vecLog.push_back(log);
@@ -263,7 +269,7 @@ void CBotManager::HandleBuildings()
 
         }
     }
-
+    
     LogResult(vecLog);
 }
 
