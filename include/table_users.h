@@ -137,11 +137,11 @@ struct table_users
         return isActiveDMExtra(extra, time) ? is_true : is_false;
     }
 
-    void SetFactor() {
+    void SetFactor(time_t time) {
 
-        for (const auto element_id : G_RESLIST.bonus)
+        for (const auto& element_id : G_RESLIST.bonus)
         {
-            std::map<std::string, BonusData> bonus = G_PRICELIST[element_id].bonus;
+            std::map<std::string, BonusData>& bonus = G_PRICELIST[element_id].bonus;
 
             
             int $element_level = resource[element_id];
@@ -159,7 +159,6 @@ struct table_users
 
             if (found)
             {
-                time_t time = std::time(nullptr);
                 if (DMExtra($element_level, time, false, true))
                 {
                     continue;

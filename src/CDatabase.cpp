@@ -111,6 +111,8 @@ void CDatabase::Disconnect()
 
 bool CDatabase::LoadBots()
 {
+    time_t now = std::time(nullptr);
+    auto start = std::chrono::high_resolution_clock::now();
 	std::string strQuery = "SELECT * FROM `" + m_strDBPrefix + "users` WHERE is_bot = 1";
 
     if (mysql_query(m_pConn, strQuery.c_str()))
@@ -136,6 +138,7 @@ bool CDatabase::LoadBots()
     g_pBotManager->ClearBots();
 
     MYSQL_ROW row;
+
     while ((row = mysql_fetch_row(result)))
     {
         table_users bot;
@@ -184,12 +187,12 @@ bool CDatabase::LoadBots()
         bot.resource[199] = row[54] ? std::stoi(row[54]) : 0;
 
         // column is_bot to simplify
-        bot.is_bot = row[99] ? (std::stoi(row[99]) != 0) : false;
-        bot.SetFactor();
+        bot.is_bot = row[99] ? (std::atoi(row[99]) != 0) : false;
+        bot.SetFactor(now);
         g_pBotManager->AddBot(bot);
     }
     mysql_free_result(result);
-
+    
     // if bot number is 0, no point searching for bot planets
     if (rowCount == 0) 
     {
@@ -339,16 +342,20 @@ bool CDatabase::LoadBots()
         table_users* pTargetBot = g_pBotManager->GetBotRef(pl.id_owner);
         if (pTargetBot != nullptr)
         {
-            pTargetBot->vecPlanets.push_back(pl);
+            pTargetBot->vecPlanets.push_back(std::move(pl));
         }
         else
         {
             CLogger::Warn("Planet ID {} has owner ID {} but no matching bot was found!", pl.id, pl.id_owner);
         }
     }
-
+   
     mysql_free_result(plResult);
-    CLogger::Info("[CDatabase] ### All bots and planets loaded successfully. ###");
+   
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration_micros = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+    double duration_millis = duration_micros / 1000.0;
+    CLogger::Info("[CDatabase] ### All bots and planets loaded successfully. ### [time: {} us / {} ms]\n", duration_micros, duration_millis);
     return true;
 }
 
@@ -475,10 +482,11 @@ bool CDatabase::UpdateBots()
     if (!vecIDPlanetsNoUpdate.empty()
         || !vecIDBotsNoUpdate.empty())
     {
+        /*
         spdlog::info("PID:[{}], UID:[{}] does not need update",
             fmt::join(vecIDPlanetsNoUpdate, "],["),
             fmt::join(vecIDBotsNoUpdate, "],[")
-        );
+        );*/
     }
     
     // =========================================================================

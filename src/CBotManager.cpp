@@ -85,15 +85,19 @@ void CBotManager::Run()
 			continue;
 		}
 
+        auto start = std::chrono::high_resolution_clock::now();
         // handlers.
         HandleResourceUpdate();
         HandleBuildings();
+        
         // save to db
         g_pDatabase->UpdateBots();
         // reload from db
         g_pDatabase->LoadBots();
-        CLogger::Info("Bot buildings has been handled.\n");
-
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration_micros = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+        double duration_millis = duration_micros / 1000.0;
+        CLogger::Info("Bot buildings has been handled. [time: {} us / {} ms]\n", duration_micros, duration_millis);
         // update time and firstrun flag
         m_bFirstRun = false;
         m_timeLastRun = timeNow;
