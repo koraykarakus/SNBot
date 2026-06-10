@@ -266,7 +266,7 @@ bool CDatabase::LoadBots()
         pl.energy_used = plRow[31] ? std::stod(plRow[31]) : 0.0;
         pl.energy = plRow[32] ? std::stod(plRow[32]) : 0.0;
 
-        // Bina Kademeleri
+        // buildings
         pl.resource[1] = plRow[33] ? std::stoull(plRow[33]) : 0; // metal_mine
         pl.resource[2] = plRow[34] ? std::stoull(plRow[34]) : 0; // crystal_mine
         pl.resource[3] = plRow[35] ? std::stoull(plRow[35]) : 0; // deuterium_synthesizer
@@ -287,7 +287,7 @@ bool CDatabase::LoadBots()
         pl.resource[42] = plRow[50] ? std::stoull(plRow[50]) : 0; // phalanx
         pl.resource[43] = plRow[51] ? std::stoull(plRow[51]) : 0; // jump_gate
 
-        // Filolar
+        // fleet
         pl.resource[202] = plRow[52] ? std::stoull(plRow[52]) : 0; // small_cargo
         pl.resource[203] = plRow[53] ? std::stoull(plRow[53]) : 0; // big_cargo
         pl.resource[204] = plRow[54] ? std::stoull(plRow[54]) : 0; // light_hunter
@@ -309,7 +309,7 @@ bool CDatabase::LoadBots()
         pl.resource[220] = plRow[70] ? std::stoull(plRow[70]) : 0; // dm_ship
         pl.resource[411] = plRow[71] ? std::stoull(plRow[71]) : 0; // orbital_station
 
-        // Savunma & Füzeler
+        // defence & missiles
         pl.resource[401] = plRow[72] ? std::stoull(plRow[72]) : 0; // rocket_launcher
         pl.resource[402] = plRow[73] ? std::stoull(plRow[73]) : 0; // light_laser
         pl.resource[403] = plRow[74] ? std::stoull(plRow[74]) : 0; // heavy_laser
@@ -508,7 +508,7 @@ bool CDatabase::UpdateBots()
         return true;
     }
 
-    // Gezegen şemasına göre Insert sorgu başlığı (Milimetrik şema sırası)
+    // order is important !
     const std::string strPlanetHeader = "INSERT INTO `" + m_strDBPrefix + "planets` ("
         "id, name, id_owner, universe, galaxy, system, planet, last_update, planet_type, destroyed, "
         "b_building, b_building_id, b_shipyard, b_shipyard_id, b_shipyard_plus, image, diameter, field_current, field_max, temp_min, temp_max, "
@@ -519,7 +519,7 @@ bool CDatabase::UpdateBots()
         "metal_mine_percent, crystal_mine_percent, deuterium_synthesizer_percent, solar_plant_percent, fusion_plant_percent, solar_satellite_percent, "
         "last_jump_time, debris_metal, debris_crystal, id_moon, is_bot, last_relocate, version) VALUES ";
 
-    // Çakışma durumunda güncellenecek alanların tamamı
+    // footer
     const std::string strPlanetFooter = " ON DUPLICATE KEY UPDATE "
         "name=VALUES(name), id_owner=VALUES(id_owner), universe=VALUES(universe), galaxy=VALUES(galaxy), system=VALUES(system), planet=VALUES(planet), last_update=VALUES(last_update), planet_type=VALUES(planet_type), destroyed=VALUES(destroyed), "
         "b_building=VALUES(b_building), b_building_id=VALUES(b_building_id), b_shipyard=VALUES(b_shipyard), b_shipyard_id=VALUES(b_shipyard_id), b_shipyard_plus=VALUES(b_shipyard_plus), image=VALUES(image), diameter=VALUES(diameter), field_current=VALUES(field_current), field_max=VALUES(field_max), temp_min=VALUES(temp_min), temp_max=VALUES(temp_max), "
@@ -530,7 +530,7 @@ bool CDatabase::UpdateBots()
         "metal_mine_percent=VALUES(metal_mine_percent), crystal_mine_percent=VALUES(crystal_mine_percent), deuterium_synthesizer_percent=VALUES(deuterium_synthesizer_percent), solar_plant_percent=VALUES(solar_plant_percent), fusion_plant_percent=VALUES(fusion_plant_percent), solar_satellite_percent=VALUES(solar_satellite_percent), "
         "last_jump_time=VALUES(last_jump_time), debris_metal=VALUES(debris_metal), debris_crystal=VALUES(debris_crystal), id_moon=VALUES(id_moon), is_bot=VALUES(is_bot), last_relocate=VALUES(last_relocate), version=VALUES(version);";
 
-    // Toplanan gezegen havuzunu tam 50'şerli paketleyerek gönderiyoruz
+    // batch size 50 as default
     for (size_t i = 0; i < vecAllPlanets.size(); i += BATCH_SIZE)
     {
         std::string strQuery = strPlanetHeader;
@@ -731,11 +731,11 @@ bool CDatabase::LoadVars()
         // 1. PHP: $RESOURCE
         G_RESOURCE[id] = item.name;
 
-        // 2. PHP: $COMBATCAPS (Sırasıyla attack ve defend kolonları)
+        // 2. PHP: $COMBATCAPS (with correct order attack ve defend)
         G_COMBATCAPS[id].attack = row[22] ? std::stod(row[22]) : 0.0; // attack
         G_COMBATCAPS[id].shield = row[23] ? std::stod(row[23]) : 0.0; // defend (shield)
 
-        // 3. PHP: $PRICELIST -> cost & Temel veriler
+        // 3. PHP: $PRICELIST -> cost
         G_PRICELIST[id].cost[901] = item.cost901;
         G_PRICELIST[id].cost[902] = item.cost902;
         G_PRICELIST[id].cost[903] = item.cost903;
@@ -752,7 +752,7 @@ bool CDatabase::LoadVars()
         G_PRICELIST[id].tech = row[14] ? std::stoi(row[14]) : 0;   // speed_tech
         G_PRICELIST[id].time = row[24] ? std::stod(row[24]) : 0.0; // time_bonus
 
-        // PHP: $PRICELIST -> bonus alanları ve unit (çarpan/birim) değerleri
+        // PHP: $PRICELIST -> bonus & _unit
         G_PRICELIST[id].bonus["Attack"] = { row[25] ? std::stod(row[25]) : 0.0, row[43] ? std::stoi(row[43]) : 0 }; // bonus_attack , _unit
         G_PRICELIST[id].bonus["Defensive"] = { row[26] ? std::stod(row[26]) : 0.0, row[44] ? std::stoi(row[44]) : 0 }; // bonus_defensive , _unit
         G_PRICELIST[id].bonus["Shield"] = { row[27] ? std::stod(row[27]) : 0.0, row[45] ? std::stoi(row[45]) : 0 }; // bonus_shield , _unit
@@ -790,7 +790,7 @@ bool CDatabase::LoadVars()
             G_RESLIST.storage.push_back(id);
         }
 
-        // PHP: Bonus toplamı kontrolü
+        // PHP: Bonus total check
         double checkBonus = 0.0;
         for (const auto& b : G_PRICELIST[id].bonus) {
             checkBonus += b.second.value;
@@ -801,13 +801,13 @@ bool CDatabase::LoadVars()
         }
 
         // PHP: if ($varsRow['one_per_planet'] == 1)
-        if (row[4] && std::stoi(row[4]) == 1) // one_per_planet kolonu
+        if (row[4] && std::stoi(row[4]) == 1) // one_per_planet
         {
             G_RESLIST.one.push_back(id);
         }
 
         // PHP: switch ($varsRow['class'])
-        int itemClass = row[2] ? std::stoi(row[2]) : -1; // class kolonu (0, 100, 200 vb.)
+        int itemClass = row[2] ? std::stoi(row[2]) : -1; // class column (0, 100, 200 vb.)
         switch (itemClass)
         {
         case 0:
@@ -837,24 +837,22 @@ bool CDatabase::LoadVars()
         iLoadNum++;
     }
 
-    // --- VERİTABANINDA OLMAYAN EKSTRA ID'LERİN MANUEL EKLENMESİ ---
+    // --- overrites, which are not in vars table as default ---
 
-// 1. G_RESOURCE Tanımlamaları
+    // 1. G_RESOURCE 
     G_RESOURCE[901] = "metal";
     G_RESOURCE[902] = "crystal";
     G_RESOURCE[903] = "deuterium";
     G_RESOURCE[911] = "energy";
     G_RESOURCE[921] = "darkmatter";
 
-    // 2. G_RESLIST -> ressources listesi [901, 902, 903, 911, 921]
+    // 2. G_RESLIST -> ressources list [901, 902, 903, 911, 921]
     G_RESLIST.ressources.insert(G_RESLIST.ressources.end(), { 901, 902, 903, 911, 921 });
 
-    // 3. G_RESLIST -> resstype listeleri
+    // 3. G_RESLIST -> resstype list
     G_RESLIST.resstype[1].insert(G_RESLIST.resstype[1].end(), { 901, 902, 903 });
     G_RESLIST.resstype[2].push_back(911);
     G_RESLIST.resstype[3].push_back(921);
-
-    // --- EKLEME BİTİŞİ ---
 
     mysql_free_result(result);
     CLogger::Info("[CDatabase] - Vars NUM : {} (vars) has been successfully loaded.", iLoadNum);
