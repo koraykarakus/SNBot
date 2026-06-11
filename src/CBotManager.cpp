@@ -1,14 +1,14 @@
 ﻿#include "CBotManager.h"
 #include "CLogger.h"
 #include "CDatabase.h"
-#include "CLoader.h"
-
-extern bool g_bRunning;
+#include "CApplication.h"
+//#include "CLoader.h"
 
 CBotManager::CBotManager()
     : m_vecBots{}
     , m_bFirstRun(true)
     , m_timeLastRun(0)
+    , m_pDatabase(nullptr)
 {
     
 }
@@ -53,25 +53,31 @@ bool CBotManager::IsAway(const table_users& bot, time_t timeNow) const
     return (bot.playTime.check_time * 60) > (static_cast<int>(timeNow) - bot.onlinetime);
 }
 
-void CBotManager::Run()
+void CBotManager::Run(CDatabase* pDatabase, const CApplication& app)
 {
+    // will use it to get vars, reslist etc.
+    m_pDatabase = pDatabase;
+
     // sleep if not loaded yet.
-    while (g_bRunning
-        && !g_bLoaded)
+    while (app.IsRunning() 
+        && !app.IsLoaded())
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
     }
 
     // end thread if not running
-	if (!g_bRunning)
+	if (!app.IsRunning())
 	{
 		return;
 	}
 
-    CLogger::Info("[CBotManager] - [Run] Bot Main thread starting. vars size : {}\n", G_VARS.size());
+    const auto& vars = m_pDatabase->GetVars();
+    m_vecBots = m_pDatabase->GetLoadedBots();
+
+    CLogger::Info("[CBotManager] - [Run] Bot Main thread starting. vars size : {}\n", vars.size());
 
     // main loop as long as it is running
-    while (g_bRunning)
+    while (app.IsRunning())
     {
         time_t timeNow = std::time(nullptr);
 
@@ -91,9 +97,9 @@ void CBotManager::Run()
         HandleColonization();
 
         // save to db
-        g_pDatabase->UpdateBots();
+        pDatabase->UpdateBots(m_vecBots);
         // reload from db
-        // g_pDatabase->LoadBots();
+        // pDatabase->LoadBots();
         auto end = GetTimeNow();
 
         // update time and firstrun flag
@@ -220,4 +226,26 @@ PhpArray CBotManager::php_unserialize(const std::string& serialized_data) {
     }
 
     return result_array;
+}
+
+const table_config* CBotManager::GetConfigByUniID(int uni) const
+{
+    auto& config = m_pDatabase->GetConfig();
+    auto it = config.find(uni);
+    if (it == config.end())
+    {
+        return nullptr;
+    }
+    return &it->second;
+}
+
+const table_vars* CBotManager::GetVarsByID(int id) const
+{
+    const auto& vars = m_pDatabase->GetVars();
+    auto it = vars.find(id);
+    if (it == vars.end())
+    {
+        return nullptr;
+    }
+    return &it->second;
 }

@@ -153,18 +153,29 @@ struct table_users
         return isActiveDMExtra(extra, time) ? is_true : is_false;
     }
 
-    void SetFactor(time_t time) {
-
-        for (const auto& element_id : G_RESLIST.bonus)
+    void SetFactor(const time_t time, 
+        const ResListData& reslist,
+        const std::map<int, PriceListData>& pricelist)
+    {
+        for (const auto& element_id : reslist.bonus)
         {
-            std::map<std::string, BonusData>& bonus = G_PRICELIST[element_id].bonus;
+            auto itPrice = pricelist.find(element_id);
+            if (itPrice == pricelist.end())
+            {
+                continue; // Bir sonraki element_id'ye atla
+            }
+            const std::map<std::string, BonusData>& bonus = itPrice->second.bonus;
 
+            if (bonus.empty()) // veya bonus.size() == 0
+            {
+                continue;
+            }
             
             int $element_level = resource[element_id];
             
 
             bool found = false;
-            for (const auto& id : G_RESLIST.dmfunc) 
+            for (const auto& id : reslist.dmfunc)
             {
                 if (id == element_id) 
                 {
@@ -182,14 +193,28 @@ struct table_users
 
                 for (const auto& bonus_key : bonus_list)
                 {
-                    factor[bonus_key] += bonus[bonus_key].value;
+                    factor[bonus_key] += bonus.at(bonus_key).value;
                 }
             }
             else
             {
                 for (const auto& bonus_key : bonus_list)
                 {
-                    factor[bonus_key] += $element_level * bonus[bonus_key].value;
+                    // bonus_key'i haritada arıyoruz (Örn: "metal_production")
+                    auto itBonus = bonus.find(bonus_key);
+
+                    if (itBonus != bonus.end())
+                    {
+                        // Eleman bulundu! Güvenle değerini alıp factor haritasına ekliyoruz.
+                        // itBonus->second doğrudan BonusData struct'ına karşılık gelir.
+                        factor[bonus_key] += $element_level * itBonus->second.value;
+                    }
+                    else
+                    {
+                        // Eğer veritabanında veya kodda bu bonus_key yoksa oyunun çökmesini engelledik.
+                        // İstersen buraya bir log atıp hangi key'in eksik olduğunu görebilirsin:
+                        // CLogger::Warn("[CBotManager] - Bonus key '{}' bulunamadi!", bonus_key);
+                    }
                 }
             }
         }
@@ -206,22 +231,22 @@ struct table_users
             playTime.check_time = 5;
             playTime.play_start_time_1 = 8;
             playTime.play_end_time_1 = 15;
-            playTime.play_start_time_2 = 21;
+            playTime.play_start_time_2 = 20;
             playTime.play_end_time_2 = 23;
 			break;
         case 1:
             playTime.check_time = 20;
-            playTime.play_start_time_1 = 8;
-            playTime.play_end_time_1 = 15;
-            playTime.play_start_time_2 = 21;
+            playTime.play_start_time_1 = 12;
+            playTime.play_end_time_1 = 16;
+            playTime.play_start_time_2 = 20;
             playTime.play_end_time_2 = 23;
             break;
         case 2:
             // type 3 : id % 10 = 2
             playTime.check_time = 60;
-            playTime.play_start_time_1 = 8;
-            playTime.play_end_time_1 = 15;
-            playTime.play_start_time_2 = 21;
+            playTime.play_start_time_1 = 16;
+            playTime.play_end_time_1 = 19;
+            playTime.play_start_time_2 = 20;
             playTime.play_end_time_2 = 23;
             break;
         case 3:
@@ -244,7 +269,7 @@ struct table_users
             playTime.check_time = 60;
             playTime.play_start_time_1 = 12;
             playTime.play_end_time_1 = 18;
-            playTime.play_start_time_2 = 23;
+            playTime.play_start_time_2 = 20;
             playTime.play_end_time_2 = 1;
             break;
         case 6:
@@ -277,5 +302,9 @@ struct table_users
             playTime.play_end_time_2 = 23;
 			break;
 		}
+    }
+
+    void Reset() {
+        *this = table_users();
     }
 };

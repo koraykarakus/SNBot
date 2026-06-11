@@ -1,50 +1,20 @@
 ﻿// main.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
-#include <iostream>
-#include <thread>
-#include <chrono>
-#include <csignal>
-#include <mutex>
-#include <condition_variable>
-#include "CLoader.h"
-#include "CLogger.h"
-#include "CBotManager.h"
-#include "CDatabase.h"
+#include "CApplication.h"
 
-std::map<int, std::string> G_RESOURCE;
-std::map<int, CombatCaps> G_COMBATCAPS;
-std::map<int, PriceListData> G_PRICELIST;
-std::map<int, ProdGridData> G_PRODGRID;
-std::unordered_map<int, table_vars> G_VARS;
-std::unordered_map<int, table_config> G_CONFIG;
-
-ResListData G_RESLIST;
-
-std::mutex g_shutdownMutex;
-std::condition_variable g_shutdownCV;
-bool g_bRunning = true;
-
-CBotManager* g_pBotManager = nullptr;
-CDatabase* g_pDatabase = nullptr;
-CLoader* g_pLoader = nullptr;
-bool g_bLoaded = false;
-
+CApplication* g_pApp;
 
 void SignalHandler(int signal)
 {
 	if (signal == SIGINT
 		|| signal == SIGTERM)
 	{
-		std::cout << "\n[Signal] Shutdown signal received (" << signal << ")...\n";
-
-		// get lock, and tell main thread to wait
+		std::cout << "\n[Signal] Shutdown signal received (" << signal << ")...\n";		
+		if (g_pApp != nullptr)
 		{
-			std::lock_guard<std::mutex> lock(g_shutdownMutex);
-			g_bRunning = false;
+			g_pApp->Shutdown();
 		}
-		// g_shutdownCV.wait() wake main thread
-		g_shutdownCV.notify_one();
 	}
 }
 
@@ -56,43 +26,26 @@ int main()
 	// terminate signal from sys
 	std::signal(SIGTERM, SignalHandler);
 
-	g_pBotManager = new CBotManager();
-	g_pDatabase = new CDatabase();
-	g_pLoader = new CLoader();
+	CApplication App;
+	g_pApp = &App;
 
-	if (!g_pLoader->Init())
+	if (!App.Init())
 	{
-		CLogger::Error("[Main] : g_pLoader->Init() failed!\n");
+		CLogger::Error("[Main] : App.Init() failed!\n");
 		return 1;
 	}
 
 	CLogger::Info("[Main] : server started successfully.Press Ctrl+C to exit.\n");
 
-	// thread for bot handlers.
-	std::thread botThread(&CBotManager::Run, g_pBotManager);
-	// --- main thread wait mode ---
-	// SignalHandler triggers wake.
-	{
-		std::unique_lock<std::mutex> lock(g_shutdownMutex);
-		g_shutdownCV.wait(lock, [] { return !g_bRunning; });
-	}
+	App.Run();
 
 	// --- safe shutdown ---
 	CLogger::Info("[Main] : server shutting down, please wait...\n");
 
 	// Bot thread'inin güvenli bir şekilde mevcut döngüsünü bitirmesini bekliyoruz.
 	// (Tabii Run() fonksiyonu içerisindeki döngü g_bRunning durumuna bakmalı)
-	if (botThread.joinable())
-	{
-		botThread.join();
-		CLogger::Info("[Main] : bot thread ended by success.\n");
-	}
-
-	g_pLoader->ShutDown();
-
-	delete g_pLoader;
-	delete g_pDatabase;
-	delete g_pBotManager;
+	
+	g_pApp = nullptr;
 	// TODO: save user info and free memory if needed
 	CLogger::Info("[Main] : server shutdown complete. Exiting program.\n");
 	return 0;

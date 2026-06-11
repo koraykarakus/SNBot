@@ -1,8 +1,6 @@
 ﻿#include "CDatabase.h"
 #include "CLogger.h"
-#include "CBotManager.h"
 #include "SimpleIni.h"
-#include "table_users.h"
 #include <fmt/ranges.h>
 #include <filesystem>
 
@@ -13,6 +11,15 @@ CDatabase::CDatabase()
     , m_strDBHost()
     , m_strDBName()
     , m_strDBPrefix()
+    , m_pBotManager(nullptr)
+    , m_vars{}
+    , m_resource{}
+    , m_combatcaps{}
+    , m_pricelist{}
+    , m_prodgrid{}
+    , m_config{}
+    , m_reslist{}
+    , m_vecTempBots{}
 {
     Init();
 }
@@ -112,7 +119,7 @@ void CDatabase::Disconnect()
 bool CDatabase::LoadBots()
 {
     auto start = GetTimeNow();
-	std::string strQuery = "SELECT * FROM `" + m_strDBPrefix + "users` WHERE is_bot = 1";
+    std::string strQuery = std::format("SELECT * FROM `{}users` WHERE is_bot = 1", m_strDBPrefix);
 
     if (mysql_query(m_pConn, strQuery.c_str()))
     {
@@ -134,16 +141,17 @@ bool CDatabase::LoadBots()
     uint64_t rowCount = mysql_num_rows(result);
     CLogger::Info("[CDatabase] - Found {} bots in database.", rowCount);
 
-    g_pBotManager->ClearBots();
+    m_vecTempBots.clear();
 
     MYSQL_ROW row;
 
     time_t now = std::time(nullptr); 
-    int ibotCounter = 0; int iPlanetCounter = 0;
+    int ibotCounter = 0;
+    table_users bot;
+
     while ((row = mysql_fetch_row(result)))
     {
-        table_users bot;
-        
+        bot.Reset();
         bot.id = row[0] ? std::stoi(row[0]) : 0;
         bot.type = bot.id % 10;
         bot.SetPlayStyle();
@@ -206,8 +214,8 @@ bool CDatabase::LoadBots()
 
         // column is_bot to simplify
         bot.is_bot = row[99] ? (std::atoi(row[99]) != 0) : false;
-        bot.SetFactor(now);
-        g_pBotManager->AddBot(bot);
+        bot.SetFactor(now, m_reslist, m_pricelist);
+        m_vecTempBots.push_back(std::move(bot));
         ++ibotCounter;
     }
     mysql_free_result(result);
@@ -221,7 +229,7 @@ bool CDatabase::LoadBots()
     // -------------------------------------------------------------------------
     // STEP 2: Load Bot planets and match them
     // -------------------------------------------------------------------------
-    std::string strPlanetQuery = "SELECT * FROM `" + m_strDBPrefix + "planets` WHERE is_bot = 1";
+    std::string strPlanetQuery = std::format("SELECT * FROM `{}planets` WHERE is_bot = 1", m_strDBPrefix);
 
     if (mysql_query(m_pConn, strPlanetQuery.c_str()))
     {
@@ -240,11 +248,12 @@ bool CDatabase::LoadBots()
         return false;
     }
 
-    MYSQL_ROW plRow;
+    MYSQL_ROW plRow; int iPlanetCounter = 0;
+    table_planets pl;
+
     while ((plRow = mysql_fetch_row(plResult)))
     {
-        table_planets pl;
-
+        pl.Reset();
         pl.id = plRow[0] ? std::stoi(plRow[0]) : 0;
         pl.name = plRow[1] ? plRow[1] : "";
         pl.id_owner = plRow[2] ? std::stoi(plRow[2]) : 0; 
@@ -358,7 +367,7 @@ bool CDatabase::LoadBots()
         pl.version = plRow[96] ? std::stoull(plRow[96]) : 0;
 
         // find bot with planet id_owner
-        table_users* pTargetBot = g_pBotManager->GetBotRef(pl.id_owner);
+        table_users* pTargetBot = GetBotRef(pl.id_owner);
         if (pTargetBot != nullptr)
         {
             pTargetBot->vecPlanets.push_back(std::move(pl));
@@ -381,32 +390,23 @@ bool CDatabase::LoadBots()
     return true;
 }
 
-bool CDatabase::UpdateBots()
+bool CDatabase::UpdateBots(std::vector<table_users>& vecBots)
 {
     auto start = GetTimeNow();
-    std::vector<table_users>& pBots = g_pBotManager->GetBots();
 
-    if (pBots.empty())
-    {
-        return true;
-    }
-
-    if (m_pConn == nullptr) 
-    {
-        return false;
-    }
-
-    const size_t BATCH_SIZE = 50; // update amount per query
-
+    if (vecBots.empty()) return false;
+    if (m_pConn == nullptr) return false;
     // =========================================================================
     // PART 1: UPDATE BOT RESEARCH (USERS TABLE)
     // =========================================================================
-    const std::string strUserHeader = "INSERT INTO `" + m_strDBPrefix + "users` ("
+    const std::string strUserHeader = std::format("INSERT INTO `{}users` ("
         "id, b_tech_planet, b_tech, b_tech_id, b_tech_queue, spy_tech, computer_tech, "
         "military_tech, armor_tech, shield_tech, energy_tech, hyperspace_tech, "
         "combustion_tech, impulse_motor_tech, hyperspace_motor_tech, laser_tech, "
         "ion_tech, plasma_tech, intergalactic_tech, expedition_tech, "
-        "metal_proc_tech, crystal_proc_tech, deuterium_proc_tech, graviton_tech, onlinetime) VALUES ";
+        "metal_proc_tech, crystal_proc_tech, deuterium_proc_tech, graviton_tech, onlinetime) VALUES "
+        , m_strDBPrefix);
+
 
     const std::string strUserFooter = " ON DUPLICATE KEY UPDATE "
         "b_tech_planet = VALUES(b_tech_planet), b_tech = VALUES(b_tech), b_tech_id = VALUES(b_tech_id), b_tech_queue = VALUES(b_tech_queue), "
@@ -419,18 +419,18 @@ bool CDatabase::UpdateBots()
 
     // store all planets in same vector
     std::vector<table_planets> vecAllPlanets;
-    std::vector<int> vecIDPlanetsNoUpdate;
-    std::vector<int> vecIDBotsNoUpdate;
+    // std::vector<int> vecIDPlanetsNoUpdate; // testing
+    // std::vector<int> vecIDBotsNoUpdate;
 
-    int iPlanetCounter = 0, iBotCounter = 0;
-    for (size_t i = 0; i < pBots.size(); i += BATCH_SIZE)
+    int iPlanetCounter = 0, iBotCounter = 0, iCount = (int) vecBots.size();
+    for (size_t i = 0; i < iCount; i += BATCH_SIZE)
     {
         std::string strQuery = strUserHeader;
-        size_t endIndex = ((i + BATCH_SIZE) < pBots.size()) ? (i + BATCH_SIZE) : pBots.size();
+        size_t endIndex = ((i + BATCH_SIZE) < iCount) ? (i + BATCH_SIZE) : iCount;
 
         for (size_t k = i; k < endIndex; ++k)
         {
-            auto& cBot = pBots[k];
+            auto& cBot = vecBots[k];
 
             for (auto& planet : cBot.vecPlanets) 
             {
@@ -438,7 +438,7 @@ bool CDatabase::UpdateBots()
                 if (!planet.need_update)
                 {
                     //CLogger::Info("PID:{} does not need an update", planet.id);
-                    vecIDPlanetsNoUpdate.push_back(planet.id);
+                    // vecIDPlanetsNoUpdate.push_back(planet.id);
                     continue;
                 }
                 
@@ -450,7 +450,7 @@ bool CDatabase::UpdateBots()
             if (!cBot.need_update)
             {
                 //CLogger::Info("Bot does not need update {}", cBot.id);
-                vecIDBotsNoUpdate.push_back(cBot.id);
+                // vecIDBotsNoUpdate.push_back(cBot.id);
                 continue;
             }
 
@@ -488,8 +488,9 @@ bool CDatabase::UpdateBots()
 
         if (strQuery != strUserHeader)
         {
-			if (strQuery.size() >= 2
-				&& strQuery.substr(strQuery.size() - 2) == ", ")
+            size_t len = strQuery.size();
+			if (len >= 2
+				&& strQuery.substr(len - 2) == ", ")
 			{
 				// remove comma and space
 				strQuery.pop_back();
@@ -507,16 +508,18 @@ bool CDatabase::UpdateBots()
 
     }
 
+    /*
     if (!vecIDPlanetsNoUpdate.empty()
         || !vecIDBotsNoUpdate.empty())
     {
-        /*
+        
         spdlog::info("PID:[{}], UID:[{}] does not need update",
             fmt::join(vecIDPlanetsNoUpdate, "],["),
             fmt::join(vecIDBotsNoUpdate, "],[")
-        );*/
+        );
     }
-    
+    */
+
     // =========================================================================
     // PART 2: UPDATE PLANETS (PLANETS TABLE) 
     // =========================================================================
@@ -526,7 +529,8 @@ bool CDatabase::UpdateBots()
     }
 
     // order is important !
-    const std::string strPlanetHeader = "INSERT INTO `" + m_strDBPrefix + "planets` ("
+    const std::string strPlanetHeader = std::format(
+        "INSERT INTO `{}planets` ("
         "id, name, id_owner, universe, galaxy, system, planet, last_update, planet_type, destroyed, "
         "b_building, b_building_id, b_shipyard, b_shipyard_id, b_shipyard_plus, image, diameter, field_current, field_max, temp_min, temp_max, "
         "eco_hash, metal, metal_perhour, metal_max, crystal, crystal_perhour, crystal_max, deuterium, deuterium_perhour, deuterium_max, energy_used, energy, "
@@ -534,7 +538,8 @@ bool CDatabase::UpdateBots()
         "lunar_base, phalanx, jump_gate, small_cargo, big_cargo, light_hunter, heavy_hunter, cruiser, battle_ship, colony_ship, recycler, espionage_probe, bomber_ship, solar_satellite, destroyer, death_star, battle_cruiser, black_moon, ev_transporter, star_crasher, giga_recycler, dm_ship, orbital_station, "
         "rocket_launcher, light_laser, heavy_laser, gauss_cannon, ion_cannon, plasma_turret, small_protection_shield, planet_protector, big_protection_shield, graviton_cannon, interceptor_misil, interplanetary_misil, "
         "metal_mine_percent, crystal_mine_percent, deuterium_synthesizer_percent, solar_plant_percent, fusion_plant_percent, solar_satellite_percent, "
-        "last_jump_time, debris_metal, debris_crystal, id_moon, is_bot, last_relocate, version) VALUES ";
+        "last_jump_time, debris_metal, debris_crystal, id_moon, is_bot, last_relocate, version) VALUES "
+    , m_strDBPrefix);
 
     // footer
     const std::string strPlanetFooter = " ON DUPLICATE KEY UPDATE "
@@ -548,10 +553,11 @@ bool CDatabase::UpdateBots()
         "last_jump_time=VALUES(last_jump_time), debris_metal=VALUES(debris_metal), debris_crystal=VALUES(debris_crystal), id_moon=VALUES(id_moon), is_bot=VALUES(is_bot), last_relocate=VALUES(last_relocate), version=VALUES(version);";
 
     // batch size 50 as default
-    for (size_t i = 0; i < vecAllPlanets.size(); i += BATCH_SIZE)
+    int iPlanetCount = vecAllPlanets.size();
+    for (size_t i = 0; i < iPlanetCount; i += BATCH_SIZE)
     {
         std::string strQuery = strPlanetHeader;
-        size_t endIndex = ((i + BATCH_SIZE) < vecAllPlanets.size()) ? (i + BATCH_SIZE) : vecAllPlanets.size();
+        size_t endIndex = ((i + BATCH_SIZE) < iPlanetCount) ? (i + BATCH_SIZE) : iPlanetCount;
 
         for (size_t k = i; k < endIndex; ++k)
         {
@@ -670,8 +676,9 @@ bool CDatabase::UpdateBots()
 
         if (strQuery != strPlanetHeader)
         {
-			if (strQuery.size() >= 2
-				&& strQuery.substr(strQuery.size() - 2) == ", ")
+            size_t len = strQuery.size();
+			if (len >= 2
+				&& strQuery.substr(len - 2) == ", ")
 			{
 				// remove comma and space
 				strQuery.pop_back();
@@ -721,11 +728,12 @@ bool CDatabase::LoadVars()
         return false;
     }
 
-    G_VARS.clear();
+    m_vars.clear();
 
     MYSQL_ROW row;
     int iLoadNum = 0;
 
+    table_vars item;
     while ((row = mysql_fetch_row(result)))
     {
         // row[0] = element_id, row[1] = name
@@ -734,7 +742,7 @@ bool CDatabase::LoadVars()
             continue;
         }
 
-        table_vars item;
+        item.Reset();
         item.element_id = std::stoi(row[0]);
         item.name = row[1];
 
@@ -746,81 +754,81 @@ bool CDatabase::LoadVars()
         int id = item.element_id;
 
         // 1. PHP: $RESOURCE
-        G_RESOURCE[id] = item.name;
+        m_resource[id] = item.name;
 
         // 2. PHP: $COMBATCAPS (with correct order attack ve defend)
-        G_COMBATCAPS[id].attack = row[22] ? std::stod(row[22]) : 0.0; // attack
-        G_COMBATCAPS[id].shield = row[23] ? std::stod(row[23]) : 0.0; // defend (shield)
+        m_combatcaps[id].attack = row[22] ? std::stod(row[22]) : 0.0; // attack
+        m_combatcaps[id].shield = row[23] ? std::stod(row[23]) : 0.0; // defend (shield)
 
         // 3. PHP: $PRICELIST -> cost
-        G_PRICELIST[id].cost[901] = item.cost901;
-        G_PRICELIST[id].cost[902] = item.cost902;
-        G_PRICELIST[id].cost[903] = item.cost903;
-        G_PRICELIST[id].cost[911] = row[10] ? std::stod(row[10]) : 0.0; // cost911 (energy)
-        G_PRICELIST[id].cost[921] = row[11] ? std::stod(row[11]) : 0.0; // cost921 (dark matter)
+        m_pricelist[id].cost[901] = item.cost901;
+        m_pricelist[id].cost[902] = item.cost902;
+        m_pricelist[id].cost[903] = item.cost903;
+        m_pricelist[id].cost[911] = row[10] ? std::stod(row[10]) : 0.0; // cost911 (energy)
+        m_pricelist[id].cost[921] = row[11] ? std::stod(row[11]) : 0.0; // cost921 (dark matter)
 
-        G_PRICELIST[id].factor = item.factor;
-        G_PRICELIST[id].max = row[6] ? std::stoi(row[6]) : 0;   // max_level
-        G_PRICELIST[id].consumption = row[12] ? std::stod(row[12]) : 0.0; // consumption1
-        G_PRICELIST[id].consumption2 = row[13] ? std::stod(row[13]) : 0.0; // consumption2
-        G_PRICELIST[id].speed = row[15] ? std::stod(row[15]) : 0.0; // speed1
-        G_PRICELIST[id].speed2 = row[16] ? std::stod(row[16]) : 0.0; // speed2
-        G_PRICELIST[id].capacity = row[21] ? std::stod(row[21]) : 0.0; // capacity
-        G_PRICELIST[id].tech = row[14] ? std::stoi(row[14]) : 0;   // speed_tech
-        G_PRICELIST[id].time = row[24] ? std::stod(row[24]) : 0.0; // time_bonus
+        m_pricelist[id].factor = item.factor;
+        m_pricelist[id].max = row[6] ? std::stoi(row[6]) : 0;   // max_level
+        m_pricelist[id].consumption = row[12] ? std::stod(row[12]) : 0.0; // consumption1
+        m_pricelist[id].consumption2 = row[13] ? std::stod(row[13]) : 0.0; // consumption2
+        m_pricelist[id].speed = row[15] ? std::stod(row[15]) : 0.0; // speed1
+        m_pricelist[id].speed2 = row[16] ? std::stod(row[16]) : 0.0; // speed2
+        m_pricelist[id].capacity = row[21] ? std::stod(row[21]) : 0.0; // capacity
+        m_pricelist[id].tech = row[14] ? std::stoi(row[14]) : 0;   // speed_tech
+        m_pricelist[id].time = row[24] ? std::stod(row[24]) : 0.0; // time_bonus
 
         // PHP: $PRICELIST -> bonus & _unit
-        G_PRICELIST[id].bonus["Attack"] = { row[25] ? std::stod(row[25]) : 0.0, row[43] ? std::stoi(row[43]) : 0 }; // bonus_attack , _unit
-        G_PRICELIST[id].bonus["Defensive"] = { row[26] ? std::stod(row[26]) : 0.0, row[44] ? std::stoi(row[44]) : 0 }; // bonus_defensive , _unit
-        G_PRICELIST[id].bonus["Shield"] = { row[27] ? std::stod(row[27]) : 0.0, row[45] ? std::stoi(row[45]) : 0 }; // bonus_shield , _unit
-        G_PRICELIST[id].bonus["BuildTime"] = { row[28] ? std::stod(row[28]) : 0.0, row[46] ? std::stoi(row[46]) : 0 }; // bonus_build_time , _unit
-        G_PRICELIST[id].bonus["ResearchTime"] = { row[29] ? std::stod(row[29]) : 0.0, row[47] ? std::stoi(row[47]) : 0 }; // bonus_research_time , _unit
-        G_PRICELIST[id].bonus["Resource"] = { row[32] ? std::stod(row[32]) : 0.0, row[50] ? std::stoi(row[50]) : 0 }; // bonus_resource , _unit
-        G_PRICELIST[id].bonus["Energy"] = { row[33] ? std::stod(row[33]) : 0.0, row[51] ? std::stoi(row[51]) : 0 }; // bonus_energy , _unit
+        m_pricelist[id].bonus["Attack"] = { row[25] ? std::stod(row[25]) : 0.0, row[43] ? std::stoi(row[43]) : 0 }; // bonus_attack , _unit
+        m_pricelist[id].bonus["Defensive"] = { row[26] ? std::stod(row[26]) : 0.0, row[44] ? std::stoi(row[44]) : 0 }; // bonus_defensive , _unit
+        m_pricelist[id].bonus["Shield"] = { row[27] ? std::stod(row[27]) : 0.0, row[45] ? std::stoi(row[45]) : 0 }; // bonus_shield , _unit
+        m_pricelist[id].bonus["BuildTime"] = { row[28] ? std::stod(row[28]) : 0.0, row[46] ? std::stoi(row[46]) : 0 }; // bonus_build_time , _unit
+        m_pricelist[id].bonus["ResearchTime"] = { row[29] ? std::stod(row[29]) : 0.0, row[47] ? std::stoi(row[47]) : 0 }; // bonus_research_time , _unit
+        m_pricelist[id].bonus["Resource"] = { row[32] ? std::stod(row[32]) : 0.0, row[50] ? std::stoi(row[50]) : 0 }; // bonus_resource , _unit
+        m_pricelist[id].bonus["Energy"] = { row[33] ? std::stod(row[33]) : 0.0, row[51] ? std::stoi(row[51]) : 0 }; // bonus_energy , _unit
 
         // 4. PHP: $PRODGRID -> production
-        G_PRODGRID[id].production[901] = row[62] ? row[62] : ""; // production901
-        G_PRODGRID[id].production[902] = row[63] ? row[63] : ""; // production902
-        G_PRODGRID[id].production[903] = row[64] ? row[64] : ""; // production903
-        G_PRODGRID[id].production[911] = row[65] ? row[65] : ""; // production911
-        G_PRODGRID[id].production[921] = row[66] ? row[66] : ""; // production921
+        m_prodgrid[id].production[901] = row[62] ? row[62] : ""; // production901
+        m_prodgrid[id].production[902] = row[63] ? row[63] : ""; // production902
+        m_prodgrid[id].production[903] = row[64] ? row[64] : ""; // production903
+        m_prodgrid[id].production[911] = row[65] ? row[65] : ""; // production911
+        m_prodgrid[id].production[921] = row[66] ? row[66] : ""; // production921
 
         // PHP: $PRODGRID -> storage
-        G_PRODGRID[id].storage[901] = row[67] ? row[67] : ""; // storage901
-        G_PRODGRID[id].storage[902] = row[68] ? row[68] : ""; // storage902
-        G_PRODGRID[id].storage[903] = row[69] ? row[69] : ""; // storage903
+        m_prodgrid[id].storage[901] = row[67] ? row[67] : ""; // storage901
+        m_prodgrid[id].storage[902] = row[68] ? row[68] : ""; // storage902
+        m_prodgrid[id].storage[903] = row[69] ? row[69] : ""; // storage903
 
         // PHP: array_filter($PRODGRID...['production'])
-        if (!G_PRODGRID[id].production[901].empty()
-            || !G_PRODGRID[id].production[902].empty()
-            || !G_PRODGRID[id].production[903].empty()
-            || !G_PRODGRID[id].production[911].empty())
+        if (!m_prodgrid[id].production[901].empty()
+            || !m_prodgrid[id].production[902].empty()
+            || !m_prodgrid[id].production[903].empty()
+            || !m_prodgrid[id].production[911].empty())
         {
-            G_RESLIST.prod.push_back(id);
+            m_reslist.prod.push_back(id);
         }
 
         // PHP: array_filter($PRODGRID...['storage'])
-        if (!G_PRODGRID[id].storage[901].empty()
-            || !G_PRODGRID[id].storage[902].empty()
-            || !G_PRODGRID[id].storage[903].empty())
+        if (!m_prodgrid[id].storage[901].empty()
+            || !m_prodgrid[id].storage[902].empty()
+            || !m_prodgrid[id].storage[903].empty())
         {
-            G_RESLIST.storage.push_back(id);
+            m_reslist.storage.push_back(id);
         }
 
         // PHP: Bonus total check
         double checkBonus = 0.0;
-        for (const auto& b : G_PRICELIST[id].bonus) {
+        for (const auto& b : m_pricelist[id].bonus) {
             checkBonus += b.second.value;
         }
         if (checkBonus != 0.0)
         {
-            G_RESLIST.bonus.push_back(id);
+            m_reslist.bonus.push_back(id);
         }
 
         // PHP: if ($varsRow['one_per_planet'] == 1)
         if (row[4] && std::stoi(row[4]) == 1) // one_per_planet
         {
-            G_RESLIST.one.push_back(id);
+            m_reslist.one.push_back(id);
         }
 
         // PHP: switch ($varsRow['class'])
@@ -828,7 +836,7 @@ bool CDatabase::LoadVars()
         switch (itemClass)
         {
         case 0:
-            G_RESLIST.build.push_back(id);
+            m_reslist.build.push_back(id);
             // PHP: $tmp = explode(',', $varsRow['on_planet_type']);
             if (row[4]) // on_planet_type kolonu ("1,2,3")
             {
@@ -837,39 +845,39 @@ bool CDatabase::LoadVars()
                 while (std::getline(ss, token, ',')) {
                     if (!token.empty()) {
                         int type = std::stoi(token);
-                        G_RESLIST.allow[type].push_back(id);
+                        m_reslist.allow[type].push_back(id);
                     }
                 }
             }
             break;
-        case 100:  G_RESLIST.tech.push_back(id);      break;
-        case 200:  G_RESLIST.fleet.push_back(id);     break;
-        case 400:  G_RESLIST.defense.push_back(id);   break;
-        case 500:  G_RESLIST.missile.push_back(id);   break;
-        case 600:  G_RESLIST.officers.push_back(id);  break;
-        case 700:  G_RESLIST.dmfunc.push_back(id);    break;
+        case 100:  m_reslist.tech.push_back(id);      break;
+        case 200:  m_reslist.fleet.push_back(id);     break;
+        case 400:  m_reslist.defense.push_back(id);   break;
+        case 500:  m_reslist.missile.push_back(id);   break;
+        case 600:  m_reslist.officers.push_back(id);  break;
+        case 700:  m_reslist.dmfunc.push_back(id);    break;
         }
 
-        G_VARS.emplace(item.element_id, item);
+        m_vars.emplace(item.element_id, item);
         iLoadNum++;
     }
 
     // --- overrites, which are not in vars table as default ---
 
-    // 1. G_RESOURCE 
-    G_RESOURCE[901] = "metal";
-    G_RESOURCE[902] = "crystal";
-    G_RESOURCE[903] = "deuterium";
-    G_RESOURCE[911] = "energy";
-    G_RESOURCE[921] = "darkmatter";
+    // 1. m_resource 
+    m_resource[901] = "metal";
+    m_resource[902] = "crystal";
+    m_resource[903] = "deuterium";
+    m_resource[911] = "energy";
+    m_resource[921] = "darkmatter";
 
-    // 2. G_RESLIST -> ressources list [901, 902, 903, 911, 921]
-    G_RESLIST.ressources.insert(G_RESLIST.ressources.end(), { 901, 902, 903, 911, 921 });
+    // 2. m_reslist -> ressources list [901, 902, 903, 911, 921]
+    m_reslist.ressources.insert(m_reslist.ressources.end(), { 901, 902, 903, 911, 921 });
 
-    // 3. G_RESLIST -> resstype list
-    G_RESLIST.resstype[1].insert(G_RESLIST.resstype[1].end(), { 901, 902, 903 });
-    G_RESLIST.resstype[2].push_back(911);
-    G_RESLIST.resstype[3].push_back(921);
+    // 3. m_reslist -> resstype list
+    m_reslist.resstype[1].insert(m_reslist.resstype[1].end(), { 901, 902, 903 });
+    m_reslist.resstype[2].push_back(911);
+    m_reslist.resstype[3].push_back(921);
 
     mysql_free_result(result);
     CLogger::Info("[CDatabase] - Vars NUM : {} (vars) has been successfully loaded.", iLoadNum);
@@ -885,7 +893,7 @@ bool CDatabase::LoadConfig()
         return false;
     }
 
-    std::string strQuery = "SELECT * FROM `" + m_strDBPrefix + "config`";
+    std::string strQuery = std::format("SELECT * FROM `{}config`", m_strDBPrefix);
 
     if (mysql_query(m_pConn, strQuery.c_str()) != 0)
     {
@@ -900,14 +908,15 @@ bool CDatabase::LoadConfig()
         return false;
     }
 
-    G_CONFIG.clear();
+    m_config.clear();
 
     MYSQL_ROW row;
     int loadedCount = 0;
 
+    table_config item;
     while ((row = mysql_fetch_row(result)))
     {
-        table_config item;
+        item.Reset();
         item.uni = std::stoi(row[0]);
         item.game_speed = std::stoll(row[4]);
         item.resource_multiplier = std::stoi(row[6]);
@@ -921,7 +930,7 @@ bool CDatabase::LoadConfig()
         item.max_overflow = std::stod(row[92]);
         item.energySpeed = std::stoi(row[114]);
 
-        G_CONFIG.emplace(item.uni, item);
+        m_config.emplace(item.uni, item);
         loadedCount++;
     }
 

@@ -1,7 +1,7 @@
 // Implementation of CBotManager
-#pragma once
 #include "CBotManager.h"
 #include "CLogger.h"
+#include "CDatabase.h"
 
 void CBotManager::HandleResourceUpdate()
 {
@@ -193,10 +193,11 @@ void CBotManager::UpdateCache(table_planets& planet, table_users& user)
     int build_level = 0;
 
     // prod_id = 22, 23, 24
-    for (const auto prod_id : G_RESLIST.storage)
+    const auto& reslist = m_pDatabase->GetReslist();
+    for (const auto prod_id : reslist.storage)
     {
         // id = 901,902,903
-        for (const auto id : G_RESLIST.resstype[1])
+        for (const auto id : reslist.resstype.at(1))
         {
             build_level = planet.resource[prod_id];
 
@@ -217,12 +218,12 @@ void CBotManager::UpdateCache(table_planets& planet, table_users& user)
     }
 
     std::vector<int> ress_ids;
-    ress_ids.reserve(G_RESLIST.resstype[1].size() + G_RESLIST.resstype[2].size());
-    ress_ids.insert(ress_ids.end(), G_RESLIST.resstype[1].begin(), G_RESLIST.resstype[1].end());
-    ress_ids.insert(ress_ids.end(), G_RESLIST.resstype[2].begin(), G_RESLIST.resstype[2].end());
+    ress_ids.reserve(reslist.resstype.at(1).size() + reslist.resstype.at(2).size());
+    ress_ids.insert(ress_ids.end(), reslist.resstype.at(1).begin(), reslist.resstype.at(1).end());
+    ress_ids.insert(ress_ids.end(), reslist.resstype.at(2).begin(), reslist.resstype.at(2).end());
 
     // 1,2,3,4,12,212
-    for (const auto prod_id : G_RESLIST.prod)
+    for (const auto prod_id : reslist.prod)
     {
         int build_level_factor = 0;
         build_level = planet.resource[prod_id];

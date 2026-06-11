@@ -1,11 +1,10 @@
 // Implementation of CBotManager.h
-#pragma once
 #include "CBotManager.h"
 
 void CBotManager::HandleColonization() 
 {
     // get colony ship's database info..
-    table_vars* pColonyShip = GetVarsByID(208);
+    const table_vars* pColonyShip = GetVarsByID(208);
     if (pColonyShip == nullptr)
     {
         return;

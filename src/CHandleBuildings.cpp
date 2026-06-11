@@ -1,6 +1,7 @@
 ﻿// implementation of CBotManager.h
 #include "CBotManager.h"
 #include "CLogger.h"
+#include "CDatabase.h"
 
 void CBotManager::HandleBuildings()
 {
@@ -35,6 +36,10 @@ void CBotManager::HandleBuildings()
         133, 133, 133, 133, 109, 110, 111, 131, 131, 131, 132,
         132, 132, 133, 133, 133
     };
+
+    // table vars
+    const auto& vars = m_pDatabase->GetVars();
+
 
     time_t currentTime = std::time(nullptr);
     std::vector<stlog> vecLog;
@@ -137,8 +142,8 @@ void CBotManager::HandleBuildings()
                 else
                 {
                     // search id in map
-                    auto it = G_VARS.find(tar_research_id);
-                    if (it == G_VARS.end())
+                    auto it = vars.find(tar_research_id);
+                    if (it == vars.end())
                     {
                         log.type = 5;
                         log.research_id = tar_research_id;
@@ -216,8 +221,8 @@ void CBotManager::HandleBuildings()
             }
 
             // search id in map
-            auto it = G_VARS.find(tar_building_id);
-            if (it == G_VARS.end())
+            auto it = vars.find(tar_building_id);
+            if (it == vars.end())
             {
                 log.type = 9;
                 log.building_id = tar_building_id;

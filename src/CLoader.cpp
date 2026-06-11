@@ -1,4 +1,5 @@
-﻿#include "CLoader.h"
+﻿/*
+#include "CLoader.h"
 #include "CLogger.h"
 #include "CDatabase.h"
 #include "CBotManager.h"
@@ -49,3 +50,4 @@ void CLoader::ShutDown()
 {
     // cleanup memory
 }
+*/

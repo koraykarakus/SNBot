@@ -64,6 +64,9 @@ struct stlog
 	{}
 };
 
+class CApplication;
+class CDatabase;
+
 using PhpArray = std::vector<std::string>;
 
 class CBotManager 
@@ -73,21 +76,18 @@ private:
 	time_t m_timeLastRun;
 	bool m_bFirstRun;
 	std::vector<table_users> m_vecBots;
+
+	CDatabase* m_pDatabase;
+
 public:
 	CBotManager();
 	~CBotManager();
 
-	void Run();
+	void Run(CDatabase* pDatabase, const CApplication& app);
 
-	inline table_vars* GetVarsByID(int id) const 
-	{
-		auto it = G_VARS.find(id);
-		if (it == G_VARS.end())
-		{
-			return nullptr;
-		}
-		return &(it->second);
-	}
+	const table_config* GetConfigByUniID(int uni) const;
+
+	const table_vars* GetVarsByID(int id) const;
 
 	// check if time is in player's daily play duration
 	bool IsPlayingNow(const play_time& bot_info, int hour) const;
@@ -112,17 +112,6 @@ public:
 	{
 		return m_vecBots;
 	}
-
-	inline table_users* GetBotRef(int botId)
-	{
-		for (auto& bot : m_vecBots) 
-		{
-			if (bot.id == botId) 
-				return &bot;
-		}
-		return nullptr;
-	}
-
 	// build research, building, fleet or defence
 	void HandleBuildings();
 	// simulates..
@@ -158,5 +147,3 @@ public:
 	std::string php_serialize(const PhpArray& arr);
 
 };
-
-extern CBotManager* g_pBotManager;

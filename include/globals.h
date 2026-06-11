@@ -7,12 +7,18 @@
 #include <unordered_map>
 
 struct table_vars {
-	int element_id;
-	std::string name;
-	unsigned long long cost901;
-	unsigned long long cost902;
-	unsigned long long cost903;
-	float factor;
+	int element_id = 0;
+	std::string name = "";
+	unsigned long long cost901 = 0;
+	unsigned long long cost902 = 0;
+	unsigned long long cost903 = 0;
+	float factor = 1.0;
+
+	void Reset()
+	{
+		*this = table_vars();
+	}
+
 };
 
 struct table_config
@@ -43,6 +49,11 @@ struct table_config
 		, max_system(499)
 		, max_planet(15)
 	{
+	}
+
+	void Reset()
+	{
+		*this = table_config();
 	}
 };
 
@@ -96,25 +107,6 @@ struct ResListData
 	std::vector<int> ressources;
 	std::map<int, std::vector<int>> resstype;
 };
-
-extern std::map<int, std::string> G_RESOURCE;
-extern std::map<int, CombatCaps> G_COMBATCAPS;
-extern std::map<int, PriceListData> G_PRICELIST;
-extern std::map<int, ProdGridData> G_PRODGRID;
-extern std::unordered_map<int, table_vars> G_VARS;
-extern std::unordered_map<int, table_config> G_CONFIG; // for multiverse
-extern ResListData G_RESLIST;
-
-
-static const table_config* GetConfigByUniID(int uni)
-{
-	auto it = G_CONFIG.find(uni);
-	if (it == G_CONFIG.end())
-	{
-		return nullptr;
-	}
-	return &it->second;
-}
 
 static std::chrono::steady_clock::time_point GetTimeNow()
 {

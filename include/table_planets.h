@@ -93,4 +93,9 @@ struct table_planets
         , need_fleet_colony(false)
     {
     }
+
+    void Reset() 
+    {
+        *this = table_planets();
+    }
 };

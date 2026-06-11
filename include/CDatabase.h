@@ -2,17 +2,35 @@
 
 #include <mysql/mysql.h>
 #include <string>
+#include "globals.h"
+#include "table_users.h"
 
+class CApplication;
+class CBotManager;
 
 class CDatabase
 {
 private:
+    static const int BATCH_SIZE = 50;
     MYSQL* m_pConn;
+    CBotManager* m_pBotManager;
+
     std::string m_strDBUser;
     std::string m_strDBPass;
     std::string m_strDBHost;
     std::string m_strDBName;
     std::string m_strDBPrefix;
+
+    std::unordered_map<int, table_vars> m_vars;
+    std::map<int, std::string> m_resource;
+    std::map<int, CombatCaps> m_combatcaps;
+    std::map<int, PriceListData> m_pricelist;
+    std::map<int, ProdGridData> m_prodgrid;
+    std::unordered_map<int, table_config> m_config;
+    ResListData m_reslist;
+
+    std::vector<table_users> m_vecTempBots;
+
 public:
     CDatabase();
     ~CDatabase();
@@ -23,9 +41,56 @@ public:
     bool LoadBots();
     bool LoadVars();
     bool LoadConfig();
-    bool UpdateBots();
+    bool UpdateBots(std::vector<table_users>& vecBots);
+
+    inline const std::unordered_map<int, table_vars>& GetVars() const
+    {
+        return m_vars;
+    }
+
+    inline const std::map<int, std::string>& GetResource() const 
+    {
+        return m_resource;
+    }
+
+    inline const std::map<int, CombatCaps>& GetCombatCaps() const 
+    {
+        return m_combatcaps;
+    }
+
+    inline const std::map<int, PriceListData>& GetPriceList() const 
+    {
+        return m_pricelist;
+    }
+
+    inline const std::map<int, ProdGridData>& GetProdGrid() const 
+    {
+        return m_prodgrid;
+    }
+
+    inline const std::unordered_map<int, table_config>& GetConfig() const 
+    {
+        return m_config;
+    }
+
+    inline const ResListData& GetReslist() const 
+    {
+        return m_reslist;
+    }
+
+
+    inline table_users* GetBotRef(int botId)
+    {
+        for (auto& bot : m_vecTempBots)
+        {
+            if (bot.id == botId)
+                return &bot;
+        }
+        return nullptr;
+    }
+
+    const std::vector<table_users>& GetLoadedBots() const { return m_vecTempBots; }
+
 
     MYSQL* GetConnection() const { return m_pConn; }
 };
-
-extern CDatabase* g_pDatabase;
