@@ -68,12 +68,12 @@ class CApplication;
 class CDatabase;
 
 using PhpArray = std::vector<std::string>;
-
+using time_var = std::chrono::steady_clock::time_point;
 class CBotManager 
 {
 private:
 	static const int wait_time = 1 * 30;
-	time_t m_timeLastRun;
+	time_var m_timeLastRun;
 	bool m_bFirstRun;
 	std::vector<table_users> m_vecBots;
 

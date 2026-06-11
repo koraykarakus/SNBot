@@ -7,7 +7,7 @@
 CBotManager::CBotManager()
     : m_vecBots{}
     , m_bFirstRun(true)
-    , m_timeLastRun(0)
+    , m_timeLastRun(std::chrono::steady_clock::time_point{})
     , m_pDatabase(nullptr)
 {
     
@@ -79,11 +79,11 @@ void CBotManager::Run(CDatabase* pDatabase, const CApplication& app)
     // main loop as long as it is running
     while (app.IsRunning())
     {
-        time_t timeNow = std::time(nullptr);
+        auto timeNow = std::chrono::steady_clock::now();
 
         // time check
 		if (!m_bFirstRun
-			&& (timeNow < m_timeLastRun + static_cast<time_t>(wait_time)))
+			&& (timeNow < m_timeLastRun + std::chrono::seconds(wait_time)))
 		{
 			// sleep shortly to avoid overuse of CPU
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
