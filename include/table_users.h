@@ -139,8 +139,8 @@ struct table_users
     }
 
     void SetFactor(const time_t time, 
-        const ResListData& reslist,
-        const std::map<int, PriceListData>& pricelist)
+        const reslist_data& reslist,
+        const std::map<int, pricelist_data>& pricelist)
     {
         for (const auto& element_id : reslist.bonus)
         {
@@ -149,7 +149,7 @@ struct table_users
             {
                 continue; // Bir sonraki element_id'ye atla
             }
-            const std::map<std::string_view, BonusData>& bonus = itPrice->second.bonus;
+            const std::map<std::string_view, bonus_data>& bonus = itPrice->second.bonus;
 
             if (bonus.empty()) // veya bonus.size() == 0
             {
@@ -191,7 +191,7 @@ struct table_users
                     if (itBonus != bonus.end())
                     {
                         // Eleman bulundu! Güvenle değerini alıp factor haritasına ekliyoruz.
-                        // itBonus->second doğrudan BonusData struct'ına karşılık gelir.
+                        // itBonus->second doğrudan bonus_data struct'ına karşılık gelir.
                         factor[bonus_key] += $element_level * itBonus->second.value;
                     }
                     else

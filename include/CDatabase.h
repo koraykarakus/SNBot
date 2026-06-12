@@ -23,11 +23,11 @@ private:
 
     std::unordered_map<int, table_vars> m_vars;
     std::map<int, std::string> m_resource;
-    std::map<int, CombatCaps> m_combatcaps;
-    std::map<int, PriceListData> m_pricelist;
-    std::map<int, ProdGridData> m_prodgrid;
+    std::map<int, combat_caps> m_combatcaps;
+    std::map<int, pricelist_data> m_pricelist;
+    std::map<int, prodgrid_data> m_prodgrid;
     std::unordered_map<int, table_config> m_config;
-    ResListData m_reslist;
+    reslist_data m_reslist;
 
     std::vector<table_users> m_vecTempBots;
 
@@ -53,17 +53,17 @@ public:
         return m_resource;
     }
 
-    inline const std::map<int, CombatCaps>& GetCombatCaps() const 
+    inline const std::map<int, combat_caps>& GetCombatCaps() const
     {
         return m_combatcaps;
     }
 
-    inline const std::map<int, PriceListData>& GetPriceList() const 
+    inline const std::map<int, pricelist_data>& GetPriceList() const
     {
         return m_pricelist;
     }
 
-    inline const std::map<int, ProdGridData>& GetProdGrid() const 
+    inline const std::map<int, prodgrid_data>& GetProdGrid() const
     {
         return m_prodgrid;
     }
@@ -73,7 +73,7 @@ public:
         return m_config;
     }
 
-    inline const ResListData& GetReslist() const 
+    inline const reslist_data& GetReslist() const
     {
         return m_reslist;
     }

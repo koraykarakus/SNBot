@@ -57,19 +57,19 @@ struct table_config
 	}
 };
 
-struct CombatCaps 
+struct combat_caps 
 { 
 	double attack; 
 	double shield; 
 };
 
-struct BonusData 
+struct bonus_data 
 { 
 	double value; 
 	int unit; 
 };
 
-struct PriceListData 
+struct pricelist_data
 {
 	std::map<int, double> cost;
 	double factor;
@@ -81,16 +81,16 @@ struct PriceListData
 	double capacity;
 	int tech;
 	double time;
-	std::map<std::string_view, BonusData> bonus;
+	std::map<std::string_view, bonus_data> bonus;
 };
 
-struct ProdGridData 
+struct prodgrid_data 
 {
 	std::map<int, std::string> production;
 	std::map<int, std::string> storage;
 };
 
-struct ResListData 
+struct reslist_data 
 {
 	std::vector<int> prod;
 	std::vector<int> storage;
