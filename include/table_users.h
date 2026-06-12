@@ -4,9 +4,10 @@
 #include <ctime>
 #include <array>
 #include <map>
+#include <string_view>
 #include "table_planets.h"
 
-inline std::array<std::string, 18> bonus_list = {
+inline constexpr std::array<std::string_view, 18> bonus_list = {
     "Attack",
     "Defensive",
     "Shield",
@@ -30,38 +31,22 @@ inline std::array<std::string, 18> bonus_list = {
 // trivial.
 struct play_time
 {
-    int play_start_time_1;    // when it starts to play [0 - 23] hour
-    int play_end_time_1;      // when it ends playing [0 - 23] hour
-    int play_start_time_2;
-    int play_end_time_2;
-    int play_start_time_3;
-    int play_end_time_3;
-    int play_start_time_4;
-    int play_end_time_4;
-    int check_time;         // checks every x minutes
-    play_time()
-        : play_start_time_1(-1)
-        , play_end_time_1(-1)
-        , play_start_time_2(-1)
-        , play_end_time_2(-1)
-        , play_start_time_3(-1)
-        , play_end_time_3(-1)
-        , play_start_time_4(-1)
-        , play_end_time_4(-1)
-        , check_time(0)
-    {
-    }
+	// when it starts to play [0 - 23] hour
+	int play_start_time_1 = -1;
+	// when it ends playing [0 - 23] hour
+	int play_end_time_1 = -1;
+	int play_start_time_2 = -1;
+	int play_end_time_2 = -1;
+	int play_start_time_3 = -1;
+	int play_end_time_3 = -1;
+	int play_start_time_4 = -1;
+	int play_end_time_4 = 0;
+	// checks every x minutes
+	int check_time;
 
-    void reset() {
-        play_start_time_1 = -1;
-        play_end_time_1 = -1;
-        play_start_time_2 = -1;
-        play_end_time_2 = -1;
-        play_start_time_3 = -1;
-        play_end_time_3 = -1;
-        play_start_time_4 = -1;
-        play_end_time_4 = -1;
-        check_time = 0;
+    void reset() 
+    {
+        *this = play_time();
     }
 };
 
@@ -108,7 +93,7 @@ struct table_users
 
     bool is_bot;
     std::vector<table_planets> vecPlanets;
-    std::map<std::string,int> factor;
+    std::map<std::string_view,int> factor;
     play_time playTime;
     int onlinetime;
 
@@ -164,7 +149,7 @@ struct table_users
             {
                 continue; // Bir sonraki element_id'ye atla
             }
-            const std::map<std::string, BonusData>& bonus = itPrice->second.bonus;
+            const std::map<std::string_view, BonusData>& bonus = itPrice->second.bonus;
 
             if (bonus.empty()) // veya bonus.size() == 0
             {

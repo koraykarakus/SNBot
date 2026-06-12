@@ -81,7 +81,7 @@ struct PriceListData
 	double capacity;
 	int tech;
 	double time;
-	std::map<std::string, BonusData> bonus;
+	std::map<std::string_view, BonusData> bonus;
 };
 
 struct ProdGridData 
