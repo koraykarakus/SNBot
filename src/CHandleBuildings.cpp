@@ -3,58 +3,50 @@
 #include "CLogger.h"
 #include "CDatabase.h"
 
+static constexpr int num_buildings = 156;
+static constexpr std::array<int, num_buildings> basic_buildings = {
+    4, 1, 2, 4, 1, 1, 4, 1, 1, 4, 2, 2, 3, 4, 1, 1, 4, 4, 2, 2,
+    3, 4, 3, 4, 1, 1, 4, 2, 2, 3, 3, 4, 4, 1, 1, 22, 23, 24,
+    22, 23, 4, 14, 14, 14, 14, 14, 14, 2, 2, 3, 3, 4, 1, 1,
+    2, 2, 4, 3, 3, 22, 22, 23, 24, 22, 31, 31, 31, 31, 31, 21,
+    21, 21, 21, 21, 1, 2, 3, 4, 1, 2, 3, 4, 22, 23, 24, 1, 2, 3,
+    14, 21, 21, 14, 14, 22, 23, 24, 1, 2, 3, 1, 4, 4, 4, 24,
+    31, 31, 31, 21, 21, 14, 22, 23, 24, 23, 24,
+    22, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 1, 1, 2, 2, 2, 22,
+    1, 2, 23, 24, 3, 3, 22, 4, 1, 3, 3, 21, 21, 31, 31, 1
+};
+
+static constexpr int num_research = 133;
+static constexpr std::array<int, num_research> basic_research = {
+    113, 113, 113, 113, 115, 115, 115, 115, 106, 106,
+    106, 106, 108, 108, 108, 108, 106, 109, 109, 109,
+    109, 110, 110, 110, 110, 111, 111, 111, 111, 109,
+    109, 109, 111, 111, 111, 110, 110, 110, 108, 108,
+    108, 108, 106, 106, 117, 117, 117, 117, 124, 124,
+    124, 124, 124, 124, 124, 120, 120, 120, 120, 120,
+    121, 121, 121, 121, 121, 124, 124, 120, 120, 120,
+    113, 113, 113, 113, 106, 120, 120, 122, 122, 122,
+    122, 122, 108, 108, 114, 114, 114, 114, 114, 114,
+    114, 114, 115, 115, 115, 117, 117, 118, 118, 118,
+    118, 118, 118, 110, 111, 109, 131, 131, 131, 131,
+    131, 132, 132, 132, 132, 132, 133, 133, 133, 133,
+    133, 109, 110, 111, 131, 131, 131, 132, 132, 132,
+    133, 133, 133
+};
+
 void CBotManager::HandleBuildings()
 {
-    // same as vars table's ids, increased by one to make it more understandable.
-
-    const std::vector<int> basic_buildings
-    {
-        4, 1, 2, 4, 1, 1, 4, 1, 1, 4, 2, 2, 3, 4, 1, 1, 4, 4, 2, 2,
-        3, 4, 3, 4, 1, 1, 4, 2, 2, 3, 3, 4, 4, 1, 1, 22, 23, 24,
-        22, 23, 4, 14, 14, 14, 14, 14, 14, 2, 2, 3, 3, 4, 1, 1,
-        2, 2, 4, 3, 3, 22, 22, 23, 24, 22, 31, 31, 31, 31, 31, 21,
-        21, 21, 21, 21, 1, 2, 3, 4, 1, 2, 3, 4, 22, 23, 24, 1, 2, 3,
-        14, 21, 21, 14, 14, 22, 23, 24, 1, 2, 3, 1, 4, 4, 4, 24,
-        31, 31, 31, 21, 21, 14, 22, 23, 24, 23, 24,
-        22, 1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 1, 1, 2, 2, 2, 22,
-        1, 2, 23, 24, 3, 3, 22, 4, 1, 3, 3, 21, 21, 31, 31, 1
-    };
-
-    const std::vector<int> basic_research
-    {
-        113, 113, 113, 113, 115, 115, 115, 115,
-        106, 106, 106, 106, 108, 108, 108, 108, 106, 109,
-        109, 109, 109, 110, 110, 110, 110, 111, 111, 111, 111,
-        109, 109, 109, 111, 111, 111, 110, 110, 110, 108, 108,
-        108, 108, 106, 106, 117, 117, 117, 117, 124, 124, 124,
-        124, 124, 124, 124, 120, 120, 120, 120, 120, 121, 121,
-        121, 121, 121, 124, 124, 120, 120, 120, 113, 113, 113,
-        113, 106, 120, 120, 122, 122, 122, 122, 122, 108, 108,
-        114, 114, 114, 114, 114, 114, 114, 114, 115, 115, 115,
-        117, 117, 118, 118, 118, 118, 118, 118, 110, 111, 109,
-        131, 131, 131, 131, 131, 132, 132, 132, 132, 132, 133,
-        133, 133, 133, 133, 109, 110, 111, 131, 131, 131, 132,
-        132, 132, 133, 133, 133
-    };
-
     // table vars
     const auto& vars = m_pDatabase->GetVars();
-
-
     time_t currentTime = std::time(nullptr);
     std::vector<stlog> vecLog;
-
-    std::tm* pLocalTime = std::localtime(&currentTime); 
-    int hour = 0;
-    if (pLocalTime != nullptr) 
-    {
-        hour = pLocalTime->tm_hour;
-    }
+    int hour = GetHour();
+    stlog log;
 
     for (auto& bot : m_vecBots)
     {
         // do not log inside for loop.. just form a vector and log after loop
-        stlog log;
+        log.Reset();
         log.bot_id = bot.id;
 
         // is it online now ?
@@ -133,7 +125,7 @@ void CBotManager::HandleBuildings()
             if (!IsResearching(bot))
             {
                 // try research
-                int tar_research_id = GetTargetBuildID(basic_research, current_levels_tech);
+                int tar_research_id = GetTargetResearchID(current_levels_tech);
                 if (tar_research_id == -1)
                 {
                     log.type = 4;
@@ -211,7 +203,7 @@ void CBotManager::HandleBuildings()
             }
 
 
-            int tar_building_id = GetTargetBuildID(basic_buildings, current_levels_buildings);
+            int tar_building_id = GetTargetBuildID(current_levels_buildings);
 
             if (tar_building_id == -1)
             {
@@ -288,14 +280,14 @@ void CBotManager::HandleBuildings()
     LogResult(vecLog);
 }
 
-int CBotManager::GetTargetBuildID(const std::vector<int>& vecList, const int* arrLevels) const
+int CBotManager::GetTargetBuildID(const int* arrLevels) const
 {
     int simulated_levels[200] = { 0 };
     int tar_building_id = -1;
     // scan the list for buildings
-    for (size_t m = 0; m < vecList.size(); ++m)
+    for (size_t m = 0; m < basic_buildings.size(); ++m)
     {
-        int element_id = vecList[m];
+        int element_id = basic_buildings[m];
         simulated_levels[element_id]++;
 
         if (simulated_levels[element_id] > arrLevels[element_id])
@@ -307,6 +299,26 @@ int CBotManager::GetTargetBuildID(const std::vector<int>& vecList, const int* ar
 
     return tar_building_id;
 }
+
+int CBotManager::GetTargetResearchID(const int* arrLevels) const {
+    int simulated_levels[200] = { 0 };
+    int tar_research_id = -1;
+    // scan the list for buildings
+    for (size_t m = 0; m < basic_research.size(); ++m)
+    {
+        int element_id = basic_research[m];
+        simulated_levels[element_id]++;
+
+        if (simulated_levels[element_id] > arrLevels[element_id])
+        {
+            tar_research_id = element_id;
+            break;
+        }
+    }
+
+    return tar_research_id;
+}
+
 
 void CBotManager::LogResult(const std::vector<stlog>& logs) const
 {

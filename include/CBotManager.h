@@ -24,47 +24,32 @@ const T& GetMin(const T& a, const T& b)
 // struct used to log.
 struct stlog
 {
-	int type;
-	int bot_id;
-	int id_planet;
-	int universe;
-	int research_id;
-	int research_level;
-	int building_id;
-	int building_level;
-	int galaxy;
-	int system;
-	int planet;
-	int cost901;
-	int cost902;
-	int cost903;
-	int planet_metal;
-	int planet_crystal;
-	int planet_deu;
-	std::string research_name;
-	std::string building_name;
-	std::string email;
-	int away_time;
-	stlog() 
-		: type(0)
-		, bot_id(0)
-		, id_planet(0)
-		, universe(0)
-		, research_id(0)
-		, research_level(0)
-		, building_id(0)
-		, building_level(0)
-		, galaxy(0)
-		, system(0)
-		, planet(0)
-		, cost901(0)
-		, cost902(0)
-		, cost903(0)
-		, planet_metal(0)
-		, planet_crystal(0)
-		, planet_deu(0)
-		, away_time(0)
-	{}
+	int type = 0;
+	int bot_id = 0;
+	int id_planet = 0;
+	int universe = 0;
+	int research_id = 0;
+	int research_level = 0;
+	int building_id = 0;
+	int building_level = 0;
+	int galaxy = 0;
+	int system = 0;
+	int planet = 0;
+	int cost901 = 0;
+	int cost902 = 0;
+	int cost903 = 0;
+	int planet_metal = 0;
+	int planet_crystal = 0;
+	int planet_deu = 0;
+	std::string research_name = "";
+	std::string building_name = "";
+	std::string email = "";
+	int away_time = 0;
+	
+	void Reset() 
+	{
+		*this = stlog();
+	}
 };
 
 class CApplication;
@@ -90,6 +75,19 @@ public:
 	CBotManager();
 	~CBotManager();
 	void Run(CDatabase* pDatabase, const CApplication& app);
+
+	// time related
+	inline int GetHour() 
+	{
+		time_t timeNow = std::time(nullptr);
+		std::tm* pLocalTime = std::localtime(&timeNow);
+		int hour = 0;
+		if (pLocalTime != nullptr)
+		{
+			hour = pLocalTime->tm_hour;
+		}
+		return hour;
+	}
 
 	// console commands processing, such as add bot remove bot etc.
 	inline void PushBotRequest(int count) 
@@ -146,7 +144,8 @@ public:
 	// build research, building, fleet or defence
 	void HandleBuildings();
 	// simulates..
-	int GetTargetBuildID(const std::vector<int>& vecList, const int* arrLevels) const;
+	int GetTargetBuildID(const int* arrLevels) const;
+	int GetTargetResearchID(const int* arrLevels) const;
 	bool HaveEnoughResources(const table_planets& planet , double* arrCost);
 	void RemoveCostFromPlanet(table_planets& planet, double* arrCost);
 	inline bool IsResearching(const table_users& user) const
