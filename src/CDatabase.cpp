@@ -1,8 +1,13 @@
-﻿#include "CDatabase.h"
+﻿#define TOML_ENABLE_UNRELEASED_FEATURES 0 // Eğer varsa bunu da ekleyebilirsiniz
+#define TOML_EXPORTED_CLASS              // IntelliSense'in kafasını rahatlatır
+
+#include "CDatabase.h"
 #include "CLogger.h"
-#include "SimpleIni.h"
+#include <toml++/toml.hpp>
 #include <fmt/ranges.h>
 #include <filesystem>
+
+using namespace std::literals;
 
 CDatabase::CDatabase()
     : m_pConn(nullptr)
@@ -31,44 +36,59 @@ CDatabase::~CDatabase()
 
 void CDatabase::Init()
 {
-    // find path to settings.ini file which is in the same folder with exe
-    std::filesystem::path iniPath = std::filesystem::current_path() / "settings.ini";
-    std::string iniPathStr = iniPath.string();
+    std::filesystem::path configPath = std::filesystem::current_path() / "settings.toml";
+    toml::table config;
 
-    CSimpleIniA ini;
-    ini.SetUnicode(); // support special char set
-
-    // load ini file
-    SI_Error rc = ini.LoadFile(iniPathStr.c_str());
-
-    // create settings.ini if it is not found
-    if (rc < 0) 
+    // 1. Dosya var mı kontrol et, yoksa varsayılanlarla oluştur
+    if (!std::filesystem::exists(configPath))
     {
-        CLogger::Error("settings.ini not found check folder and fill required info !\n");
+        CLogger::Error("settings.toml not found! Creating default configuration file...\n");
 
         // defaults
-        ini.SetValue("Database", "Host", "localhost");
-        ini.SetValue("Database", "User", "username");
-        ini.SetValue("Database", "Password", "password");
-        ini.SetValue("Database", "DBName", "steemnova");
-        ini.SetValue("Database", "Prefix", "uni1_"); 
+        config = toml::table{
+            { "database", toml::table{
+                { "host", "localhost" },
+                { "user", "username" },
+                { "password", "password" },
+                { "db_name", "steemnova" },
+                { "prefix", "uni1_" }
+            }}
+        };
 
-        // save defaults to ini
-        rc = ini.SaveFile(iniPathStr.c_str());
-        if (rc < 0) 
+        // write file (std::ofstream )
+        std::ofstream outFile(configPath);
+        if (outFile.is_open())
         {
-            CLogger::Error("error : settings.ini cannot be saved !\n");
+            outFile << config; // toml++ tablosunu doğrudan dosyaya akıtabilirsiniz
+            outFile.close();
+        }
+        else
+        {
+            CLogger::Error("error: settings.toml cannot be saved!\n");
+        }
+    }
+    else
+    {
+        // 2. Dosya zaten varsa oku
+        try
+        {
+            config = toml::parse_file(configPath.string());
+        }
+        catch (const toml::parse_error& err)
+        {
+            CLogger::Error("Error parsing settings.toml: {}\n", err.description());
+            return;
         }
     }
 
-    // get values and assign members.
-    m_strDBHost = ini.GetValue("Database", "Host");
-    m_strDBUser = ini.GetValue("Database", "User");
-    m_strDBPass = ini.GetValue("Database", "Password");
-    m_strDBName = ini.GetValue("Database", "DBName");
-    m_strDBPrefix = ini.GetValue("Database", "Prefix");
+    // 3. Değerleri oku ve sınıf üyelerine ata (Veri yoksa fallback olarak ""sv kullanır)
+    m_strDBHost = config["database"]["host"].value_or(""sv);
+    m_strDBUser = config["database"]["user"].value_or(""sv);
+    m_strDBPass = config["database"]["password"].value_or(""sv);
+    m_strDBName = config["database"]["db_name"].value_or(""sv);
+    m_strDBPrefix = config["database"]["prefix"].value_or(""sv);
 
-    CLogger::Info("[DBAgent] settings read from settings.ini Host: {}", m_strDBHost);
+    CLogger::Info("[CDatabase] settings read from settings.toml Host: {}", m_strDBHost);
 }
 
 bool CDatabase::Connect()
