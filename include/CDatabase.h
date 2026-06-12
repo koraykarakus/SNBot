@@ -11,7 +11,7 @@ class CBotManager;
 class CDatabase
 {
 private:
-    static const int BATCH_SIZE = 50;
+    static const int BATCH_SIZE = 300;
     MYSQL* m_pConn;
     CBotManager* m_pBotManager;
 

@@ -531,27 +531,25 @@ bool CDatabase::UpdateBots(std::vector<table_users>& vecBots)
     // order is important !
     const std::string strPlanetHeader = std::format(
         "INSERT INTO `{}planets` ("
-        "id, name, id_owner, universe, galaxy, system, planet, last_update, planet_type, destroyed, "
-        "b_building, b_building_id, b_shipyard, b_shipyard_id, b_shipyard_plus, image, diameter, field_current, field_max, temp_min, temp_max, "
+        "id, last_update, "
+        "b_building, b_building_id, b_shipyard, b_shipyard_id, b_shipyard_plus, field_current, field_max, "
         "eco_hash, metal, metal_perhour, metal_max, crystal, crystal_perhour, crystal_max, deuterium, deuterium_perhour, deuterium_max, energy_used, energy, "
         "metal_mine, crystal_mine, deuterium_synthesizer, solar_plant, fusion_plant, robot_factory, nanite_factory, shipyard, metal_storage, crystal_storage, deuterium_tank, research_lab, terraformer, university, ally_deposit, missile_silo, "
         "lunar_base, phalanx, jump_gate, small_cargo, big_cargo, light_hunter, heavy_hunter, cruiser, battle_ship, colony_ship, recycler, espionage_probe, bomber_ship, solar_satellite, destroyer, death_star, battle_cruiser, black_moon, ev_transporter, star_crasher, giga_recycler, dm_ship, orbital_station, "
         "rocket_launcher, light_laser, heavy_laser, gauss_cannon, ion_cannon, plasma_turret, small_protection_shield, planet_protector, big_protection_shield, graviton_cannon, interceptor_misil, interplanetary_misil, "
-        "metal_mine_percent, crystal_mine_percent, deuterium_synthesizer_percent, solar_plant_percent, fusion_plant_percent, solar_satellite_percent, "
-        "last_jump_time, debris_metal, debris_crystal, id_moon, is_bot, last_relocate, version) VALUES "
+        "metal_mine_percent, crystal_mine_percent, deuterium_synthesizer_percent, solar_plant_percent, fusion_plant_percent, solar_satellite_percent "
+        ") VALUES "
     , m_strDBPrefix);
 
     // footer
     const std::string strPlanetFooter = " ON DUPLICATE KEY UPDATE "
-        "name=VALUES(name), id_owner=VALUES(id_owner), universe=VALUES(universe), galaxy=VALUES(galaxy), system=VALUES(system), planet=VALUES(planet), last_update=VALUES(last_update), planet_type=VALUES(planet_type), destroyed=VALUES(destroyed), "
-        "b_building=VALUES(b_building), b_building_id=VALUES(b_building_id), b_shipyard=VALUES(b_shipyard), b_shipyard_id=VALUES(b_shipyard_id), b_shipyard_plus=VALUES(b_shipyard_plus), image=VALUES(image), diameter=VALUES(diameter), field_current=VALUES(field_current), field_max=VALUES(field_max), temp_min=VALUES(temp_min), temp_max=VALUES(temp_max), "
+        "last_update=VALUES(last_update), "
+        "b_building=VALUES(b_building), b_building_id=VALUES(b_building_id), b_shipyard=VALUES(b_shipyard), b_shipyard_id=VALUES(b_shipyard_id), b_shipyard_plus=VALUES(b_shipyard_plus), field_current=VALUES(field_current), field_max=VALUES(field_max), "
         "eco_hash=VALUES(eco_hash), metal=VALUES(metal), metal_perhour=VALUES(metal_perhour), metal_max=VALUES(metal_max), crystal=VALUES(crystal), crystal_perhour=VALUES(crystal_perhour), crystal_max=VALUES(crystal_max), deuterium=VALUES(deuterium), deuterium_perhour=VALUES(deuterium_perhour), deuterium_max=VALUES(deuterium_max), energy_used=VALUES(energy_used), energy=VALUES(energy), "
         "metal_mine=VALUES(metal_mine), crystal_mine=VALUES(crystal_mine), deuterium_synthesizer=VALUES(deuterium_synthesizer), solar_plant=VALUES(solar_plant), fusion_plant=VALUES(fusion_plant), robot_factory=VALUES(robot_factory), nanite_factory=VALUES(nanite_factory), shipyard=VALUES(shipyard), metal_storage=VALUES(metal_storage), crystal_storage=VALUES(crystal_storage), deuterium_tank=VALUES(deuterium_tank), research_lab=VALUES(research_lab), terraformer=VALUES(terraformer), university=VALUES(university), ally_deposit=VALUES(ally_deposit), missile_silo=VALUES(missile_silo), "
         "lunar_base=VALUES(lunar_base), phalanx=VALUES(phalanx), jump_gate=VALUES(jump_gate), small_cargo=VALUES(small_cargo), big_cargo=VALUES(big_cargo), light_hunter=VALUES(light_hunter), heavy_hunter=VALUES(heavy_hunter), cruiser=VALUES(cruiser), battle_ship=VALUES(battle_ship), colony_ship=VALUES(colony_ship), recycler=VALUES(recycler), espionage_probe=VALUES(espionage_probe), bomber_ship=VALUES(bomber_ship), solar_satellite=VALUES(solar_satellite), destroyer=VALUES(destroyer), death_star=VALUES(death_star), battle_cruiser=VALUES(battle_cruiser), black_moon=VALUES(black_moon), ev_transporter=VALUES(ev_transporter), star_crasher=VALUES(star_crasher), giga_recycler=VALUES(giga_recycler), dm_ship=VALUES(dm_ship), orbital_station=VALUES(orbital_station), "
         "rocket_launcher=VALUES(rocket_launcher), light_laser=VALUES(light_laser), heavy_laser=VALUES(heavy_laser), gauss_cannon=VALUES(gauss_cannon), ion_cannon=VALUES(ion_cannon), plasma_turret=VALUES(plasma_turret), small_protection_shield=VALUES(small_protection_shield), planet_protector=VALUES(planet_protector), big_protection_shield=VALUES(big_protection_shield), graviton_cannon=VALUES(graviton_cannon), interceptor_misil=VALUES(interceptor_misil), interplanetary_misil=VALUES(interplanetary_misil), "
-        "metal_mine_percent=VALUES(metal_mine_percent), crystal_mine_percent=VALUES(crystal_mine_percent), deuterium_synthesizer_percent=VALUES(deuterium_synthesizer_percent), solar_plant_percent=VALUES(solar_plant_percent), fusion_plant_percent=VALUES(fusion_plant_percent), solar_satellite_percent=VALUES(solar_satellite_percent), "
-        "last_jump_time=VALUES(last_jump_time), debris_metal=VALUES(debris_metal), debris_crystal=VALUES(debris_crystal), id_moon=VALUES(id_moon), is_bot=VALUES(is_bot), last_relocate=VALUES(last_relocate), version=VALUES(version);";
-
+        "metal_mine_percent=VALUES(metal_mine_percent), crystal_mine_percent=VALUES(crystal_mine_percent), deuterium_synthesizer_percent=VALUES(deuterium_synthesizer_percent), solar_plant_percent=VALUES(solar_plant_percent), fusion_plant_percent=VALUES(fusion_plant_percent), solar_satellite_percent=VALUES(solar_satellite_percent);";
     // batch size 50 as default
     int iPlanetCount = vecAllPlanets.size();
     for (size_t i = 0; i < iPlanetCount; i += BATCH_SIZE)
@@ -565,27 +563,27 @@ bool CDatabase::UpdateBots(std::vector<table_users>& vecBots)
 
             strQuery += "(";
             strQuery += std::to_string(pl.id) + ", ";
-            strQuery += "'" + pl.name + "', ";
-            strQuery += std::to_string(pl.id_owner) + ", ";
-            strQuery += std::to_string(pl.universe) + ", ";
-            strQuery += std::to_string(pl.galaxy) + ", ";
-            strQuery += std::to_string(pl.system) + ", ";
-            strQuery += std::to_string(pl.planet) + ", ";
+            //strQuery += "'" + pl.name + "', ";
+            //strQuery += std::to_string(pl.id_owner) + ", ";
+            //strQuery += std::to_string(pl.universe) + ", ";
+            //strQuery += std::to_string(pl.galaxy) + ", ";
+            //strQuery += std::to_string(pl.system) + ", ";
+            //strQuery += std::to_string(pl.planet) + ", ";
             strQuery += std::to_string(pl.last_update) + ", ";
-            strQuery += std::to_string(pl.planet_type) + ", ";
-            strQuery += std::to_string(pl.destroyed) + ", ";
+            //strQuery += std::to_string(pl.planet_type) + ", ";
+            //strQuery += std::to_string(pl.destroyed) + ", ";
 
             strQuery += std::to_string(pl.b_building) + ", ";
             strQuery += "'" + pl.b_building_id + "', ";
             strQuery += std::to_string(pl.b_shipyard) + ", ";
             strQuery += "'" + pl.b_shipyard_id + "', ";
             strQuery += std::to_string(pl.b_shipyard_plus) + ", ";
-            strQuery += "'" + pl.image + "', ";
-            strQuery += std::to_string(pl.diameter) + ", ";
+            //strQuery += "'" + pl.image + "', ";
+            //strQuery += std::to_string(pl.diameter) + ", ";
             strQuery += std::to_string(pl.field_current) + ", ";
             strQuery += std::to_string(pl.field_max) + ", ";
-            strQuery += std::to_string(pl.temp_min) + ", ";
-            strQuery += std::to_string(pl.temp_max) + ", ";
+            //strQuery += std::to_string(pl.temp_min) + ", ";
+            //strQuery += std::to_string(pl.temp_max) + ", ";
 
             strQuery += "'" + pl.eco_hash + "', ";
             strQuery += std::to_string(pl.metal) + ", ";
@@ -660,15 +658,15 @@ bool CDatabase::UpdateBots(std::vector<table_users>& vecBots)
             strQuery += "'" + pl.deuterium_synthesizer_percent + "', ";
             strQuery += "'" + pl.solar_plant_percent + "', ";
             strQuery += "'" + pl.fusion_plant_percent + "', ";
-            strQuery += "'" + pl.solar_satellite_percent + "', ";
+            strQuery += "'" + pl.solar_satellite_percent + "'";
 
-            strQuery += std::to_string(pl.last_jump_time) + ", ";
-            strQuery += std::to_string(pl.debris_metal) + ", ";
-            strQuery += std::to_string(pl.debris_crystal) + ", ";
-            strQuery += std::to_string(pl.id_moon) + ", ";
-            strQuery += std::to_string(pl.is_bot ? 1 : 0) + ", ";
-            strQuery += std::to_string(pl.last_relocate) + ", ";
-            strQuery += std::to_string(pl.version);
+            //strQuery += std::to_string(pl.last_jump_time) + ", ";
+            //strQuery += std::to_string(pl.debris_metal) + ", ";
+            //strQuery += std::to_string(pl.debris_crystal) + ", ";
+            //strQuery += std::to_string(pl.id_moon) + ", ";
+            //strQuery += std::to_string(pl.is_bot ? 1 : 0) + ", ";
+            //strQuery += std::to_string(pl.last_relocate) + ", ";
+            //strQuery += std::to_string(pl.version);
             strQuery += "), ";
 
             ++iPlanetCounter;
