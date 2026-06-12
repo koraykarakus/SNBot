@@ -71,14 +71,16 @@ void CBotManager::Run(CDatabase* pDatabase, const CApplication& app)
 		return;
 	}
 
-    const auto& vars = m_pDatabase->GetVars();
     m_vecBots = m_pDatabase->GetLoadedBots();
-
-    CLogger::Info("[CBotManager] - [Run] Bot Main thread starting. vars size : {}\n", vars.size());
-
     // main loop as long as it is running
     while (app.IsRunning())
     {
+        if (!app.IsStarted())
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+            continue;
+        }
+
         auto timeNow = std::chrono::steady_clock::now();
 
         // time check
@@ -102,6 +104,7 @@ void CBotManager::Run(CDatabase* pDatabase, const CApplication& app)
         // pDatabase->LoadBots();
         auto end = GetTimeNow();
 
+        ProcessPendingRequests();
         // update time and firstrun flag
         m_bFirstRun = false;
         m_timeLastRun = timeNow;

@@ -2,6 +2,9 @@
 #include <vector>
 #include <unordered_map>
 #include <map>
+#include <queue>
+#include <mutex>
+#include <string>
 #include "globals.h"
 #include "table_users.h"
 #include "table_fleets.h"
@@ -79,11 +82,39 @@ private:
 
 	CDatabase* m_pDatabase;
 
+	// console commands processing
+	std::queue<int> m_botCreationQueue;
+	std::mutex m_queueMutex;
+
 public:
 	CBotManager();
 	~CBotManager();
-
 	void Run(CDatabase* pDatabase, const CApplication& app);
+
+	// console commands processing, such as add bot remove bot etc.
+	inline void PushBotRequest(int count) 
+	{
+		std::lock_guard<std::mutex> lock(m_queueMutex);
+		m_botCreationQueue.push(count);
+	}
+
+	// inline for now..
+	void ProcessPendingRequests() 
+	{
+		std::lock_guard<std::mutex> lock(m_queueMutex);
+		while (!m_botCreationQueue.empty()) 
+		{
+			int count = m_botCreationQueue.front();
+			m_botCreationQueue.pop();
+			this->CreateBotsActual(count);
+		}
+	}
+
+	void CreateBotsActual(int count) 
+	{
+		// create
+	}
+
 
 	const table_config* GetConfigByUniID(int uni) const;
 
