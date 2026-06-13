@@ -140,7 +140,7 @@ struct table_users
 
     void SetFactor(const time_t time, 
         const reslist_data& reslist,
-        const std::map<int, pricelist_data>& pricelist)
+        const std::unordered_map<int, pricelist_data>& pricelist)
     {
         for (const auto& element_id : reslist.bonus)
         {

@@ -22,10 +22,10 @@ private:
     std::string m_strDBPrefix;
 
     std::unordered_map<int, table_vars> m_vars;
-    std::map<int, std::string> m_resource;
-    std::map<int, combat_caps> m_combatcaps;
-    std::map<int, pricelist_data> m_pricelist;
-    std::map<int, prodgrid_data> m_prodgrid;
+    std::unordered_map<int, std::string> m_resource;
+    std::unordered_map<int, combat_caps> m_combatcaps;
+    std::unordered_map<int, pricelist_data> m_pricelist;
+    std::unordered_map<int, prodgrid_data> m_prodgrid;
     std::unordered_map<int, table_config> m_config;
     reslist_data m_reslist;
 
@@ -48,22 +48,22 @@ public:
         return m_vars;
     }
 
-    inline const std::map<int, std::string>& GetResource() const 
+    inline const std::unordered_map<int, std::string>& GetResource() const
     {
         return m_resource;
     }
 
-    inline const std::map<int, combat_caps>& GetCombatCaps() const
+    inline const std::unordered_map<int, combat_caps>& GetCombatCaps() const
     {
         return m_combatcaps;
     }
 
-    inline const std::map<int, pricelist_data>& GetPriceList() const
+    inline const std::unordered_map<int, pricelist_data>& GetPriceList() const
     {
         return m_pricelist;
     }
 
-    inline const std::map<int, prodgrid_data>& GetProdGrid() const
+    inline const std::unordered_map<int, prodgrid_data>& GetProdGrid() const
     {
         return m_prodgrid;
     }
