@@ -412,7 +412,6 @@ bool CDatabase::LoadBots()
 
 bool CDatabase::UpdateBots(std::vector<table_users>& vecBots)
 {
-    auto start = GetTimeNow();
 
     if (vecBots.empty()) return false;
     if (m_pConn == nullptr) return false;
@@ -438,14 +437,17 @@ bool CDatabase::UpdateBots(std::vector<table_users>& vecBots)
         "graviton_tech = VALUES(graviton_tech), onlinetime = VALUES(onlinetime);";
 
     // store all planets in same vector
-    std::vector<table_planets> vecAllPlanets;
+    std::vector<table_planets*> vecAllPlanets;
     // std::vector<int> vecIDPlanetsNoUpdate; // testing
     // std::vector<int> vecIDBotsNoUpdate;
 
     int iPlanetCounter = 0, iBotCounter = 0, iCount = (int) vecBots.size();
+    auto start = GetTimeNow();
+    std::string strQuery = strUserHeader;
+    fmt::memory_buffer buf;
     for (size_t i = 0; i < iCount; i += BATCH_SIZE)
     {
-        std::string strQuery = strUserHeader;
+        strQuery = strUserHeader;
         size_t endIndex = ((i + BATCH_SIZE) < iCount) ? (i + BATCH_SIZE) : iCount;
 
         for (size_t k = i; k < endIndex; ++k)
@@ -463,7 +465,7 @@ bool CDatabase::UpdateBots(std::vector<table_users>& vecBots)
                 }
                 
                 planet.need_update = false;
-                vecAllPlanets.push_back(planet);
+                vecAllPlanets.push_back(&planet);
             }
 
             // planet might need update.. (finished building etc.)
@@ -474,33 +476,35 @@ bool CDatabase::UpdateBots(std::vector<table_users>& vecBots)
                 continue;
             }
 
-            strQuery += "(";
-            strQuery += std::to_string(cBot.id) + ", ";
-            strQuery += std::to_string(cBot.b_tech_planet) + ", ";
-            strQuery += std::to_string(cBot.b_tech) + ", ";
-            strQuery += std::to_string(cBot.b_tech_id) + ", ";
-            strQuery += "'" + cBot.b_tech_queue + "', ";
-            strQuery += std::to_string(cBot.resource[106]) + ", ";
-            strQuery += std::to_string(cBot.resource[108]) + ", ";
-            strQuery += std::to_string(cBot.resource[109]) + ", ";
-            strQuery += std::to_string(cBot.resource[110]) + ", ";
-            strQuery += std::to_string(cBot.resource[111]) + ", ";
-            strQuery += std::to_string(cBot.resource[113]) + ", ";
-            strQuery += std::to_string(cBot.resource[114]) + ", ";
-            strQuery += std::to_string(cBot.resource[115]) + ", ";
-            strQuery += std::to_string(cBot.resource[117]) + ", ";
-            strQuery += std::to_string(cBot.resource[118]) + ", ";
-            strQuery += std::to_string(cBot.resource[120]) + ", ";
-            strQuery += std::to_string(cBot.resource[121]) + ", ";
-            strQuery += std::to_string(cBot.resource[122]) + ", ";
-            strQuery += std::to_string(cBot.resource[123]) + ", ";
-            strQuery += std::to_string(cBot.resource[124]) + ", ";
-            strQuery += std::to_string(cBot.resource[131]) + ", ";
-            strQuery += std::to_string(cBot.resource[132]) + ", ";
-            strQuery += std::to_string(cBot.resource[133]) + ", ";
-            strQuery += std::to_string(cBot.resource[199]) + ", ";
-            strQuery += std::to_string(cBot.onlinetime);
-            strQuery += "), ";
+            fmt::format_to(
+                std::back_inserter(strQuery),
+                "({}, {}, {}, {}, '{}', {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}), ",
+                cBot.id,
+                cBot.b_tech_planet,
+                cBot.b_tech,
+                cBot.b_tech_id,
+                cBot.b_tech_queue,
+                cBot.resource[106],
+                cBot.resource[108],
+                cBot.resource[109],
+                cBot.resource[110],
+                cBot.resource[111],
+                cBot.resource[113],
+                cBot.resource[114],
+                cBot.resource[115],
+                cBot.resource[117],
+                cBot.resource[118],
+                cBot.resource[120],
+                cBot.resource[121],
+                cBot.resource[122],
+                cBot.resource[123],
+                cBot.resource[124],
+                cBot.resource[131],
+                cBot.resource[132],
+                cBot.resource[133],
+                cBot.resource[199],
+                cBot.onlinetime
+            );
 
             cBot.need_update = false;
             ++iBotCounter;
@@ -527,6 +531,7 @@ bool CDatabase::UpdateBots(std::vector<table_users>& vecBots)
         }
 
     }
+    auto end = GetTimeNow();
 
     /*
     if (!vecIDPlanetsNoUpdate.empty()
@@ -579,7 +584,7 @@ bool CDatabase::UpdateBots(std::vector<table_users>& vecBots)
 
         for (size_t k = i; k < endIndex; ++k)
         {
-            const auto& pl = vecAllPlanets[k];
+            const auto& pl = *vecAllPlanets[k];
 
             strQuery += "(";
             strQuery += std::to_string(pl.id) + ", ";
@@ -714,7 +719,6 @@ bool CDatabase::UpdateBots(std::vector<table_users>& vecBots)
         
     }
 
-    auto end = GetTimeNow();
     auto duration_ms = GetElapsedMilliseconds(start, end);
     auto duration_us = GetElapsedMicroseconds(start, end);
     CLogger::Info("[CDatabase] - {} bots and {} "
