@@ -67,7 +67,8 @@ bool CCommandHandler::ProcessCommand(std::string& line, CApplication& app)
     }
     else if (cmd == "/remove_bots")
     {
-
+        info.type = 2;
+        m_pBotManager->PushCmdRequest(info);
     }
     else if (cmd == "/exit")
     {

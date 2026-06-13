@@ -42,6 +42,8 @@ public:
     bool LoadVars();
     bool LoadConfig();
     bool UpdateBots(std::vector<table_users>& vecBots);
+    bool AddBots(int count);
+    bool RemoveBots();
 
     inline const std::unordered_map<int, table_vars>& GetVars() const
     {

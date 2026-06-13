@@ -91,7 +91,7 @@ struct table_users
 	int rpg_raider;
 	int rpg_emperor;
 
-    bool is_bot;
+    int is_bot;
     std::vector<table_planets> vecPlanets;
     std::map<std::string_view,int> factor;
     play_time playTime;
@@ -115,7 +115,7 @@ struct table_users
         , b_tech(0)
         , b_tech_id(0)
         , b_tech_queue("")
-        , is_bot(false)
+        , is_bot(1)
         , resource{0}
         , factor{}
         , onlinetime(0)

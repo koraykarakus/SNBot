@@ -105,6 +105,7 @@ public:
 	// command handlers.
 	bool ProcessPendingRequests();
 	void CreateBots(int count);
+	void RemoveBots();
 
 	const table_config* GetConfigByUniID(int uni) const;
 

@@ -2,6 +2,7 @@
 
 #include "CBotManager.h"
 #include "CLogger.h"
+#include "CDatabase.h"
 
 bool CBotManager::ProcessPendingRequests()
 {
@@ -28,7 +29,9 @@ bool CBotManager::ProcessPendingRequests()
         case 1:
             CreateBots(cmd.count);
             break;
-
+        case 2:
+            RemoveBots();
+            break;
         default:
             break;
         }
@@ -36,8 +39,18 @@ bool CBotManager::ProcessPendingRequests()
 
     return processed;
 }
+
 void CBotManager::CreateBots(int count)
 {
     CLogger::Info("Creating {} bots..", count);
-    // create
+    m_pDatabase->AddBots(count);
+}
+
+void CBotManager::RemoveBots() 
+{
+    if (m_pDatabase->RemoveBots())
+    {
+        m_vecBots = m_pDatabase->GetLoadedBots();
+        CLogger::Info("All bots and their planet removed from database by success.");
+    }
 }

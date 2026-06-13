@@ -233,7 +233,7 @@ bool CDatabase::LoadBots()
         bot.rpg_emperor = row[72] ? std::stoi(row[72]) : 0;
 
         // column is_bot to simplify
-        bot.is_bot = row[99] ? (std::atoi(row[99]) != 0) : false;
+        bot.is_bot = 1;
         bot.SetFactor(now, m_reslist, m_pricelist);
         m_vecTempBots.push_back(std::move(bot));
         ++ibotCounter;
@@ -382,10 +382,10 @@ bool CDatabase::LoadBots()
         pl.debris_metal = plRow[91] ? std::stod(plRow[91]) : 0.0;
         pl.debris_crystal = plRow[92] ? std::stod(plRow[92]) : 0.0;
         pl.id_moon = plRow[93] ? std::stoi(plRow[93]) : 0;
-        pl.is_bot = plRow[94] ? (std::stoi(plRow[94]) != 0) : false;
         pl.last_relocate = plRow[95] ? std::stoi(plRow[95]) : 0;
         pl.version = plRow[96] ? std::stoull(plRow[96]) : 0;
 
+        pl.is_bot = 1;
         // find bot with planet id_owner
         table_users* pTargetBot = GetBotRef(pl.id_owner);
         if (pTargetBot != nullptr)
@@ -407,323 +407,6 @@ bool CDatabase::LoadBots()
 	CLogger::Info("[CDatabase] ### {} bots and {} planets"
 		"loaded successfully. ### [time:{} us / {} ms]\n",
 		ibotCounter, iPlanetCounter, duration_micros, duration_millis);
-    return true;
-}
-
-bool CDatabase::UpdateBots(std::vector<table_users>& vecBots)
-{
-
-    if (vecBots.empty()) return false;
-    if (m_pConn == nullptr) return false;
-    // =========================================================================
-    // PART 1: UPDATE BOT RESEARCH (USERS TABLE)
-    // =========================================================================
-    const std::string strUserHeader = std::format("INSERT INTO `{}users` ("
-        "id, b_tech_planet, b_tech, b_tech_id, b_tech_queue, spy_tech, computer_tech, "
-        "military_tech, armor_tech, shield_tech, energy_tech, hyperspace_tech, "
-        "combustion_tech, impulse_motor_tech, hyperspace_motor_tech, laser_tech, "
-        "ion_tech, plasma_tech, intergalactic_tech, expedition_tech, "
-        "metal_proc_tech, crystal_proc_tech, deuterium_proc_tech, graviton_tech, onlinetime) VALUES "
-        , m_strDBPrefix);
-
-
-    const std::string strUserFooter = " ON DUPLICATE KEY UPDATE "
-        "b_tech_planet = VALUES(b_tech_planet), b_tech = VALUES(b_tech), b_tech_id = VALUES(b_tech_id), b_tech_queue = VALUES(b_tech_queue), "
-        "spy_tech = VALUES(spy_tech), computer_tech = VALUES(computer_tech), military_tech = VALUES(military_tech), armor_tech = VALUES(armor_tech), "
-        "shield_tech = VALUES(shield_tech), energy_tech = VALUES(energy_tech), hyperspace_tech = VALUES(hyperspace_tech), combustion_tech = VALUES(combustion_tech), "
-        "impulse_motor_tech = VALUES(impulse_motor_tech), hyperspace_motor_tech = VALUES(hyperspace_motor_tech), laser_tech = VALUES(laser_tech), "
-        "ion_tech = VALUES(ion_tech), plasma_tech = VALUES(plasma_tech), intergalactic_tech = VALUES(intergalactic_tech), expedition_tech = VALUES(expedition_tech), "
-        "metal_proc_tech = VALUES(metal_proc_tech), crystal_proc_tech = VALUES(crystal_proc_tech), deuterium_proc_tech = VALUES(deuterium_proc_tech), "
-        "graviton_tech = VALUES(graviton_tech), onlinetime = VALUES(onlinetime);";
-
-    // store all planets in same vector
-    std::vector<table_planets*> vecAllPlanets;
-    // std::vector<int> vecIDPlanetsNoUpdate; // testing
-    // std::vector<int> vecIDBotsNoUpdate;
-
-    int iPlanetCounter = 0, iBotCounter = 0, iCount = (int) vecBots.size();
-    auto start = GetTimeNow();
-    std::string strQuery = strUserHeader;
-    fmt::memory_buffer buf;
-    for (size_t i = 0; i < iCount; i += BATCH_SIZE)
-    {
-        strQuery = strUserHeader;
-        size_t endIndex = ((i + BATCH_SIZE) < iCount) ? (i + BATCH_SIZE) : iCount;
-
-        for (size_t k = i; k < endIndex; ++k)
-        {
-            auto& cBot = vecBots[k];
-
-            for (auto& planet : cBot.vecPlanets) 
-            {
-
-                if (!planet.need_update)
-                {
-                    //CLogger::Info("PID:{} does not need an update", planet.id);
-                    // vecIDPlanetsNoUpdate.push_back(planet.id);
-                    continue;
-                }
-                
-                planet.need_update = false;
-                vecAllPlanets.push_back(&planet);
-            }
-
-            // planet might need update.. (finished building etc.)
-            if (!cBot.need_update)
-            {
-                //CLogger::Info("Bot does not need update {}", cBot.id);
-                // vecIDBotsNoUpdate.push_back(cBot.id);
-                continue;
-            }
-
-            fmt::format_to(
-                std::back_inserter(strQuery),
-                "({}, {}, {}, {}, '{}', {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}), ",
-                cBot.id,
-                cBot.b_tech_planet,
-                cBot.b_tech,
-                cBot.b_tech_id,
-                cBot.b_tech_queue,
-                cBot.resource[106],
-                cBot.resource[108],
-                cBot.resource[109],
-                cBot.resource[110],
-                cBot.resource[111],
-                cBot.resource[113],
-                cBot.resource[114],
-                cBot.resource[115],
-                cBot.resource[117],
-                cBot.resource[118],
-                cBot.resource[120],
-                cBot.resource[121],
-                cBot.resource[122],
-                cBot.resource[123],
-                cBot.resource[124],
-                cBot.resource[131],
-                cBot.resource[132],
-                cBot.resource[133],
-                cBot.resource[199],
-                cBot.onlinetime
-            );
-
-            cBot.need_update = false;
-            ++iBotCounter;
-        }
-
-        if (strQuery != strUserHeader)
-        {
-            size_t len = strQuery.size();
-			if (len >= 2
-				&& strQuery.substr(len - 2) == ", ")
-			{
-				// remove comma and space
-				strQuery.pop_back();
-				strQuery.pop_back();
-			}
-
-            strQuery += strUserFooter;
-
-            if (mysql_query(m_pConn, strQuery.c_str()) != 0)
-            {
-                CLogger::Error("[CDatabase] - UpdateBots (Users) Paket Hatasi (Index {}-{}): {}", i, endIndex - 1, mysql_error(m_pConn));
-                return false;
-            }
-        }
-
-    }
-    auto end = GetTimeNow();
-
-    /*
-    if (!vecIDPlanetsNoUpdate.empty()
-        || !vecIDBotsNoUpdate.empty())
-    {
-        
-        spdlog::info("PID:[{}], UID:[{}] does not need update",
-            fmt::join(vecIDPlanetsNoUpdate, "],["),
-            fmt::join(vecIDBotsNoUpdate, "],[")
-        );
-    }
-    */
-
-    // =========================================================================
-    // PART 2: UPDATE PLANETS (PLANETS TABLE) 
-    // =========================================================================
-    if (vecAllPlanets.empty())
-    {
-        return true;
-    }
-
-    // order is important !
-    const std::string strPlanetHeader = std::format(
-        "INSERT INTO `{}planets` ("
-        "id, last_update, "
-        "b_building, b_building_id, b_shipyard, b_shipyard_id, b_shipyard_plus, field_current, field_max, "
-        "eco_hash, metal, metal_perhour, metal_max, crystal, crystal_perhour, crystal_max, deuterium, deuterium_perhour, deuterium_max, energy_used, energy, "
-        "metal_mine, crystal_mine, deuterium_synthesizer, solar_plant, fusion_plant, robot_factory, nanite_factory, shipyard, metal_storage, crystal_storage, deuterium_tank, research_lab, terraformer, university, ally_deposit, missile_silo, "
-        "lunar_base, phalanx, jump_gate, small_cargo, big_cargo, light_hunter, heavy_hunter, cruiser, battle_ship, colony_ship, recycler, espionage_probe, bomber_ship, solar_satellite, destroyer, death_star, battle_cruiser, black_moon, ev_transporter, star_crasher, giga_recycler, dm_ship, orbital_station, "
-        "rocket_launcher, light_laser, heavy_laser, gauss_cannon, ion_cannon, plasma_turret, small_protection_shield, planet_protector, big_protection_shield, graviton_cannon, interceptor_misil, interplanetary_misil, "
-        "metal_mine_percent, crystal_mine_percent, deuterium_synthesizer_percent, solar_plant_percent, fusion_plant_percent, solar_satellite_percent "
-        ") VALUES "
-    , m_strDBPrefix);
-
-    // footer
-    const std::string strPlanetFooter = " ON DUPLICATE KEY UPDATE "
-        "last_update=VALUES(last_update), "
-        "b_building=VALUES(b_building), b_building_id=VALUES(b_building_id), b_shipyard=VALUES(b_shipyard), b_shipyard_id=VALUES(b_shipyard_id), b_shipyard_plus=VALUES(b_shipyard_plus), field_current=VALUES(field_current), field_max=VALUES(field_max), "
-        "eco_hash=VALUES(eco_hash), metal=VALUES(metal), metal_perhour=VALUES(metal_perhour), metal_max=VALUES(metal_max), crystal=VALUES(crystal), crystal_perhour=VALUES(crystal_perhour), crystal_max=VALUES(crystal_max), deuterium=VALUES(deuterium), deuterium_perhour=VALUES(deuterium_perhour), deuterium_max=VALUES(deuterium_max), energy_used=VALUES(energy_used), energy=VALUES(energy), "
-        "metal_mine=VALUES(metal_mine), crystal_mine=VALUES(crystal_mine), deuterium_synthesizer=VALUES(deuterium_synthesizer), solar_plant=VALUES(solar_plant), fusion_plant=VALUES(fusion_plant), robot_factory=VALUES(robot_factory), nanite_factory=VALUES(nanite_factory), shipyard=VALUES(shipyard), metal_storage=VALUES(metal_storage), crystal_storage=VALUES(crystal_storage), deuterium_tank=VALUES(deuterium_tank), research_lab=VALUES(research_lab), terraformer=VALUES(terraformer), university=VALUES(university), ally_deposit=VALUES(ally_deposit), missile_silo=VALUES(missile_silo), "
-        "lunar_base=VALUES(lunar_base), phalanx=VALUES(phalanx), jump_gate=VALUES(jump_gate), small_cargo=VALUES(small_cargo), big_cargo=VALUES(big_cargo), light_hunter=VALUES(light_hunter), heavy_hunter=VALUES(heavy_hunter), cruiser=VALUES(cruiser), battle_ship=VALUES(battle_ship), colony_ship=VALUES(colony_ship), recycler=VALUES(recycler), espionage_probe=VALUES(espionage_probe), bomber_ship=VALUES(bomber_ship), solar_satellite=VALUES(solar_satellite), destroyer=VALUES(destroyer), death_star=VALUES(death_star), battle_cruiser=VALUES(battle_cruiser), black_moon=VALUES(black_moon), ev_transporter=VALUES(ev_transporter), star_crasher=VALUES(star_crasher), giga_recycler=VALUES(giga_recycler), dm_ship=VALUES(dm_ship), orbital_station=VALUES(orbital_station), "
-        "rocket_launcher=VALUES(rocket_launcher), light_laser=VALUES(light_laser), heavy_laser=VALUES(heavy_laser), gauss_cannon=VALUES(gauss_cannon), ion_cannon=VALUES(ion_cannon), plasma_turret=VALUES(plasma_turret), small_protection_shield=VALUES(small_protection_shield), planet_protector=VALUES(planet_protector), big_protection_shield=VALUES(big_protection_shield), graviton_cannon=VALUES(graviton_cannon), interceptor_misil=VALUES(interceptor_misil), interplanetary_misil=VALUES(interplanetary_misil), "
-        "metal_mine_percent=VALUES(metal_mine_percent), crystal_mine_percent=VALUES(crystal_mine_percent), deuterium_synthesizer_percent=VALUES(deuterium_synthesizer_percent), solar_plant_percent=VALUES(solar_plant_percent), fusion_plant_percent=VALUES(fusion_plant_percent), solar_satellite_percent=VALUES(solar_satellite_percent);";
-    // batch size 50 as default
-    int iPlanetCount = vecAllPlanets.size();
-    for (size_t i = 0; i < iPlanetCount; i += BATCH_SIZE)
-    {
-        std::string strQuery = strPlanetHeader;
-        size_t endIndex = ((i + BATCH_SIZE) < iPlanetCount) ? (i + BATCH_SIZE) : iPlanetCount;
-
-        for (size_t k = i; k < endIndex; ++k)
-        {
-            const auto& pl = *vecAllPlanets[k];
-
-            strQuery += "(";
-            strQuery += std::to_string(pl.id) + ", ";
-            //strQuery += "'" + pl.name + "', ";
-            //strQuery += std::to_string(pl.id_owner) + ", ";
-            //strQuery += std::to_string(pl.universe) + ", ";
-            //strQuery += std::to_string(pl.galaxy) + ", ";
-            //strQuery += std::to_string(pl.system) + ", ";
-            //strQuery += std::to_string(pl.planet) + ", ";
-            strQuery += std::to_string(pl.last_update) + ", ";
-            //strQuery += std::to_string(pl.planet_type) + ", ";
-            //strQuery += std::to_string(pl.destroyed) + ", ";
-
-            strQuery += std::to_string(pl.b_building) + ", ";
-            strQuery += "'" + pl.b_building_id + "', ";
-            strQuery += std::to_string(pl.b_shipyard) + ", ";
-            strQuery += "'" + pl.b_shipyard_id + "', ";
-            strQuery += std::to_string(pl.b_shipyard_plus) + ", ";
-            //strQuery += "'" + pl.image + "', ";
-            //strQuery += std::to_string(pl.diameter) + ", ";
-            strQuery += std::to_string(pl.field_current) + ", ";
-            strQuery += std::to_string(pl.field_max) + ", ";
-            //strQuery += std::to_string(pl.temp_min) + ", ";
-            //strQuery += std::to_string(pl.temp_max) + ", ";
-
-            strQuery += "'" + pl.eco_hash + "', ";
-            strQuery += std::to_string(pl.metal) + ", ";
-            strQuery += std::to_string(pl.metal_perhour) + ", ";
-            strQuery += std::to_string(pl.metal_max) + ", ";
-            strQuery += std::to_string(pl.crystal) + ", ";
-            strQuery += std::to_string(pl.crystal_perhour) + ", ";
-            strQuery += std::to_string(pl.crystal_max) + ", ";
-            strQuery += std::to_string(pl.deuterium) + ", ";
-            strQuery += std::to_string(pl.deuterium_perhour) + ", ";
-            strQuery += std::to_string(pl.deuterium_max) + ", ";
-            strQuery += std::to_string(pl.energy_used) + ", ";
-            strQuery += std::to_string(pl.energy) + ", ";
-
-            strQuery += std::to_string(pl.resource[1]) + ", ";
-            strQuery += std::to_string(pl.resource[2]) + ", ";
-            strQuery += std::to_string(pl.resource[3]) + ", ";
-            strQuery += std::to_string(pl.resource[4]) + ", ";
-            strQuery += std::to_string(pl.resource[12]) + ", ";
-            strQuery += std::to_string(pl.resource[14]) + ", ";
-            strQuery += std::to_string(pl.resource[15]) + ", ";
-            strQuery += std::to_string(pl.resource[21]) + ", ";
-            strQuery += std::to_string(pl.resource[22]) + ", ";
-            strQuery += std::to_string(pl.resource[23]) + ", ";
-            strQuery += std::to_string(pl.resource[24]) + ", ";
-            strQuery += std::to_string(pl.resource[31]) + ", ";
-            strQuery += std::to_string(pl.resource[33]) + ", ";
-            strQuery += std::to_string(pl.resource[6]) + ", ";
-            strQuery += std::to_string(pl.resource[34]) + ", ";
-            strQuery += std::to_string(pl.resource[44]) + ", ";
-
-            strQuery += std::to_string(pl.resource[41]) + ", ";
-            strQuery += std::to_string(pl.resource[42]) + ", ";
-            strQuery += std::to_string(pl.resource[43]) + ", ";
-
-            strQuery += std::to_string(pl.resource[202]) + ", ";
-            strQuery += std::to_string(pl.resource[203]) + ", ";
-            strQuery += std::to_string(pl.resource[204]) + ", ";
-            strQuery += std::to_string(pl.resource[205]) + ", ";
-            strQuery += std::to_string(pl.resource[206]) + ", ";
-            strQuery += std::to_string(pl.resource[207]) + ", ";
-            strQuery += std::to_string(pl.resource[208]) + ", ";
-            strQuery += std::to_string(pl.resource[209]) + ", ";
-            strQuery += std::to_string(pl.resource[210]) + ", ";
-            strQuery += std::to_string(pl.resource[211]) + ", ";
-            strQuery += std::to_string(pl.resource[212]) + ", ";
-            strQuery += std::to_string(pl.resource[213]) + ", ";
-            strQuery += std::to_string(pl.resource[214]) + ", ";
-            strQuery += std::to_string(pl.resource[215]) + ", ";
-            strQuery += std::to_string(pl.resource[216]) + ", ";
-            strQuery += std::to_string(pl.resource[217]) + ", ";
-            strQuery += std::to_string(pl.resource[218]) + ", ";
-            strQuery += std::to_string(pl.resource[219]) + ", ";
-            strQuery += std::to_string(pl.resource[220]) + ", ";
-            strQuery += std::to_string(pl.resource[411]) + ", ";
-
-            strQuery += std::to_string(pl.resource[401]) + ", ";
-            strQuery += std::to_string(pl.resource[402]) + ", ";
-            strQuery += std::to_string(pl.resource[403]) + ", ";
-            strQuery += std::to_string(pl.resource[404]) + ", ";
-            strQuery += std::to_string(pl.resource[405]) + ", ";
-            strQuery += std::to_string(pl.resource[406]) + ", ";
-            strQuery += std::to_string(pl.resource[407]) + ", ";
-            strQuery += std::to_string(pl.resource[409]) + ", ";
-            strQuery += std::to_string(pl.resource[408]) + ", ";
-            strQuery += std::to_string(pl.resource[410]) + ", ";
-            strQuery += std::to_string(pl.resource[502]) + ", ";
-            strQuery += std::to_string(pl.resource[503]) + ", ";
-
-            strQuery += "'" + pl.metal_mine_percent + "', ";
-            strQuery += "'" + pl.crystal_mine_percent + "', ";
-            strQuery += "'" + pl.deuterium_synthesizer_percent + "', ";
-            strQuery += "'" + pl.solar_plant_percent + "', ";
-            strQuery += "'" + pl.fusion_plant_percent + "', ";
-            strQuery += "'" + pl.solar_satellite_percent + "'";
-
-            //strQuery += std::to_string(pl.last_jump_time) + ", ";
-            //strQuery += std::to_string(pl.debris_metal) + ", ";
-            //strQuery += std::to_string(pl.debris_crystal) + ", ";
-            //strQuery += std::to_string(pl.id_moon) + ", ";
-            //strQuery += std::to_string(pl.is_bot ? 1 : 0) + ", ";
-            //strQuery += std::to_string(pl.last_relocate) + ", ";
-            //strQuery += std::to_string(pl.version);
-            strQuery += "), ";
-
-            ++iPlanetCounter;
-        }
-
-        if (strQuery != strPlanetHeader)
-        {
-            size_t len = strQuery.size();
-			if (len >= 2
-				&& strQuery.substr(len - 2) == ", ")
-			{
-				// remove comma and space
-				strQuery.pop_back();
-				strQuery.pop_back();
-			}
-
-            strQuery += strPlanetFooter;
-
-            if (mysql_query(m_pConn, strQuery.c_str()) != 0)
-            {
-                CLogger::Error("[CDatabase] - UpdateBots (Planets) Paket Hatasi (Index {}-{}): {}", i, endIndex - 1, mysql_error(m_pConn));
-                return false;
-            }
-        }
-        
-    }
-
-    auto duration_ms = GetElapsedMilliseconds(start, end);
-    auto duration_us = GetElapsedMicroseconds(start, end);
-    CLogger::Info("[CDatabase] - {} bots and {} "
-        "planets updated successfully in database.- time {}ms - {}us]",
-        iBotCounter,iPlanetCounter, duration_ms, duration_us);
     return true;
 }
 
@@ -960,4 +643,388 @@ bool CDatabase::LoadConfig()
     CLogger::Info("[CDatabase] - {}x config row has been loaded. ", loadedCount);
 
     return true;
+}
+
+bool CDatabase::UpdateBots(std::vector<table_users>& vecBots)
+{
+
+    if (vecBots.empty()) return false;
+    if (m_pConn == nullptr) return false;
+    // =========================================================================
+    // PART 1: UPDATE BOT RESEARCH (USERS TABLE)
+    // =========================================================================
+    const std::string strUserHeader = std::format("INSERT INTO `{}users` ("
+        "id, b_tech_planet, b_tech, b_tech_id, b_tech_queue, spy_tech, computer_tech, "
+        "military_tech, armor_tech, shield_tech, energy_tech, hyperspace_tech, "
+        "combustion_tech, impulse_motor_tech, hyperspace_motor_tech, laser_tech, "
+        "ion_tech, plasma_tech, intergalactic_tech, expedition_tech, "
+        "metal_proc_tech, crystal_proc_tech, deuterium_proc_tech, graviton_tech, onlinetime) VALUES "
+        , m_strDBPrefix);
+
+
+    const std::string strUserFooter = " ON DUPLICATE KEY UPDATE "
+        "b_tech_planet = VALUES(b_tech_planet), b_tech = VALUES(b_tech), b_tech_id = VALUES(b_tech_id), b_tech_queue = VALUES(b_tech_queue), "
+        "spy_tech = VALUES(spy_tech), computer_tech = VALUES(computer_tech), military_tech = VALUES(military_tech), armor_tech = VALUES(armor_tech), "
+        "shield_tech = VALUES(shield_tech), energy_tech = VALUES(energy_tech), hyperspace_tech = VALUES(hyperspace_tech), combustion_tech = VALUES(combustion_tech), "
+        "impulse_motor_tech = VALUES(impulse_motor_tech), hyperspace_motor_tech = VALUES(hyperspace_motor_tech), laser_tech = VALUES(laser_tech), "
+        "ion_tech = VALUES(ion_tech), plasma_tech = VALUES(plasma_tech), intergalactic_tech = VALUES(intergalactic_tech), expedition_tech = VALUES(expedition_tech), "
+        "metal_proc_tech = VALUES(metal_proc_tech), crystal_proc_tech = VALUES(crystal_proc_tech), deuterium_proc_tech = VALUES(deuterium_proc_tech), "
+        "graviton_tech = VALUES(graviton_tech), onlinetime = VALUES(onlinetime);";
+
+    // store all planets in same vector
+    std::vector<table_planets*> vecAllPlanets;
+    // std::vector<int> vecIDPlanetsNoUpdate; // testing
+    // std::vector<int> vecIDBotsNoUpdate;
+
+    int iPlanetCounter = 0, iBotCounter = 0, iCount = (int) vecBots.size();
+    auto start = GetTimeNow();
+    std::string strQuery = strUserHeader;
+    fmt::memory_buffer buf;
+    for (size_t i = 0; i < iCount; i += BATCH_SIZE)
+    {
+        strQuery = strUserHeader;
+        size_t endIndex = ((i + BATCH_SIZE) < iCount) ? (i + BATCH_SIZE) : iCount;
+
+        for (size_t k = i; k < endIndex; ++k)
+        {
+            auto& cBot = vecBots[k];
+
+            for (auto& planet : cBot.vecPlanets)
+            {
+
+                if (!planet.need_update)
+                {
+                    //CLogger::Info("PID:{} does not need an update", planet.id);
+                    // vecIDPlanetsNoUpdate.push_back(planet.id);
+                    continue;
+                }
+
+                planet.need_update = false;
+                vecAllPlanets.push_back(&planet);
+            }
+
+            // planet might need update.. (finished building etc.)
+            if (!cBot.need_update)
+            {
+                //CLogger::Info("Bot does not need update {}", cBot.id);
+                // vecIDBotsNoUpdate.push_back(cBot.id);
+                continue;
+            }
+
+            fmt::format_to(
+                std::back_inserter(strQuery),
+                "({}, {}, {}, {}, '{}', {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}), ",
+                cBot.id,
+                cBot.b_tech_planet,
+                cBot.b_tech,
+                cBot.b_tech_id,
+                cBot.b_tech_queue,
+                cBot.resource[106],
+                cBot.resource[108],
+                cBot.resource[109],
+                cBot.resource[110],
+                cBot.resource[111],
+                cBot.resource[113],
+                cBot.resource[114],
+                cBot.resource[115],
+                cBot.resource[117],
+                cBot.resource[118],
+                cBot.resource[120],
+                cBot.resource[121],
+                cBot.resource[122],
+                cBot.resource[123],
+                cBot.resource[124],
+                cBot.resource[131],
+                cBot.resource[132],
+                cBot.resource[133],
+                cBot.resource[199],
+                cBot.onlinetime
+            );
+
+            cBot.need_update = false;
+            ++iBotCounter;
+        }
+
+        if (strQuery != strUserHeader)
+        {
+            size_t len = strQuery.size();
+            if (len >= 2
+                && strQuery.substr(len - 2) == ", ")
+            {
+                // remove comma and space
+                strQuery.pop_back();
+                strQuery.pop_back();
+            }
+
+            strQuery += strUserFooter;
+
+            if (mysql_query(m_pConn, strQuery.c_str()) != 0)
+            {
+                CLogger::Error("[CDatabase] - UpdateBots (Users) Paket Hatasi (Index {}-{}): {}", i, endIndex - 1, mysql_error(m_pConn));
+                return false;
+            }
+        }
+
+    }
+    auto end = GetTimeNow();
+
+    /*
+    if (!vecIDPlanetsNoUpdate.empty()
+        || !vecIDBotsNoUpdate.empty())
+    {
+
+        spdlog::info("PID:[{}], UID:[{}] does not need update",
+            fmt::join(vecIDPlanetsNoUpdate, "],["),
+            fmt::join(vecIDBotsNoUpdate, "],[")
+        );
+    }
+    */
+
+    // =========================================================================
+    // PART 2: UPDATE PLANETS (PLANETS TABLE) 
+    // =========================================================================
+    if (vecAllPlanets.empty())
+    {
+        return true;
+    }
+
+    // order is important !
+    const std::string strPlanetHeader = std::format(
+        "INSERT INTO `{}planets` ("
+        "id, last_update, "
+        "b_building, b_building_id, b_shipyard, b_shipyard_id, b_shipyard_plus, field_current, field_max, "
+        "eco_hash, metal, metal_perhour, metal_max, crystal, crystal_perhour, crystal_max, deuterium, deuterium_perhour, deuterium_max, energy_used, energy, "
+        "metal_mine, crystal_mine, deuterium_synthesizer, solar_plant, fusion_plant, robot_factory, nanite_factory, shipyard, metal_storage, crystal_storage, deuterium_tank, research_lab, terraformer, university, ally_deposit, missile_silo, "
+        "lunar_base, phalanx, jump_gate, small_cargo, big_cargo, light_hunter, heavy_hunter, cruiser, battle_ship, colony_ship, recycler, espionage_probe, bomber_ship, solar_satellite, destroyer, death_star, battle_cruiser, black_moon, ev_transporter, star_crasher, giga_recycler, dm_ship, orbital_station, "
+        "rocket_launcher, light_laser, heavy_laser, gauss_cannon, ion_cannon, plasma_turret, small_protection_shield, planet_protector, big_protection_shield, graviton_cannon, interceptor_misil, interplanetary_misil, "
+        "metal_mine_percent, crystal_mine_percent, deuterium_synthesizer_percent, solar_plant_percent, fusion_plant_percent, solar_satellite_percent "
+        ") VALUES "
+        , m_strDBPrefix);
+
+    // footer
+    const std::string strPlanetFooter = " ON DUPLICATE KEY UPDATE "
+        "last_update=VALUES(last_update), "
+        "b_building=VALUES(b_building), b_building_id=VALUES(b_building_id), b_shipyard=VALUES(b_shipyard), b_shipyard_id=VALUES(b_shipyard_id), b_shipyard_plus=VALUES(b_shipyard_plus), field_current=VALUES(field_current), field_max=VALUES(field_max), "
+        "eco_hash=VALUES(eco_hash), metal=VALUES(metal), metal_perhour=VALUES(metal_perhour), metal_max=VALUES(metal_max), crystal=VALUES(crystal), crystal_perhour=VALUES(crystal_perhour), crystal_max=VALUES(crystal_max), deuterium=VALUES(deuterium), deuterium_perhour=VALUES(deuterium_perhour), deuterium_max=VALUES(deuterium_max), energy_used=VALUES(energy_used), energy=VALUES(energy), "
+        "metal_mine=VALUES(metal_mine), crystal_mine=VALUES(crystal_mine), deuterium_synthesizer=VALUES(deuterium_synthesizer), solar_plant=VALUES(solar_plant), fusion_plant=VALUES(fusion_plant), robot_factory=VALUES(robot_factory), nanite_factory=VALUES(nanite_factory), shipyard=VALUES(shipyard), metal_storage=VALUES(metal_storage), crystal_storage=VALUES(crystal_storage), deuterium_tank=VALUES(deuterium_tank), research_lab=VALUES(research_lab), terraformer=VALUES(terraformer), university=VALUES(university), ally_deposit=VALUES(ally_deposit), missile_silo=VALUES(missile_silo), "
+        "lunar_base=VALUES(lunar_base), phalanx=VALUES(phalanx), jump_gate=VALUES(jump_gate), small_cargo=VALUES(small_cargo), big_cargo=VALUES(big_cargo), light_hunter=VALUES(light_hunter), heavy_hunter=VALUES(heavy_hunter), cruiser=VALUES(cruiser), battle_ship=VALUES(battle_ship), colony_ship=VALUES(colony_ship), recycler=VALUES(recycler), espionage_probe=VALUES(espionage_probe), bomber_ship=VALUES(bomber_ship), solar_satellite=VALUES(solar_satellite), destroyer=VALUES(destroyer), death_star=VALUES(death_star), battle_cruiser=VALUES(battle_cruiser), black_moon=VALUES(black_moon), ev_transporter=VALUES(ev_transporter), star_crasher=VALUES(star_crasher), giga_recycler=VALUES(giga_recycler), dm_ship=VALUES(dm_ship), orbital_station=VALUES(orbital_station), "
+        "rocket_launcher=VALUES(rocket_launcher), light_laser=VALUES(light_laser), heavy_laser=VALUES(heavy_laser), gauss_cannon=VALUES(gauss_cannon), ion_cannon=VALUES(ion_cannon), plasma_turret=VALUES(plasma_turret), small_protection_shield=VALUES(small_protection_shield), planet_protector=VALUES(planet_protector), big_protection_shield=VALUES(big_protection_shield), graviton_cannon=VALUES(graviton_cannon), interceptor_misil=VALUES(interceptor_misil), interplanetary_misil=VALUES(interplanetary_misil), "
+        "metal_mine_percent=VALUES(metal_mine_percent), crystal_mine_percent=VALUES(crystal_mine_percent), deuterium_synthesizer_percent=VALUES(deuterium_synthesizer_percent), solar_plant_percent=VALUES(solar_plant_percent), fusion_plant_percent=VALUES(fusion_plant_percent), solar_satellite_percent=VALUES(solar_satellite_percent);";
+    // batch size 50 as default
+    int iPlanetCount = vecAllPlanets.size();
+    for (size_t i = 0; i < iPlanetCount; i += BATCH_SIZE)
+    {
+        std::string strQuery = strPlanetHeader;
+        size_t endIndex = ((i + BATCH_SIZE) < iPlanetCount) ? (i + BATCH_SIZE) : iPlanetCount;
+
+        for (size_t k = i; k < endIndex; ++k)
+        {
+            const auto& pl = *vecAllPlanets[k];
+
+            strQuery += "(";
+            strQuery += std::to_string(pl.id) + ", ";
+            //strQuery += "'" + pl.name + "', ";
+            //strQuery += std::to_string(pl.id_owner) + ", ";
+            //strQuery += std::to_string(pl.universe) + ", ";
+            //strQuery += std::to_string(pl.galaxy) + ", ";
+            //strQuery += std::to_string(pl.system) + ", ";
+            //strQuery += std::to_string(pl.planet) + ", ";
+            strQuery += std::to_string(pl.last_update) + ", ";
+            //strQuery += std::to_string(pl.planet_type) + ", ";
+            //strQuery += std::to_string(pl.destroyed) + ", ";
+
+            strQuery += std::to_string(pl.b_building) + ", ";
+            strQuery += "'" + pl.b_building_id + "', ";
+            strQuery += std::to_string(pl.b_shipyard) + ", ";
+            strQuery += "'" + pl.b_shipyard_id + "', ";
+            strQuery += std::to_string(pl.b_shipyard_plus) + ", ";
+            //strQuery += "'" + pl.image + "', ";
+            //strQuery += std::to_string(pl.diameter) + ", ";
+            strQuery += std::to_string(pl.field_current) + ", ";
+            strQuery += std::to_string(pl.field_max) + ", ";
+            //strQuery += std::to_string(pl.temp_min) + ", ";
+            //strQuery += std::to_string(pl.temp_max) + ", ";
+
+            strQuery += "'" + pl.eco_hash + "', ";
+            strQuery += std::to_string(pl.metal) + ", ";
+            strQuery += std::to_string(pl.metal_perhour) + ", ";
+            strQuery += std::to_string(pl.metal_max) + ", ";
+            strQuery += std::to_string(pl.crystal) + ", ";
+            strQuery += std::to_string(pl.crystal_perhour) + ", ";
+            strQuery += std::to_string(pl.crystal_max) + ", ";
+            strQuery += std::to_string(pl.deuterium) + ", ";
+            strQuery += std::to_string(pl.deuterium_perhour) + ", ";
+            strQuery += std::to_string(pl.deuterium_max) + ", ";
+            strQuery += std::to_string(pl.energy_used) + ", ";
+            strQuery += std::to_string(pl.energy) + ", ";
+
+            strQuery += std::to_string(pl.resource[1]) + ", ";
+            strQuery += std::to_string(pl.resource[2]) + ", ";
+            strQuery += std::to_string(pl.resource[3]) + ", ";
+            strQuery += std::to_string(pl.resource[4]) + ", ";
+            strQuery += std::to_string(pl.resource[12]) + ", ";
+            strQuery += std::to_string(pl.resource[14]) + ", ";
+            strQuery += std::to_string(pl.resource[15]) + ", ";
+            strQuery += std::to_string(pl.resource[21]) + ", ";
+            strQuery += std::to_string(pl.resource[22]) + ", ";
+            strQuery += std::to_string(pl.resource[23]) + ", ";
+            strQuery += std::to_string(pl.resource[24]) + ", ";
+            strQuery += std::to_string(pl.resource[31]) + ", ";
+            strQuery += std::to_string(pl.resource[33]) + ", ";
+            strQuery += std::to_string(pl.resource[6]) + ", ";
+            strQuery += std::to_string(pl.resource[34]) + ", ";
+            strQuery += std::to_string(pl.resource[44]) + ", ";
+
+            strQuery += std::to_string(pl.resource[41]) + ", ";
+            strQuery += std::to_string(pl.resource[42]) + ", ";
+            strQuery += std::to_string(pl.resource[43]) + ", ";
+
+            strQuery += std::to_string(pl.resource[202]) + ", ";
+            strQuery += std::to_string(pl.resource[203]) + ", ";
+            strQuery += std::to_string(pl.resource[204]) + ", ";
+            strQuery += std::to_string(pl.resource[205]) + ", ";
+            strQuery += std::to_string(pl.resource[206]) + ", ";
+            strQuery += std::to_string(pl.resource[207]) + ", ";
+            strQuery += std::to_string(pl.resource[208]) + ", ";
+            strQuery += std::to_string(pl.resource[209]) + ", ";
+            strQuery += std::to_string(pl.resource[210]) + ", ";
+            strQuery += std::to_string(pl.resource[211]) + ", ";
+            strQuery += std::to_string(pl.resource[212]) + ", ";
+            strQuery += std::to_string(pl.resource[213]) + ", ";
+            strQuery += std::to_string(pl.resource[214]) + ", ";
+            strQuery += std::to_string(pl.resource[215]) + ", ";
+            strQuery += std::to_string(pl.resource[216]) + ", ";
+            strQuery += std::to_string(pl.resource[217]) + ", ";
+            strQuery += std::to_string(pl.resource[218]) + ", ";
+            strQuery += std::to_string(pl.resource[219]) + ", ";
+            strQuery += std::to_string(pl.resource[220]) + ", ";
+            strQuery += std::to_string(pl.resource[411]) + ", ";
+
+            strQuery += std::to_string(pl.resource[401]) + ", ";
+            strQuery += std::to_string(pl.resource[402]) + ", ";
+            strQuery += std::to_string(pl.resource[403]) + ", ";
+            strQuery += std::to_string(pl.resource[404]) + ", ";
+            strQuery += std::to_string(pl.resource[405]) + ", ";
+            strQuery += std::to_string(pl.resource[406]) + ", ";
+            strQuery += std::to_string(pl.resource[407]) + ", ";
+            strQuery += std::to_string(pl.resource[409]) + ", ";
+            strQuery += std::to_string(pl.resource[408]) + ", ";
+            strQuery += std::to_string(pl.resource[410]) + ", ";
+            strQuery += std::to_string(pl.resource[502]) + ", ";
+            strQuery += std::to_string(pl.resource[503]) + ", ";
+
+            strQuery += "'" + pl.metal_mine_percent + "', ";
+            strQuery += "'" + pl.crystal_mine_percent + "', ";
+            strQuery += "'" + pl.deuterium_synthesizer_percent + "', ";
+            strQuery += "'" + pl.solar_plant_percent + "', ";
+            strQuery += "'" + pl.fusion_plant_percent + "', ";
+            strQuery += "'" + pl.solar_satellite_percent + "'";
+
+            //strQuery += std::to_string(pl.last_jump_time) + ", ";
+            //strQuery += std::to_string(pl.debris_metal) + ", ";
+            //strQuery += std::to_string(pl.debris_crystal) + ", ";
+            //strQuery += std::to_string(pl.id_moon) + ", ";
+            //strQuery += std::to_string(pl.is_bot ? 1 : 0) + ", ";
+            //strQuery += std::to_string(pl.last_relocate) + ", ";
+            //strQuery += std::to_string(pl.version);
+            strQuery += "), ";
+
+            ++iPlanetCounter;
+        }
+
+        if (strQuery != strPlanetHeader)
+        {
+            size_t len = strQuery.size();
+            if (len >= 2
+                && strQuery.substr(len - 2) == ", ")
+            {
+                // remove comma and space
+                strQuery.pop_back();
+                strQuery.pop_back();
+            }
+
+            strQuery += strPlanetFooter;
+
+            if (mysql_query(m_pConn, strQuery.c_str()) != 0)
+            {
+                CLogger::Error("[CDatabase] - UpdateBots (Planets) Paket Hatasi (Index {}-{}): {}", i, endIndex - 1, mysql_error(m_pConn));
+                return false;
+            }
+        }
+
+    }
+
+    auto duration_ms = GetElapsedMilliseconds(start, end);
+    auto duration_us = GetElapsedMicroseconds(start, end);
+    CLogger::Info("[CDatabase] - {} bots and {} "
+        "planets updated successfully in database.- time {}ms - {}us]",
+        iBotCounter, iPlanetCounter, duration_ms, duration_us);
+    return true;
+}
+
+bool CDatabase::AddBots(int count) 
+{
+    if (count <= 0)
+    {
+        return false;
+    }
+}
+
+bool CDatabase::RemoveBots() 
+{
+    if (m_pConn == nullptr)
+    {
+        return false;
+    }
+
+    std::string usersQuery =
+        "DELETE FROM `" + m_strDBPrefix + "users` WHERE `is_bot` = 1";
+
+    std::string planetsQuery =
+        "DELETE FROM `" + m_strDBPrefix + "planets` WHERE `is_bot` = 1";
+
+    // Transaction start
+    if (mysql_autocommit(m_pConn, 0) != 0)
+    {
+        CLogger::Error("[CDatabase] - Failed to disable autocommit: {}",
+            mysql_error(m_pConn));
+        return false;
+    }
+
+    bool success = true;
+
+    if (mysql_query(m_pConn, usersQuery.c_str()) != 0)
+    {
+        CLogger::Error("[CDatabase] - RemoveBots Users Query Error: {}",
+            mysql_error(m_pConn));
+        success = false;
+    }
+
+    if (success &&
+        mysql_query(m_pConn, planetsQuery.c_str()) != 0)
+    {
+        CLogger::Error("[CDatabase] - RemoveBots Planets Query Error: {}",
+            mysql_error(m_pConn));
+        success = false;
+    }
+
+    if (success)
+    {
+        if (mysql_commit(m_pConn) != 0)
+        {
+            CLogger::Error("[CDatabase] - Commit Error: {}",
+                mysql_error(m_pConn));
+            success = false;
+        }
+    }
+
+    if (!success)
+    {
+        mysql_rollback(m_pConn);
+    }
+
+    mysql_autocommit(m_pConn, 1);
+    m_vecTempBots.clear();
+
+    return success;
 }
