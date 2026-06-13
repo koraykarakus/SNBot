@@ -21,6 +21,12 @@ const T& GetMin(const T& a, const T& b)
 	return (b < a) ? b : a;
 }
 
+// console commands processing
+struct cmd_queue {
+	int type;
+	int count;
+};
+
 // struct used to log.
 struct stlog
 {
@@ -67,9 +73,9 @@ private:
 
 	CDatabase* m_pDatabase;
 
-	// console commands processing
-	std::queue<int> m_botCreationQueue;
-	std::mutex m_queueMutex;
+	
+	std::queue<cmd_queue> m_commands;
+	std::mutex m_cmdMutex;
 
 public:
 	CBotManager();
@@ -90,29 +96,15 @@ public:
 	}
 
 	// console commands processing, such as add bot remove bot etc.
-	inline void PushBotRequest(int count) 
+	inline void PushCmdRequest(cmd_queue& st) 
 	{
-		std::lock_guard<std::mutex> lock(m_queueMutex);
-		m_botCreationQueue.push(count);
+		std::lock_guard<std::mutex> lock(m_cmdMutex);
+		m_commands.push(st);
 	}
 
-	// inline for now..
-	void ProcessPendingRequests() 
-	{
-		std::lock_guard<std::mutex> lock(m_queueMutex);
-		while (!m_botCreationQueue.empty()) 
-		{
-			int count = m_botCreationQueue.front();
-			m_botCreationQueue.pop();
-			this->CreateBotsActual(count);
-		}
-	}
-
-	void CreateBotsActual(int count) 
-	{
-		// create
-	}
-
+	// command handlers.
+	bool ProcessPendingRequests();
+	void CreateBots(int count);
 
 	const table_config* GetConfigByUniID(int uni) const;
 

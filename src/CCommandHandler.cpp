@@ -37,17 +37,19 @@ bool CCommandHandler::ProcessCommand(std::string& line, CApplication& app)
     std::stringstream ss(line);
     std::string cmd;
     ss >> cmd;
+    cmd_queue info = {};
 
     if (cmd == "/add_bot")
     {
-        int count = 0;
-        if (ss >> count
-            && count > 0)
+        int count = 0; ss >> count;
+        if (count > 0)
         {
             // into queue
             if (m_pBotManager != nullptr)
             {
-                m_pBotManager->PushBotRequest(count);
+                info.type = 1;
+                info.count = count;
+                m_pBotManager->PushCmdRequest(info);
                 std::cout << "[Console] " << count << " bot add request accepted.\n";
             }
         }
@@ -61,6 +63,11 @@ bool CCommandHandler::ProcessCommand(std::string& line, CApplication& app)
         std::cout << "type /start to start bot processing\n";
         std::cout << "type /exit to close\n";
         std::cout << "type /add_bot 100 -> to add 100 bots\n";
+        std::cout << "type /remove_bots -> to delete all bots and their planet\n";
+    }
+    else if (cmd == "/remove_bots")
+    {
+
     }
     else if (cmd == "/exit")
     {

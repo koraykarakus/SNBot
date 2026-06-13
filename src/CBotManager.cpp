@@ -110,7 +110,7 @@ void CBotManager::Run(CDatabase* pDatabase, const CApplication& app)
         m_timeLastRun = timeNow;
         auto duration_micros = GetElapsedMicroseconds(start, end);
         double duration_millis = GetElapsedMilliseconds(start, end);
-        CLogger::Info("Process handled in [{} microsec / {} milisec]\n", duration_micros, duration_millis);
+        CLogger::Info("Process handled in [{} microsec / {} millisec]\n", duration_micros, duration_millis);
         // sleep
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
