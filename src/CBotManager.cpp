@@ -10,6 +10,7 @@ CBotManager::CBotManager()
     , m_pDatabase(nullptr)
     , m_sysTime(0)
     , m_sysHour(0)
+    , m_loopTime(30)
 {
     
 }
@@ -74,6 +75,7 @@ void CBotManager::Run(CDatabase* pDatabase, const CApplication& app)
 	}
 
     m_vecBots = m_pDatabase->GetLoadedBots();
+    m_loopTime = m_pDatabase->GetLoopTime();
     // main loop as long as it is running
     while (app.IsRunning())
     {
@@ -87,7 +89,7 @@ void CBotManager::Run(CDatabase* pDatabase, const CApplication& app)
 
         // time check
 		if (!m_bFirstRun
-			&& (timeNow < m_timeLastRun + std::chrono::seconds(wait_time)))
+			&& (timeNow < m_timeLastRun + std::chrono::seconds(m_loopTime)))
 		{
 			// sleep shortly to avoid overuse of CPU
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -113,7 +115,10 @@ void CBotManager::Run(CDatabase* pDatabase, const CApplication& app)
         m_timeLastRun = timeNow;
         auto duration_micros = GetElapsedMicroseconds(start, end);
         double duration_millis = GetElapsedMilliseconds(start, end);
-        CLogger::Info("Process handled in [{} microsec / {} millisec]\n", duration_micros, duration_millis);
+        CLogger::Info(
+            "Process handled in [{} microsec / {} millisec]\n"
+            "Next run is in {} seconds.",
+             duration_micros, duration_millis, m_loopTime);
         // sleep
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }

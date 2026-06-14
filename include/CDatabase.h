@@ -20,6 +20,8 @@ private:
     std::string m_strDBHost;
     std::string m_strDBName;
     std::string m_strDBPrefix;
+    // loop time in seconds
+    int m_loopTime = 30;
 
     std::unordered_map<int, table_vars> m_vars;
     std::unordered_map<int, std::vector<table_vars_requirements>> m_vars_requirements;
@@ -86,6 +88,10 @@ public:
     inline const reslist_data& GetReslist() const
     {
         return m_reslist;
+    }
+
+    inline const int GetLoopTime() const {
+        return m_loopTime;
     }
 
 

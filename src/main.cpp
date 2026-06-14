@@ -31,7 +31,8 @@ int main()
 
 	if (!App.Init())
 	{
-		CLogger::Error("[Main] : App.Init() failed!\n");
+		CLogger::Error("[Main] : App.Init() failed! press enter to close.\n");
+		std::cin.get();
 		return 1;
 	}
 

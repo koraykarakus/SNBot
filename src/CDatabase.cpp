@@ -26,6 +26,7 @@ CDatabase::CDatabase()
     , m_config{}
     , m_reslist{}
     , m_vecTempBots{}
+    , m_loopTime(30)
 {
     Init();
 }
@@ -53,6 +54,9 @@ void CDatabase::Init()
                 { "password", "password" },
                 { "db_name", "steemnova" },
                 { "prefix", "uni1_" }
+            }},
+            { "general", toml::table{
+                {"loop_time", 30}
             }}
         };
 
@@ -88,6 +92,9 @@ void CDatabase::Init()
     m_strDBPass = config["database"]["password"].value_or(""sv);
     m_strDBName = config["database"]["db_name"].value_or(""sv);
     m_strDBPrefix = config["database"]["prefix"].value_or(""sv);
+    
+    // general settings
+    m_loopTime = config["general"]["loop_time"].value_or(30);
 
     CLogger::Info("[CDatabase] settings read from settings.toml Host: {}", m_strDBHost);
 }

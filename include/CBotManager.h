@@ -66,7 +66,8 @@ using time_var = std::chrono::steady_clock::time_point;
 class CBotManager 
 {
 private:
-	static const int wait_time = 1 * 30;
+	// wait time in seconds between each bot handle overall loops.
+	int m_loopTime;
 	// timestamp
 	time_t m_sysTime;
 	// current system hour
