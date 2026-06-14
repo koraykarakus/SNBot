@@ -15,22 +15,22 @@
 class CApplication
 {
 private:
-	bool m_bRunning;
-	bool m_bLoaded;
+	bool running_;
+	bool loaded_;
 	// is it started with command line ?
-	bool m_bStarted;
-	std::mutex m_shutdownMutex;
-	std::condition_variable m_shutdownCV;
+	bool started_;
+	std::mutex mutex_shutdown_;
+	std::condition_variable cv_shutdown_;
 
 	// thread
-	std::thread m_botThread;
-	std::thread m_consoleThread;
+	std::thread bot_thread_;
+	std::thread console_thread_;
 
 	// classes
-	std::unique_ptr<CBotManager> m_botManager;
-	std::unique_ptr<CDatabase> m_database;
-	std::unique_ptr<CLogger> m_logger;
-	std::unique_ptr<CCommandHandler> m_commandHandler;
+	std::unique_ptr<CBotManager> bot_manager_;
+	std::unique_ptr<CDatabase> database_;
+	std::unique_ptr<CLogger> logger_;
+	std::unique_ptr<CCommandHandler> command_handler_;
 public:
 	CApplication();
 	~CApplication();
@@ -42,14 +42,14 @@ public:
 	bool LoadConfigFromDatabase();
 	bool LoadVarsRequirementsFromDatabase();
 
-	bool IsRunning() const { return m_bRunning; }
-	bool IsLoaded() const { return m_bLoaded; }
-	bool IsStarted() const { return m_bStarted; }
+	bool IsRunning() const { return running_; }
+	bool IsLoaded() const { return loaded_; }
+	bool IsStarted() const { return started_; }
 	inline void Close() 
 	{
-		m_bRunning = false; m_shutdownCV.notify_all();
+		running_ = false; cv_shutdown_.notify_all();
 	}
 	inline void Start() {
-		m_bStarted = true;
+		started_ = true;
 	}
 };

@@ -3,27 +3,27 @@
 #include "CApplication.h"
 
 CApplication::CApplication() 
-	: m_bRunning(true)
-	, m_bLoaded(false)
-    , m_bStarted(false)
+	: running_(true)
+	, loaded_(false)
+    , started_(false)
 {
-	m_database = std::make_unique<CDatabase>();
-	m_botManager = std::make_unique<CBotManager>();
-	m_logger = std::make_unique<CLogger>();
-    m_commandHandler = std::make_unique<CCommandHandler>();
+    database_ = std::make_unique<CDatabase>();
+    bot_manager_ = std::make_unique<CBotManager>();
+    logger_ = std::make_unique<CLogger>();
+    command_handler_ = std::make_unique<CCommandHandler>();
 }
 
 CApplication::~CApplication()
 {
-    if (m_botThread.joinable()) 
+    if (bot_thread_.joinable())
     {
-        m_botThread.join();
-        m_logger->Info("[Application] : Bot thread ended successfully.\n");
+        bot_thread_.join();
+        logger_->Info("[Application] : Bot thread ended successfully.\n");
     }
 
-    if (m_consoleThread.joinable())
+    if (console_thread_.joinable())
     {
-        m_consoleThread.detach();
+        console_thread_.detach();
     }
 
     Shutdown();
@@ -31,7 +31,7 @@ CApplication::~CApplication()
 
 bool CApplication::Init() 
 {
-    if (!m_database->Connect())
+    if (!database_->Connect())
     {
         return false;
     }
@@ -44,7 +44,7 @@ bool CApplication::Init()
         return false;
     }
 
-    m_bLoaded = true;
+    loaded_ = true;
     return true;
 }
 
@@ -52,40 +52,40 @@ void CApplication::Run()
 {
     // give db pointer as 2nd param.
     // give app as 3rd param.
-    m_botThread = std::thread(&CBotManager::Run, m_botManager.get(),m_database.get(), std::ref(*this));
+    bot_thread_ = std::thread(&CBotManager::Run, bot_manager_.get(), database_.get(), std::ref(*this));
     
     // give botmanager as 2nd, app as 3rd
-    m_consoleThread = std::thread(&CCommandHandler::Run, m_commandHandler.get(),
-        m_botManager.get(), std::ref(*this));
+    console_thread_ = std::thread(&CCommandHandler::Run, command_handler_.get(),
+        bot_manager_.get(), std::ref(*this));
     
-    std::unique_lock<std::mutex> lock(m_shutdownMutex);
-    m_shutdownCV.wait(lock, [this]() { return !m_bRunning; });
+    std::unique_lock<std::mutex> lock(mutex_shutdown_);
+    cv_shutdown_.wait(lock, [this]() { return !running_; });
 
-    m_logger->Info("Closing App...");
+    logger_->Info("Closing App...");
 }
 
 void CApplication::Shutdown() 
 {
     {
-        std::lock_guard<std::mutex> lock(m_shutdownMutex);
-        m_bRunning = false;
+        std::lock_guard<std::mutex> lock(mutex_shutdown_);
+        running_ = false;
     }
 
-    m_shutdownCV.notify_one(); // open lock of Run functions wait..
+    cv_shutdown_.notify_one(); // open lock of Run functions wait..
 }
 
 bool CApplication::LoadBotsFromDatabase() {
-    return m_database->LoadBots();
+    return database_->LoadBots();
 }
 
 bool CApplication::LoadVarsFromDatabase() {
-    return m_database->LoadVars();
+    return database_->LoadVars();
 }
 
 bool CApplication::LoadVarsRequirementsFromDatabase() {
-    return m_database->LoadVarsRequirements();
+    return database_->LoadVarsRequirements();
 }
 
 bool CApplication::LoadConfigFromDatabase() {
-    return m_database->LoadConfig();
+    return database_->LoadConfig();
 }
