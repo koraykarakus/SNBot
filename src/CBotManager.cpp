@@ -2,13 +2,14 @@
 #include "CLogger.h"
 #include "CDatabase.h"
 #include "CApplication.h"
-//#include "CLoader.h"
 
 CBotManager::CBotManager()
     : m_vecBots{}
     , m_bFirstRun(true)
     , m_timeLastRun(std::chrono::steady_clock::time_point{})
     , m_pDatabase(nullptr)
+    , m_sysTime(0)
+    , m_sysHour(0)
 {
     
 }
@@ -34,23 +35,24 @@ bool CBotManager::IsInTimeRange(int current_hour, int start_time, int end_time) 
     return (current_hour >= start_time || current_hour < end_time);
 }
 
-bool CBotManager::IsPlayingNow(const play_time& bot_info, int hour) const
+bool CBotManager::IsPlayingNow(const table_users& bot) const
 {
-    if (IsInTimeRange(hour, bot_info.play_start_time_1, bot_info.play_end_time_1)) 
+    play_time bot_info = bot.playTime;
+    if (IsInTimeRange(m_sysHour, bot_info.play_start_time_1, bot_info.play_end_time_1)) 
         return true;
-    if (IsInTimeRange(hour, bot_info.play_start_time_2, bot_info.play_end_time_2)) 
+    if (IsInTimeRange(m_sysHour, bot_info.play_start_time_2, bot_info.play_end_time_2))
         return true;
-    if (IsInTimeRange(hour, bot_info.play_start_time_3, bot_info.play_end_time_3)) 
+    if (IsInTimeRange(m_sysHour, bot_info.play_start_time_3, bot_info.play_end_time_3))
         return true;
-    if (IsInTimeRange(hour, bot_info.play_start_time_4, bot_info.play_end_time_4)) 
+    if (IsInTimeRange(m_sysHour, bot_info.play_start_time_4, bot_info.play_end_time_4))
         return true;
 
     return false;
 }
 
-bool CBotManager::IsAway(const table_users& bot, time_t timeNow) const
+bool CBotManager::IsAway(const table_users& bot) const
 {
-    return (bot.playTime.check_time * 60) > (static_cast<int>(timeNow) - bot.onlinetime);
+    return (bot.playTime.check_time * 60) > (static_cast<int>(m_sysTime) - bot.onlinetime);
 }
 
 void CBotManager::Run(CDatabase* pDatabase, const CApplication& app)
@@ -121,8 +123,9 @@ void CBotManager::Run(CDatabase* pDatabase, const CApplication& app)
 
 void CBotManager::HandleMain() 
 {
-    int hour = GetHour();
-    const time_t time_now = std::time(nullptr);
+    SetSystemTime();
+    SetHour(); 
+
     const std::unordered_map<int, table_vars>& vars = m_pDatabase->GetVars();
     const std::unordered_map<int, std::vector<table_vars_requirements>>& 
         vars_requirements = m_pDatabase->GetVarsRequirements();
@@ -134,25 +137,24 @@ void CBotManager::HandleMain()
         m_log.bot_id = bot.id;
 
 
-        if (!IsPlayingNow(bot.playTime, hour))
+        if (!IsPlayingNow(bot))
         {
-            m_log.type = 12;
+            m_log.type = 1;
             m_vecLog.push_back(m_log);
             continue;
         }
 
-        if (IsAway(bot, time_now))
+        if (IsAway(bot))
         {
-            m_log.type = 13;
-            m_log.away_time = GetRemainingAwayTimeInSeconds(bot, time_now);
+            m_log.type = 2;
+            m_log.away_time = GetRemainingAwayTimeInSeconds(bot);
             m_vecLog.push_back(m_log);
             continue;
         }
 
-        if (bot.vacation_mode == 1)
+        if (IsInVacation(bot))
         {
-            // todo: add 14
-            m_log.type = 14;
+            m_log.type = 3;
             m_vecLog.push_back(m_log);
             continue;
         }
@@ -161,14 +163,14 @@ void CBotManager::HandleMain()
         if (pConfig == nullptr)
         {
             m_log.universe = bot.universe;
-            m_log.type = 1;
+            m_log.type = 4;
             m_vecLog.push_back(m_log);
             continue;
         }
         
         const uint64_t game_speed = std::floor(pConfig->game_speed / 2500);
 
-        bot.onlinetime = static_cast<int>(time_now);
+        bot.onlinetime = static_cast<int>(m_sysTime);
 
         // loop planets of the bot..
         for (auto& planet : bot.vecPlanets)
@@ -176,11 +178,11 @@ void CBotManager::HandleMain()
             m_log.id_planet = planet.id;
 
             // 1- HandleResourceUpdate
-            HandleResourceUpdate(bot, planet, time_now);
+            HandleResourceUpdate(bot, planet);
             // 2- HandleBuildings
-            HandleBuildings(bot, planet, time_now, vars, vars_requirements, hour, game_speed);
+            HandleBuildings(bot, planet, vars, vars_requirements, game_speed);
             // 3- HandleResearches
-            HandleResearches(bot, planet, time_now, vars, vars_requirements, game_speed);
+            HandleResearches(bot, planet, vars, vars_requirements, game_speed);
            
         }
     }
@@ -191,106 +193,108 @@ void CBotManager::HandleMain()
 void CBotManager::LogResult()
 {
     fmt::memory_buffer buf;
-    std::string strMsg;
-    // Bu döngü sadece RAM içinde string birleştirir, I/O yapmaz (Çok hızlıdır)
+    // no I/O
     for (const auto& log : m_vecLog)
     {
         switch (log.type)
         {
-        case 1:
-            // CLogger::Error("[CBotManager] - Config map missing : uni_id '{}' not found !\n", bot.universe);
-            fmt::format_to(std::back_inserter(buf),
-                "[CBotManager] - Config map missing : uni_id '{}' not found !\n", log.universe);
-            break;
-        case 2:
-            // CLogger::Info("[CBotManager] - corrected a bot with buggy data !\n", bot.id, planet.id);
-            fmt::format_to(std::back_inserter(buf),
-                "[CBotManager] - corrected a bot with buggy data id:{}planet_id:{}!\n",
-                log.bot_id, log.id_planet);
-            break;
-        case 3:
-            fmt::format_to(std::back_inserter(buf),
-                "[CBotManager] - SKIP [botID: {} - planetID: {}], building already !\n",
-                log.bot_id, log.id_planet);
-            break;
+		case 1:
+			fmt::format_to(std::back_inserter(buf),
+				"skip - bot is not online now. uid:{} - pid:{}\n",
+				log.bot_id, log.id_planet);
+			break;
+		case 2:
+			fmt::format_to(std::back_inserter(buf),
+				"skip - bot is away for {} seconds. uid:{} - pid:{}\n",
+				log.away_time, log.bot_id, log.id_planet);
+			break;
+		case 3:
+			fmt::format_to(std::back_inserter(buf),
+				"skip - bot is in vacation mode. uid:{} - pid:{}\n",
+				log.bot_id, log.id_planet);
+			break;
         case 4:
             fmt::format_to(std::back_inserter(buf),
-                "[CBotManager] - Research list has been completed for bot: {}\n", log.bot_id);
+                "skip - config map missing : uni_id:{} not found. uid:{} - pid:{}\n", 
+                log.universe, log.bot_id, log.id_planet);
             break;
         case 5:
-            fmt::format_to(std::back_inserter(buf), "[CBotManager] - wrong element id. bot_id : {}!\n", log.bot_id);
+            fmt::format_to(std::back_inserter(buf),
+                "skip - already building. uid:{} - pid:{}\n",
+                log.bot_id, log.id_planet);
             break;
         case 6:
             fmt::format_to(std::back_inserter(buf),
-                "[CBotManager] - SKIP [botID:{} - planetID:{}]\n"
-                "coordinates:[{}:{}:{}] - email:[{}] \n"
-                "not enough resources for element id:{} \n"
-                "required: [metal:{}|crystal:{}|deu:{}]\n"
-                "have: [metal:{}|crystal:{}|deu:{}]\n",
-                log.bot_id,
-                log.id_planet,
-                log.galaxy, log.system, log.planet,
-                log.email,
-                log.research_id,
-                log.cost901,
-                log.cost902,
-                log.cost903,
-                log.planet_metal,
-                log.planet_crystal,
-                log.planet_deu);
+                "skip - building list has been completed. uid:{} - pid:{}\n",
+                log.bot_id, log.id_planet);
             break;
         case 7:
-            fmt::format_to(std::back_inserter(buf),
-                "[CBotManager] - Bot ID {} [Planet: {}] -> Started Research: {} Level {}\n", log.bot_id,
-                log.id_planet, log.research_name, log.research_level);
-            break;
+            fmt::format_to(std::back_inserter(buf), 
+                "skip - wrong element id:[{}]. uid:{} - pid:{}\n", 
+                log.building_id, log.bot_id, log.id_planet);
             break;
         case 8:
             fmt::format_to(std::back_inserter(buf),
-                "[CBotManager] - building list has been completed for planet: {}\n",
-                log.id_planet);
+                "skip - tech is not accessible for research id:[{}]. uid:{} - pid:{}\n",
+                log.research_id, log.bot_id, log.id_planet);
             break;
         case 9:
-            fmt::format_to(std::back_inserter(buf), "[CBotManager] - WRONG ELEMENT ID:{} , NOT FOUND !\n", log.building_id);
+            fmt::format_to(std::back_inserter(buf),
+                "skip - [g{}:s{}:p{}] email:[{}]\n"
+                "not enough resources for build id:{}\n"
+                "required:[metal:{}|crystal:{}|deu:{}] have:[metal:{}|crystal:{}|deu:{}]\n"
+                "bid:{} - pid:{}\n",
+                 log.galaxy, log.system, log.planet,
+                 log.email, log.building_id, log.cost901, log.cost902, log.cost903,
+                 log.planet_metal, log.planet_crystal, log.planet_deu,
+                 log.bot_id, log.id_planet);
             break;
         case 10:
             fmt::format_to(std::back_inserter(buf),
-                "[CBotManager] - SKIP [botID:{} - planetID:{}]\n"
-                "coordinates:[{}:{}:{}] - email:[{}] \n"
-                "not enough resources for element id:{} \n"
-                "required: [metal:{}|crystal:{}|deu:{}]\n"
-                "have: [metal:{}|crystal:{}|deu:{}]\n",
+                "started building - {}, level:{}. uid:{} - pid:{}\n",
+                log.building_name, log.building_level, log.bot_id, log.id_planet);
+            break;
+        case 11:
+            fmt::format_to(std::back_inserter(buf),
+                "skip - already researching.. uid:{} - pid:{}\n",
+                log.bot_id, log.id_planet);
+            break;
+        case 12:
+            fmt::format_to(std::back_inserter(buf),
+                "skip - planet don't have laboratory. uid:{} - pid:{}\n",
+                log.bot_id, log.id_planet);
+            break;
+        case 13:
+            fmt::format_to(std::back_inserter(buf),
+                "skip - research list has been completed for bot. uid:{} - pid:{}\n", 
+                log.bot_id, log.id_planet);
+            break;
+        case 14:
+            fmt::format_to(std::back_inserter(buf), 
+                "skip - wrong element id:{}. uid:{} - pid:{}\n", 
+                log.building_id,log.bot_id, log.id_planet);
+            break;
+        case 15:
+            fmt::format_to(std::back_inserter(buf),
+                "skip - tech is not accessible for [research_id:{}]. uid:{} - pid:{}\n",
+                log.research_id, log.bot_id, log.id_planet);
+            break;
+        case 16:
+            fmt::format_to(std::back_inserter(buf),
+                "skip - uid:{} - pid:{} [g{}:s{}:p{}] - email:[{}] \n"
+                "not enough res for element id:{} \n"
+                "required: [metal:{}|crystal:{}|deu:{}] have: [metal:{}|crystal:{}|deu:{}]\n",
                 log.bot_id, log.id_planet, log.galaxy, log.system, log.planet,
                 log.email, log.building_id, log.cost901, log.cost902, log.cost903,
                 log.planet_metal, log.planet_crystal, log.planet_deu);
             break;
-        case 11:
+        case 17:
             fmt::format_to(std::back_inserter(buf),
-                "[CBotManager] - Bot ID {} [Planet: {}] -> Started Building: {} Level {}\n",
-                log.bot_id, log.id_planet, log.building_name, log.building_level);
-            break;
-        case 12:
-            fmt::format_to(std::back_inserter(buf),
-                "[CBotManager] - Bot ID {} Bot is not online now !\n",
-                log.bot_id);
-            break;
-        case 13:
-            fmt::format_to(std::back_inserter(buf),
-                "[CBotManager] - Bot ID {} Bot is away for {} seconds...\n",
-                log.bot_id, log.away_time);
-            break;
-        case 15:
-            fmt::format_to(std::back_inserter(buf),
-                "[CBotManager] - Bot ID {} Tech is not accessible.[research_id:{}] \n",
-                log.bot_id, log.research_id);
-            break;
-        case 16:
-            fmt::format_to(std::back_inserter(buf),
-                "[CBotManager] - Bot ID {} Don't have research lab yet. \n",
-                log.bot_id);
+                "started research - {}, level:{}. uid:{} - pid:{}\n",
+                log.research_name, log.research_level, log.id_planet, log.bot_id);
             break;
         default:
-            fmt::format_to(std::back_inserter(buf), "Bot:{}, Planet:{}\n", log.bot_id, log.id_planet);
+            fmt::format_to(std::back_inserter(buf), "Undefined log type.\n");
             break;
         }
     }

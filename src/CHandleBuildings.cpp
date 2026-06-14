@@ -36,15 +36,13 @@ static constexpr std::array basic_research = {
 
 void CBotManager::HandleBuildings(table_users& bot,
     table_planets& planet, 
-    const time_t time, 
     const std::unordered_map<int, table_vars>& vars,
     const std::unordered_map<int, std::vector<table_vars_requirements>>& vars_requirements,
-    const int hour,
     const uint64_t game_speed)
 {
     if (planet.b_building > 0)
     {
-        m_log.type = 3;
+        m_log.type = 5;
         m_vecLog.push_back(m_log);
         return;
     }
@@ -57,7 +55,7 @@ void CBotManager::HandleBuildings(table_users& bot,
     {
         // todo, build list has finished, 
         // decide what to do with resource wrt game style
-        m_log.type = 8;
+        m_log.type = 6;
         m_vecLog.push_back(m_log);
         return;
     }
@@ -66,7 +64,7 @@ void CBotManager::HandleBuildings(table_users& bot,
     auto it = vars.find(tar_building_id);
     if (it == vars.end())
     {
-        m_log.type = 9;
+        m_log.type = 7;
         m_log.building_id = tar_building_id;
         m_vecLog.push_back(m_log);
         return;
@@ -76,7 +74,7 @@ void CBotManager::HandleBuildings(table_users& bot,
     // if tech accessible ? check
     if (!IsTechAccessible(tar_building_id, vars_requirements, planet, bot))
     {
-        m_log.type = 16;
+        m_log.type = 8;
         m_log.research_id = tar_building_id;
         m_vecLog.push_back(m_log);
         return;
@@ -94,7 +92,7 @@ void CBotManager::HandleBuildings(table_users& bot,
 
     if (!HaveEnoughResources(planet, array_cost))
     {
-        m_log.type = 10;
+        m_log.type = 9;
         m_log.galaxy = planet.galaxy;
         m_log.system = planet.system;
         m_log.planet = planet.planet;
@@ -115,7 +113,7 @@ void CBotManager::HandleBuildings(table_users& bot,
     // it is building if id is less than 100
     double baseTime = (array_cost[0] + array_cost[1] + 3.0) / (game_speed * (1.0 + planet.resource[14]));
     double buildTime = baseTime * std::pow(0.5, planet.resource[15]) * element.factor;
-    time_t endTime = time + static_cast<time_t>(buildTime);
+    time_t endTime = m_sysTime + static_cast<time_t>(buildTime);
     planet.b_building = endTime;
 
     planet.b_building_id = "a:1:{i:0;a:5:{i:0;i:" + std::to_string(element.element_id) +
@@ -123,7 +121,7 @@ void CBotManager::HandleBuildings(table_users& bot,
         ";i:2;i:" + std::to_string(static_cast<int>(buildTime)) +
         ";i:3;i:" + std::to_string(endTime) + ";i:4;s:5:\"build\";}}";
 
-    m_log.type = 11;
+    m_log.type = 10;
     m_log.building_name = element.name;
     m_log.building_level = level_up;
     m_vecLog.push_back(m_log);

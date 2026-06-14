@@ -3,17 +3,17 @@
 #include "CLogger.h"
 #include "CDatabase.h"
 
-void CBotManager::HandleResourceUpdate(table_users& bot, table_planets& planet, const time_t time)
+void CBotManager::HandleResourceUpdate(table_users& bot, table_planets& planet)
 {               
-    BuildingQueue(planet, time);
-    ResearchQueue(bot, time);
-    UpdateResource(planet, bot, time);
+    BuildingQueue(planet);
+    ResearchQueue(bot);
+    UpdateResource(planet, bot);
 }
 
-bool CBotManager::BuildingQueue(table_planets& planet, const time_t currentTime)
+bool CBotManager::BuildingQueue(table_planets& planet)
 {
     if (planet.b_building_id.empty()
-        || planet.b_building > currentTime)
+        || planet.b_building > m_sysTime)
     {
         // CLogger::Info("CheckPlanetBuildingQueue : not time\n");
         return false;
@@ -71,10 +71,10 @@ bool CBotManager::BuildingQueue(table_planets& planet, const time_t currentTime)
     */
 }
 
-bool CBotManager::ResearchQueue(table_users& user, const time_t timeNow)
+bool CBotManager::ResearchQueue(table_users& user)
 {
     if (user.b_tech_id == 0
-        || (user.b_tech > timeNow
+        || (user.b_tech > m_sysTime
             && !user.b_tech_queue.empty()))
     {
         return false;
@@ -89,13 +89,13 @@ bool CBotManager::ResearchQueue(table_users& user, const time_t timeNow)
     return true;
 }
 
-void CBotManager::UpdateResource(table_planets& planet, table_users& user, const time_t timeNow)
+void CBotManager::UpdateResource(table_planets& planet, table_users& user)
 {
-    time_t production_time = timeNow - planet.last_update;
+    time_t production_time = m_sysTime - planet.last_update;
 
     if (production_time > 0)
     {
-        planet.last_update = timeNow;
+        planet.last_update = m_sysTime;
         /*
         if ($hash == false)
         {

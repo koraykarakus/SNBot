@@ -4,20 +4,21 @@
 
 void CBotManager::HandleResearches(table_users& bot,
     table_planets& planet,
-    const time_t time,
     const std::unordered_map<int, table_vars>& vars,
     const std::unordered_map<int, std::vector<table_vars_requirements>>& vars_requirements,
     const uint64_t game_speed)
 {
     if (IsResearching(bot))
     {
+        m_log.type = 11;
+        m_vecLog.push_back(m_log);
         return;
     }
 
     // have lab ?
     if (planet.resource[31] == 0)
     {
-        m_log.type = 16;
+        m_log.type = 12;
         m_vecLog.push_back(m_log);
         return;
     }
@@ -30,7 +31,7 @@ void CBotManager::HandleResearches(table_users& bot,
     int tar_research_id = GetTargetResearchID(current_levels_tech);
     if (tar_research_id == -1)
     {
-        m_log.type = 4;
+        m_log.type = 13;
         m_vecLog.push_back(m_log);
         return;
     }
@@ -39,7 +40,7 @@ void CBotManager::HandleResearches(table_users& bot,
     auto it = vars.find(tar_research_id);
     if (it == vars.end())
     {
-        m_log.type = 5;
+        m_log.type = 14;
         m_log.research_id = tar_research_id;
         m_vecLog.push_back(m_log);
         return;
@@ -66,7 +67,7 @@ void CBotManager::HandleResearches(table_users& bot,
     if (!HaveEnoughResources(planet, array_cost))
     {
 
-        m_log.type = 6;
+        m_log.type = 16;
         m_log.galaxy = planet.galaxy;
         m_log.system = planet.system;
         m_log.planet = planet.planet;
@@ -86,7 +87,7 @@ void CBotManager::HandleResearches(table_users& bot,
     RemoveCostFromPlanet(planet, array_cost);
 
     double buildTime = ((array_cost[0] + array_cost[1] + 3.0) / (1000.0 * level_up)) / game_speed * (1.0 + planet.resource[31]);
-    time_t endTime = time + static_cast<time_t>(buildTime);
+    time_t endTime = m_sysTime + static_cast<time_t>(buildTime);
 
     bot.b_tech_planet = planet.id;
     bot.b_tech = endTime;
@@ -100,7 +101,7 @@ void CBotManager::HandleResearches(table_users& bot,
         ";i:4;i:" + std::to_string(planet.id) + ";}}";
 
 
-    m_log.type = 7;
+    m_log.type = 17;
     m_log.research_name = element.name;
     m_log.research_level = level_up;
     m_vecLog.push_back(m_log);

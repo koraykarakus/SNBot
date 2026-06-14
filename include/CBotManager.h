@@ -67,6 +67,10 @@ class CBotManager
 {
 private:
 	static const int wait_time = 1 * 30;
+	// timestamp
+	time_t m_sysTime;
+	// current system hour
+	int m_sysHour;
 	time_var m_timeLastRun;
 	bool m_bFirstRun;
 	std::vector<table_users> m_vecBots;
@@ -87,16 +91,20 @@ public:
 	void Run(CDatabase* pDatabase, const CApplication& app);
 
 	// time related
-	inline int GetHour() 
+	inline void SetHour() 
 	{
-		time_t timeNow = std::time(nullptr);
-		std::tm* pLocalTime = std::localtime(&timeNow);
+		std::tm* pLocalTime = std::localtime(&m_sysTime);
 		int hour = 0;
 		if (pLocalTime != nullptr)
 		{
 			hour = pLocalTime->tm_hour;
 		}
-		return hour;
+		m_sysHour = hour;
+	}
+
+	inline void SetSystemTime() 
+	{
+		m_sysTime = std::time(nullptr);
 	}
 
 	// console commands processing, such as add bot remove bot etc.
@@ -116,11 +124,16 @@ public:
 	const table_vars* GetVarsByID(int id) const;
 
 	// check if time is in player's daily play duration
-	bool IsPlayingNow(const play_time& bot_info, int hour) const;
+	bool IsPlayingNow(const table_users& bot) const;
 	// compare last click time to this time, some players check 5min,20min etc.
-	bool IsAway(const table_users& bot, time_t timeNow) const;
-	inline int GetRemainingAwayTimeInSeconds(const table_users& bot, time_t timeNow) const {
-		return (bot.playTime.check_time * 60) - (static_cast<int>(timeNow) - bot.onlinetime);
+	bool IsAway(const table_users& bot) const;
+	inline bool IsInVacation(const table_users& bot) 
+	{
+		return bot.vacation_mode == 1;
+	}
+	inline int GetRemainingAwayTimeInSeconds(const table_users& bot) const 
+	{
+		return (bot.playTime.check_time * 60) - (static_cast<int>(m_sysTime) - bot.onlinetime);
 	}
 	bool IsInTimeRange(int current_hour, int start_time, int end_time) const;
 
@@ -143,14 +156,11 @@ public:
 
 	// build research, building, fleet or defence
 	void HandleBuildings(table_users& bot, table_planets& planet,
-		const time_t time, 
 		const std::unordered_map<int, table_vars>& vars,
 		const std::unordered_map<int, std::vector<table_vars_requirements>>& vars_requirements,
-		const int hour, 
 		const uint64_t game_speed);
 	void HandleResearches(table_users& bot, 
 		table_planets& planet,
-		const time_t time,
 		const std::unordered_map<int, table_vars>& vars,
 		const std::unordered_map<int, std::vector<table_vars_requirements>>& vars_requirements,
 		const uint64_t game_speed);
@@ -169,10 +179,10 @@ public:
 	}
 	void LogResult();
 	// resource update and its helpers
-	void HandleResourceUpdate(table_users& bot, table_planets& planet, const time_t time);
-	bool BuildingQueue(table_planets& planet, const time_t currentTime);
-	bool ResearchQueue(table_users& user, const time_t timeNow);
-	void UpdateResource(table_planets& planet, table_users& user, const time_t timeNow);
+	void HandleResourceUpdate(table_users& bot, table_planets& planet);
+	bool BuildingQueue(table_planets& planet);
+	bool ResearchQueue(table_users& user);
+	void UpdateResource(table_planets& planet, table_users& user);
 	void UpdateCache(table_planets& planet, table_users& user);
 	void ExecCalc(table_planets& planet, time_t production_time);
 	// colonization handler and its helpers
