@@ -16,7 +16,6 @@ CDatabase::CDatabase()
     , db_host_()
     , db_name_()
     , db_uni_prefix_()
-    , m_pBotManager(nullptr)
     , vars_{}
     , vars_requirements_{}
     , resource_{}

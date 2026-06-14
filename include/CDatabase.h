@@ -14,7 +14,6 @@ class CDatabase
 private:
     static const int BATCH_SIZE = 300;
     MYSQL* conn_;
-    CBotManager* m_pBotManager;
 
     std::string db_user_;
     std::string db_pass_;
