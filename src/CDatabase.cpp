@@ -210,66 +210,70 @@ bool CDatabase::LoadBots()
 
     while ((row = mysql_fetch_row(result)))
     {
+        size_t i = 0;
+
         bot.Reset();
-        bot.id = row[0] ? std::stoi(row[0]) : 0;
+
+        bot.id = row[i] ? std::stoi(row[i]) : 0; i++;
         bot.type = bot.id % 10;
         bot.SetPlayStyle();
-        bot.strUserName = row[1] ? row[1] : "";
-        bot.email = row[2] ? row[2] : "";
 
-        // fill the struct with respect to index order.
-        bot.id_planet = row[3] ? std::stoi(row[3]) : 0;
-        bot.universe = row[4] ? std::stoi(row[4]) : 0;
-        bot.galaxy = row[5] ? std::stoi(row[5]) : 0;
-        bot.system = row[6] ? std::stoi(row[6]) : 0;
-        bot.planet = row[7] ? std::stoi(row[7]) : 0;
-        bot.onlinetime = row[8] ? std::stoi(row[8]) : 0;
-        bot.vacation_mode = row[9] ? std::stoi(row[9]) : 0;
-        bot.vacation_until = row[10] ? std::stoi(row[10]) : 0;
+        bot.strUserName = row[i] ? row[i] : ""; i++;
+        bot.email = row[i] ? row[i] : ""; i++;
 
-        // Research queue starts at index 32
-        bot.b_tech_planet = row[11] ? std::stoi(row[11]) : 0;
-        bot.b_tech = row[12] ? std::stoi(row[12]) : 0;
-        bot.b_tech_id = row[13] ? std::stoi(row[13]) : 0;
-        bot.b_tech_queue = row[14] ? row[14] : "";
+        // location
+        bot.id_planet = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.universe = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.galaxy = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.system = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.planet = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.onlinetime = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.vacation_mode = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.vacation_until = row[i] ? std::stoi(row[i]) : 0; i++;
+
+        // research queue
+        bot.b_tech_planet = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.b_tech = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.b_tech_id = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.b_tech_queue = row[i] ? row[i] : ""; i++;
 
         // technologies
-        bot.resource[106] = row[15] ? std::stoi(row[15]) : 0;
-        bot.resource[108] = row[16] ? std::stoi(row[16]) : 0;
-        bot.resource[109] = row[17] ? std::stoi(row[17]) : 0;
-        bot.resource[110] = row[18] ? std::stoi(row[18]) : 0;
-        bot.resource[111] = row[19] ? std::stoi(row[19]) : 0;
-        bot.resource[113] = row[20] ? std::stoi(row[20]) : 0;
-        bot.resource[114] = row[21] ? std::stoi(row[21]) : 0;
-        bot.resource[115] = row[22] ? std::stoi(row[22]) : 0;
-        bot.resource[117] = row[23] ? std::stoi(row[23]) : 0;
-        bot.resource[118] = row[24] ? std::stoi(row[24]) : 0;
-        bot.resource[120] = row[25] ? std::stoi(row[25]) : 0;
-        bot.resource[121] = row[26] ? std::stoi(row[26]) : 0;
-        bot.resource[122] = row[27] ? std::stoi(row[27]) : 0;
-        bot.resource[123] = row[28] ? std::stoi(row[28]) : 0;
-        bot.resource[124] = row[29] ? std::stoi(row[29]) : 0;
-        bot.resource[131] = row[30] ? std::stoi(row[30]) : 0;
-        bot.resource[132] = row[31] ? std::stoi(row[31]) : 0;
-        bot.resource[133] = row[32] ? std::stoi(row[32]) : 0;
-        bot.resource[199] = row[33] ? std::stoi(row[33]) : 0;
+        bot.resource[106] = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.resource[108] = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.resource[109] = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.resource[110] = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.resource[111] = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.resource[113] = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.resource[114] = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.resource[115] = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.resource[117] = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.resource[118] = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.resource[120] = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.resource[121] = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.resource[122] = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.resource[123] = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.resource[124] = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.resource[131] = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.resource[132] = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.resource[133] = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.resource[199] = row[i] ? std::stoi(row[i]) : 0; i++;
 
-        // commanders.
-        bot.rpg_geologist = row[34] ? std::stoi(row[34]) : 0;
-        bot.rpg_admiral = row[35] ? std::stoi(row[35]) : 0;
-        bot.rpg_engineer = row[36] ? std::stoi(row[36]) : 0;
-        bot.rpg_technocrat = row[37] ? std::stoi(row[37]) : 0;
-        bot.rpg_espion = row[38] ? std::stoi(row[38]) : 0;
-        bot.rpg_constructor = row[39] ? std::stoi(row[39]) : 0;
-        bot.rpg_scientist = row[40] ? std::stoi(row[40]) : 0;
-        bot.rpg_commander = row[41] ? std::stoi(row[41]) : 0;
-        bot.rpg_stocker = row[42] ? std::stoi(row[42]) : 0;
-        bot.rpg_defender = row[43] ? std::stoi(row[43]) : 0;
-        bot.rpg_destructor = row[44] ? std::stoi(row[44]) : 0;
-        bot.rpg_general = row[45] ? std::stoi(row[45]) : 0;
-        bot.rpg_bunker = row[46] ? std::stoi(row[46]) : 0;
-        bot.rpg_raider = row[47] ? std::stoi(row[47]) : 0;
-        bot.rpg_emperor = row[48] ? std::stoi(row[48]) : 0;
+        // commanders
+        bot.rpg_geologist = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.rpg_admiral = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.rpg_engineer = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.rpg_technocrat = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.rpg_espion = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.rpg_constructor = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.rpg_scientist = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.rpg_commander = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.rpg_stocker = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.rpg_defender = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.rpg_destructor = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.rpg_general = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.rpg_bunker = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.rpg_raider = row[i] ? std::stoi(row[i]) : 0; i++;
+        bot.rpg_emperor = row[i] ? std::stoi(row[i]) : 0; i++;
 
         // column is_bot to simplify
         bot.is_bot = 1;
@@ -760,22 +764,22 @@ bool CDatabase::LoadConfig()
     table_config item;
     while ((row = mysql_fetch_row(result)))
     {
-        item.Reset();
-        item.uni = std::stoi(row[0]);
-        item.game_speed = std::stoll(row[1]);
-        item.resource_multiplier = std::stoi(row[2]);
-        item.storage_multiplier = std::stoi(row[3]);
-        item.metal_basic_income = std::stoi(row[4]);
-        item.crystal_basic_income = std::stoi(row[5]);
-        item.deuterium_basic_income = std::stoi(row[6]);
-        item.max_galaxy = std::stoi(row[7]);
-        item.max_system = std::stoi(row[8]);
-        item.max_planet = std::stoi(row[9]);
-        item.max_overflow = std::stod(row[10]);
-        item.energySpeed = std::stoi(row[11]);
+        size_t i = 0;
 
-        CLogger::Info("game_speed:{}", std::stoll(row[1]));
-        CLogger::Info("max_planet:{}", std::stoll(row[9]));
+        item.Reset();
+
+        item.uni = std::stoi(row[i]); i++;
+        item.game_speed = std::stoll(row[i]); i++;
+        item.resource_multiplier = std::stoi(row[i]); i++;
+        item.storage_multiplier = std::stoi(row[i]); i++;
+        item.metal_basic_income = std::stoi(row[i]); i++;
+        item.crystal_basic_income = std::stoi(row[i]); i++;
+        item.deuterium_basic_income = std::stoi(row[i]); i++;
+        item.max_galaxy = std::stoi(row[i]); i++;
+        item.max_system = std::stoi(row[i]); i++;
+        item.max_planet = std::stoi(row[i]); i++;
+        item.max_overflow = std::stod(row[i]); i++;
+        item.energySpeed = std::stoi(row[i]); i++;
 
         m_config.emplace(item.uni, item);
         loadedCount++;
