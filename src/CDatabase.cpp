@@ -157,7 +157,28 @@ bool CDatabase::LoadBots()
     }
 
     auto start = GetTimeNow();
-    std::string strQuery = std::format("SELECT * FROM `{}users` WHERE is_bot = 1", m_strDBPrefix);
+    std::string strQuery = std::format(
+        "SELECT "
+        "`id`, `username`, `email`, "
+        "`id_planet`, `universe`, `galaxy`, "
+        "`system`, `planet`, `onlinetime`, "
+        "`vacation_mode`, `vacation_until`, `b_tech_planet`, "
+        "`b_tech`, `b_tech_id`, `b_tech_queue`, "
+        "`spy_tech`, `computer_tech`, `military_tech`, "
+        "`armor_tech`, `shield_tech`, `energy_tech`, "
+        "`hyperspace_tech`, `combustion_tech`, `impulse_motor_tech`, "
+        "`hyperspace_motor_tech`, `laser_tech`, `ion_tech`, "
+        "`plasma_tech`, `intergalactic_tech`, `expedition_tech`, "
+        "`metal_proc_tech`, `crystal_proc_tech`, `deuterium_proc_tech`, "
+        "`graviton_tech`, `rpg_geologist`, `rpg_admiral`, "
+        "`rpg_engineer`, `rpg_technocrat`, `rpg_espion`, "
+        "`rpg_constructor`, `rpg_scientist`, `rpg_commander`, "
+        "`rpg_stocker`, `rpg_defender`, `rpg_destructor`, "
+        "`rpg_general`, `rpg_bunker`, `rpg_raider`, "
+        "`rpg_emperor` "
+        "FROM {}users "
+        "WHERE is_bot = 1"
+    , m_strDBPrefix);
 
     if (mysql_query(m_pConn, strQuery.c_str()))
     {
@@ -194,61 +215,61 @@ bool CDatabase::LoadBots()
         bot.type = bot.id % 10;
         bot.SetPlayStyle();
         bot.strUserName = row[1] ? row[1] : "";
-        bot.email = row[3] ? row[3] : "";
+        bot.email = row[2] ? row[2] : "";
 
         // fill the struct with respect to index order.
-        bot.id_planet = row[9] ? std::stoi(row[9]) : 0;
-        bot.universe = row[10] ? std::stoi(row[10]) : 0;
-        bot.galaxy = row[11] ? std::stoi(row[11]) : 0;
-        bot.system = row[12] ? std::stoi(row[12]) : 0;
-        bot.planet = row[13] ? std::stoi(row[13]) : 0;
-        bot.onlinetime = row[18] ? std::stoi(row[18]) : 0;
-        bot.vacation_mode = row[29] ? std::stoi(row[29]) : 0;
-        bot.vacation_until = row[30] ? std::stoi(row[30]) : 0;
+        bot.id_planet = row[3] ? std::stoi(row[3]) : 0;
+        bot.universe = row[4] ? std::stoi(row[4]) : 0;
+        bot.galaxy = row[5] ? std::stoi(row[5]) : 0;
+        bot.system = row[6] ? std::stoi(row[6]) : 0;
+        bot.planet = row[7] ? std::stoi(row[7]) : 0;
+        bot.onlinetime = row[8] ? std::stoi(row[8]) : 0;
+        bot.vacation_mode = row[9] ? std::stoi(row[9]) : 0;
+        bot.vacation_until = row[10] ? std::stoi(row[10]) : 0;
 
         // Research queue starts at index 32
-        bot.b_tech_planet = row[32] ? std::stoi(row[32]) : 0;
-        bot.b_tech = row[33] ? std::stoi(row[33]) : 0;
-        bot.b_tech_id = row[34] ? std::stoi(row[34]) : 0;
-        bot.b_tech_queue = row[35] ? row[35] : "";
+        bot.b_tech_planet = row[11] ? std::stoi(row[11]) : 0;
+        bot.b_tech = row[12] ? std::stoi(row[12]) : 0;
+        bot.b_tech_id = row[13] ? std::stoi(row[13]) : 0;
+        bot.b_tech_queue = row[14] ? row[14] : "";
 
         // technologies
-        bot.resource[106] = row[36] ? std::stoi(row[36]) : 0;
-        bot.resource[108] = row[37] ? std::stoi(row[37]) : 0;
-        bot.resource[109] = row[38] ? std::stoi(row[38]) : 0;
-        bot.resource[110] = row[39] ? std::stoi(row[39]) : 0;
-        bot.resource[111] = row[40] ? std::stoi(row[40]) : 0;
-        bot.resource[113] = row[41] ? std::stoi(row[41]) : 0;
-        bot.resource[114] = row[42] ? std::stoi(row[42]) : 0;
-        bot.resource[115] = row[43] ? std::stoi(row[43]) : 0;
-        bot.resource[117] = row[44] ? std::stoi(row[44]) : 0;
-        bot.resource[118] = row[45] ? std::stoi(row[45]) : 0;
-        bot.resource[120] = row[46] ? std::stoi(row[46]) : 0;
-        bot.resource[121] = row[47] ? std::stoi(row[47]) : 0;
-        bot.resource[122] = row[48] ? std::stoi(row[48]) : 0;
-        bot.resource[123] = row[49] ? std::stoi(row[49]) : 0;
-        bot.resource[124] = row[50] ? std::stoi(row[50]) : 0;
-        bot.resource[131] = row[51] ? std::stoi(row[51]) : 0;
-        bot.resource[132] = row[52] ? std::stoi(row[52]) : 0;
-        bot.resource[133] = row[53] ? std::stoi(row[53]) : 0;
-        bot.resource[199] = row[54] ? std::stoi(row[54]) : 0;
+        bot.resource[106] = row[15] ? std::stoi(row[15]) : 0;
+        bot.resource[108] = row[16] ? std::stoi(row[16]) : 0;
+        bot.resource[109] = row[17] ? std::stoi(row[17]) : 0;
+        bot.resource[110] = row[18] ? std::stoi(row[18]) : 0;
+        bot.resource[111] = row[19] ? std::stoi(row[19]) : 0;
+        bot.resource[113] = row[20] ? std::stoi(row[20]) : 0;
+        bot.resource[114] = row[21] ? std::stoi(row[21]) : 0;
+        bot.resource[115] = row[22] ? std::stoi(row[22]) : 0;
+        bot.resource[117] = row[23] ? std::stoi(row[23]) : 0;
+        bot.resource[118] = row[24] ? std::stoi(row[24]) : 0;
+        bot.resource[120] = row[25] ? std::stoi(row[25]) : 0;
+        bot.resource[121] = row[26] ? std::stoi(row[26]) : 0;
+        bot.resource[122] = row[27] ? std::stoi(row[27]) : 0;
+        bot.resource[123] = row[28] ? std::stoi(row[28]) : 0;
+        bot.resource[124] = row[29] ? std::stoi(row[29]) : 0;
+        bot.resource[131] = row[30] ? std::stoi(row[30]) : 0;
+        bot.resource[132] = row[31] ? std::stoi(row[31]) : 0;
+        bot.resource[133] = row[32] ? std::stoi(row[32]) : 0;
+        bot.resource[199] = row[33] ? std::stoi(row[33]) : 0;
 
         // commanders.
-        bot.rpg_geologist = row[58] ? std::stoi(row[58]) : 0;
-        bot.rpg_admiral = row[59] ? std::stoi(row[59]) : 0;
-        bot.rpg_engineer = row[60] ? std::stoi(row[60]) : 0;
-        bot.rpg_technocrat = row[61] ? std::stoi(row[61]) : 0;
-        bot.rpg_espion = row[62] ? std::stoi(row[62]) : 0;
-        bot.rpg_constructor = row[63] ? std::stoi(row[63]) : 0;
-        bot.rpg_scientist = row[64] ? std::stoi(row[64]) : 0;
-        bot.rpg_commander = row[65] ? std::stoi(row[65]) : 0;
-        bot.rpg_stocker = row[66] ? std::stoi(row[66]) : 0;
-        bot.rpg_defender = row[67] ? std::stoi(row[67]) : 0;
-        bot.rpg_destructor = row[68] ? std::stoi(row[68]) : 0;
-        bot.rpg_general = row[69] ? std::stoi(row[69]) : 0;
-        bot.rpg_bunker = row[70] ? std::stoi(row[70]) : 0;
-        bot.rpg_raider = row[71] ? std::stoi(row[71]) : 0;
-        bot.rpg_emperor = row[72] ? std::stoi(row[72]) : 0;
+        bot.rpg_geologist = row[34] ? std::stoi(row[34]) : 0;
+        bot.rpg_admiral = row[35] ? std::stoi(row[35]) : 0;
+        bot.rpg_engineer = row[36] ? std::stoi(row[36]) : 0;
+        bot.rpg_technocrat = row[37] ? std::stoi(row[37]) : 0;
+        bot.rpg_espion = row[38] ? std::stoi(row[38]) : 0;
+        bot.rpg_constructor = row[39] ? std::stoi(row[39]) : 0;
+        bot.rpg_scientist = row[40] ? std::stoi(row[40]) : 0;
+        bot.rpg_commander = row[41] ? std::stoi(row[41]) : 0;
+        bot.rpg_stocker = row[42] ? std::stoi(row[42]) : 0;
+        bot.rpg_defender = row[43] ? std::stoi(row[43]) : 0;
+        bot.rpg_destructor = row[44] ? std::stoi(row[44]) : 0;
+        bot.rpg_general = row[45] ? std::stoi(row[45]) : 0;
+        bot.rpg_bunker = row[46] ? std::stoi(row[46]) : 0;
+        bot.rpg_raider = row[47] ? std::stoi(row[47]) : 0;
+        bot.rpg_emperor = row[48] ? std::stoi(row[48]) : 0;
 
         // column is_bot to simplify
         bot.is_bot = 1;
@@ -267,7 +288,48 @@ bool CDatabase::LoadBots()
     // -------------------------------------------------------------------------
     // STEP 2: Load Bot planets and match them
     // -------------------------------------------------------------------------
-    std::string strPlanetQuery = std::format("SELECT * FROM `{}planets` WHERE is_bot = 1", m_strDBPrefix);
+
+    std::string strPlanetQuery = std::format(
+        "SELECT "
+        "`id`, `name`, `id_owner`, "
+        "`universe`, `galaxy`, `system`, "
+        "`planet`, `last_update`, `planet_type`, "
+        "`destroyed`, `b_building`, `b_building_id`, "
+        "`b_shipyard`, `b_shipyard_id`, `b_shipyard_plus`, "
+        "`image`, `diameter`, `field_current`, "
+        "`field_max`, `temp_min`, `temp_max`, "
+        "`eco_hash`, `metal`, `metal_perhour`, "
+        "`metal_max`, `crystal`, `crystal_perhour`, "
+        "`crystal_max`, `deuterium`, `deuterium_perhour`, "
+        "`deuterium_max`, `energy_used`, `energy`, "
+
+        "`metal_mine`, `crystal_mine`, `deuterium_synthesizer`, "
+        "`solar_plant`, `fusion_plant`, `robot_factory`, "
+        "`nanite_factory`, `shipyard`, `metal_storage`, "
+        "`crystal_storage`, `deuterium_tank`, `research_lab`, "
+        "`terraformer`, `university`, `ally_deposit`, "
+        "`missile_silo`, `lunar_base`, `phalanx`, "
+        "`jump_gate`, `small_cargo`, `big_cargo`, "
+        "`light_hunter`, `heavy_hunter`, `cruiser`, "
+        "`battle_ship`, `colony_ship`, `recycler`, "
+        "`espionage_probe`, `bomber_ship`, `solar_satellite`, "
+        "`destroyer`, `death_star`, `battle_cruiser`, "
+        "`black_moon`, `ev_transporter`, `star_crasher`, "
+        "`giga_recycler`, `dm_ship`, `orbital_station`, "
+
+        "`rocket_launcher`, `light_laser`, `heavy_laser`, "
+        "`gauss_cannon`, `ion_cannon`, `plasma_turret`, "
+        "`small_protection_shield`, `planet_protector`, `big_protection_shield`, "
+        "`graviton_cannon`, `interceptor_misil`, `interplanetary_misil`, "
+
+        "`metal_mine_percent`, `crystal_mine_percent`, `deuterium_synthesizer_percent`, "
+        "`solar_plant_percent`, `fusion_plant_percent`, `solar_satellite_percent`, "
+        "`last_jump_time`, `debris_metal`, `debris_crystal`, "
+        "`id_moon`, `last_relocate`, `version` "
+
+        "FROM `{}planets` "
+        "WHERE is_bot = 1",
+        m_strDBPrefix);
 
     if (mysql_query(m_pConn, strPlanetQuery.c_str()))
     {
@@ -292,116 +354,116 @@ bool CDatabase::LoadBots()
     while ((plRow = mysql_fetch_row(plResult)))
     {
         pl.Reset();
-        pl.id = plRow[0] ? std::stoi(plRow[0]) : 0;
-        pl.name = plRow[1] ? plRow[1] : "";
-        pl.id_owner = plRow[2] ? std::stoi(plRow[2]) : 0; 
-        pl.universe = plRow[3] ? std::stoi(plRow[3]) : 0;
-        pl.galaxy = plRow[4] ? std::stoi(plRow[4]) : 0;
-        pl.system = plRow[5] ? std::stoi(plRow[5]) : 0;
-        pl.planet = plRow[6] ? std::stoi(plRow[6]) : 0;
-        pl.last_update = plRow[7] ? std::stoi(plRow[7]) : 0;
-        pl.planet_type = plRow[8] ? std::stoi(plRow[8]) : 1;
-        pl.destroyed = plRow[9] ? std::stoi(plRow[9]) : 0;
+        size_t i = 0;
+        pl.id = plRow[i] ? std::stoi(plRow[i]) : 0; i++;
+        pl.name = plRow[i] ? plRow[i] : ""; i++;
+        pl.id_owner = plRow[i] ? std::stoi(plRow[i]) : 0; i++;
+        pl.universe = plRow[i] ? std::stoi(plRow[i]) : 0; i++;
+        pl.galaxy = plRow[i] ? std::stoi(plRow[i]) : 0; i++;
+        pl.system = plRow[i] ? std::stoi(plRow[i]) : 0; i++;
+        pl.planet = plRow[i] ? std::stoi(plRow[i]) : 0; i++;
+        pl.last_update = plRow[i] ? std::stoi(plRow[i]) : 0; i++;
+        pl.planet_type = plRow[i] ? std::stoi(plRow[i]) : 1; i++;
+        pl.destroyed = plRow[i] ? std::stoi(plRow[i]) : 0; i++;
 
-        pl.b_building = plRow[10] ? std::stoi(plRow[10]) : 0;
-        pl.b_building_id = plRow[11] ? plRow[11] : "";
-        pl.b_shipyard = plRow[12] ? std::stoi(plRow[12]) : 0;
-        pl.b_shipyard_id = plRow[13] ? plRow[13] : "";
-        pl.b_shipyard_plus = plRow[14] ? std::stoi(plRow[14]) : 0;
-        pl.image = plRow[15] ? plRow[15] : "";
+        pl.b_building = plRow[i] ? std::stoi(plRow[i]) : 0; i++;
+        pl.b_building_id = plRow[i] ? plRow[i] : ""; i++;
+        pl.b_shipyard = plRow[i] ? std::stoi(plRow[i]) : 0; i++;
+        pl.b_shipyard_id = plRow[i] ? plRow[i] : ""; i++;
+        pl.b_shipyard_plus = plRow[i] ? std::stoi(plRow[i]) : 0; i++;
+        pl.image = plRow[i] ? plRow[i] : ""; i++;
 
-        pl.diameter = plRow[16] ? std::stoi(plRow[16]) : 0;
-        pl.field_current = plRow[17] ? std::stoi(plRow[17]) : 0;
-        pl.field_max = plRow[18] ? std::stoi(plRow[18]) : 0;
-        pl.temp_min = plRow[19] ? std::stoi(plRow[19]) : 0;
-        pl.temp_max = plRow[20] ? std::stoi(plRow[20]) : 0;
+        pl.diameter = plRow[i] ? std::stoi(plRow[i]) : 0; i++;
+        pl.field_current = plRow[i] ? std::stoi(plRow[i]) : 0; i++;
+        pl.field_max = plRow[i] ? std::stoi(plRow[i]) : 0; i++;
+        pl.temp_min = plRow[i] ? std::stoi(plRow[i]) : 0; i++;
+        pl.temp_max = plRow[i] ? std::stoi(plRow[i]) : 0; i++;
 
-        pl.eco_hash = plRow[21] ? plRow[21] : "";
-        // DOUBLE kolonları için std::stod (string to double) kullanıyoruz:
-        pl.metal = plRow[22] ? std::stod(plRow[22]) : 0.0;
-        pl.metal_perhour = plRow[23] ? std::stod(plRow[23]) : 0.0;
-        pl.metal_max = plRow[24] ? std::stod(plRow[24]) : 0.0;
-        pl.crystal = plRow[25] ? std::stod(plRow[25]) : 0.0;
-        pl.crystal_perhour = plRow[26] ? std::stod(plRow[26]) : 0.0;
-        pl.crystal_max = plRow[27] ? std::stod(plRow[27]) : 0.0;
-        pl.deuterium = plRow[28] ? std::stod(plRow[28]) : 0.0;
-        pl.deuterium_perhour = plRow[29] ? std::stod(plRow[29]) : 0.0;
-        pl.deuterium_max = plRow[30] ? std::stod(plRow[30]) : 0.0;
-        pl.energy_used = plRow[31] ? std::stod(plRow[31]) : 0.0;
-        pl.energy = plRow[32] ? std::stod(plRow[32]) : 0.0;
+        pl.eco_hash = plRow[i] ? plRow[i] : ""; i++;
+        pl.metal = plRow[i] ? std::stod(plRow[i]) : 0.0; i++;
+        pl.metal_perhour = plRow[i] ? std::stod(plRow[i]) : 0.0; i++;
+        pl.metal_max = plRow[i] ? std::stod(plRow[i]) : 0.0; i++;
+        pl.crystal = plRow[i] ? std::stod(plRow[i]) : 0.0; i++;
+        pl.crystal_perhour = plRow[i] ? std::stod(plRow[i]) : 0.0; i++;
+        pl.crystal_max = plRow[i] ? std::stod(plRow[i]) : 0.0; i++;
+        pl.deuterium = plRow[i] ? std::stod(plRow[i]) : 0.0; i++;
+        pl.deuterium_perhour = plRow[i] ? std::stod(plRow[i]) : 0.0; i++;
+        pl.deuterium_max = plRow[i] ? std::stod(plRow[i]) : 0.0; i++;
+        pl.energy_used = plRow[i] ? std::stod(plRow[i]) : 0.0; i++;
+        pl.energy = plRow[i] ? std::stod(plRow[i]) : 0.0; i++;
 
         // buildings
-        pl.resource[1] = plRow[33] ? std::stoull(plRow[33]) : 0; // metal_mine
-        pl.resource[2] = plRow[34] ? std::stoull(plRow[34]) : 0; // crystal_mine
-        pl.resource[3] = plRow[35] ? std::stoull(plRow[35]) : 0; // deuterium_synthesizer
-        pl.resource[4] = plRow[36] ? std::stoull(plRow[36]) : 0; // solar_plant
-        pl.resource[12] = plRow[37] ? std::stoull(plRow[37]) : 0; // fusion_plant
-        pl.resource[14] = plRow[38] ? std::stoull(plRow[38]) : 0; // robot_factory
-        pl.resource[15] = plRow[39] ? std::stoull(plRow[39]) : 0; // nanite_factory
-        pl.resource[21] = plRow[40] ? std::stoull(plRow[40]) : 0; // shipyard
-        pl.resource[22] = plRow[41] ? std::stoull(plRow[41]) : 0; // metal_storage
-        pl.resource[23] = plRow[42] ? std::stoull(plRow[42]) : 0; // crystal_storage
-        pl.resource[24] = plRow[43] ? std::stoull(plRow[43]) : 0; // deuterium_tank
-        pl.resource[31] = plRow[44] ? std::stoull(plRow[44]) : 0; // research_lab
-        pl.resource[33] = plRow[45] ? std::stoull(plRow[45]) : 0; // terraformer
-        pl.resource[6] = plRow[46] ? std::stoull(plRow[46]) : 0; // university
-        pl.resource[34] = plRow[47] ? std::stoull(plRow[47]) : 0; // ally_deposit
-        pl.resource[44] = plRow[48] ? std::stoull(plRow[48]) : 0; // missile_silo
-        pl.resource[41] = plRow[49] ? std::stoull(plRow[49]) : 0; // lunar_base
-        pl.resource[42] = plRow[50] ? std::stoull(plRow[50]) : 0; // phalanx
-        pl.resource[43] = plRow[51] ? std::stoull(plRow[51]) : 0; // jump_gate
+        pl.resource[1] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[2] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[3] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[4] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[12] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[14] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[15] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[21] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[22] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[23] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[24] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[31] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[33] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[6] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[34] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[44] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[41] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[42] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[43] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
 
         // fleet
-        pl.resource[202] = plRow[52] ? std::stoull(plRow[52]) : 0; // small_cargo
-        pl.resource[203] = plRow[53] ? std::stoull(plRow[53]) : 0; // big_cargo
-        pl.resource[204] = plRow[54] ? std::stoull(plRow[54]) : 0; // light_hunter
-        pl.resource[205] = plRow[55] ? std::stoull(plRow[55]) : 0; // heavy_hunter
-        pl.resource[206] = plRow[56] ? std::stoull(plRow[56]) : 0; // cruiser
-        pl.resource[207] = plRow[57] ? std::stoull(plRow[57]) : 0; // battle_ship
-        pl.resource[208] = plRow[58] ? std::stoull(plRow[58]) : 0; // colony_ship
-        pl.resource[209] = plRow[59] ? std::stoull(plRow[59]) : 0; // recycler
-        pl.resource[210] = plRow[60] ? std::stoull(plRow[60]) : 0; // espionage_probe
-        pl.resource[211] = plRow[61] ? std::stoull(plRow[61]) : 0; // bomber_ship
-        pl.resource[212] = plRow[62] ? std::stoull(plRow[62]) : 0; // solar_satellite
-        pl.resource[213] = plRow[63] ? std::stoull(plRow[63]) : 0; // destroyer
-        pl.resource[214] = plRow[64] ? std::stoull(plRow[64]) : 0; // death_star
-        pl.resource[215] = plRow[65] ? std::stoull(plRow[65]) : 0; // battle_cruiser
-        pl.resource[216] = plRow[66] ? std::stoull(plRow[66]) : 0; // black_moon
-        pl.resource[217] = plRow[67] ? std::stoull(plRow[67]) : 0; // ev_transporter
-        pl.resource[218] = plRow[68] ? std::stoull(plRow[68]) : 0; // star_crasher
-        pl.resource[219] = plRow[69] ? std::stoull(plRow[69]) : 0; // giga_recycler
-        pl.resource[220] = plRow[70] ? std::stoull(plRow[70]) : 0; // dm_ship
-        pl.resource[411] = plRow[71] ? std::stoull(plRow[71]) : 0; // orbital_station
+        pl.resource[202] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[203] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[204] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[205] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[206] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[207] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[208] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[209] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[210] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[211] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[212] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[213] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[214] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[215] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[216] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[217] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[218] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[219] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[220] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[411] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
 
         // defence & missiles
-        pl.resource[401] = plRow[72] ? std::stoull(plRow[72]) : 0; // rocket_launcher
-        pl.resource[402] = plRow[73] ? std::stoull(plRow[73]) : 0; // light_laser
-        pl.resource[403] = plRow[74] ? std::stoull(plRow[74]) : 0; // heavy_laser
-        pl.resource[404] = plRow[75] ? std::stoull(plRow[75]) : 0; // gauss_cannon
-        pl.resource[405] = plRow[76] ? std::stoull(plRow[76]) : 0; // ion_cannon
-        pl.resource[406] = plRow[77] ? std::stoull(plRow[77]) : 0; // plasma_turret
-        pl.resource[407] = plRow[78] ? std::stoull(plRow[78]) : 0; // small_protection_shield
-        pl.resource[409] = plRow[79] ? std::stoull(plRow[79]) : 0; // planet_protector
-        pl.resource[408] = plRow[80] ? std::stoull(plRow[80]) : 0; // big_protection_shield
-        pl.resource[410] = plRow[81] ? std::stoull(plRow[81]) : 0; // graviton_cannon
-        pl.resource[502] = plRow[82] ? std::stoull(plRow[82]) : 0; // interceptor_misil
-        pl.resource[503] = plRow[83] ? std::stoull(plRow[83]) : 0; // interplanetary_misil
+        pl.resource[401] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[402] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[403] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[404] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[405] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[406] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[407] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[409] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[408] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[410] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[502] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
+        pl.resource[503] = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
 
         // production
-        pl.metal_mine_percent = plRow[84] ? plRow[84] : "10";
-        pl.crystal_mine_percent = plRow[85] ? plRow[85] : "10";
-        pl.deuterium_synthesizer_percent = plRow[86] ? plRow[86] : "10";
-        pl.solar_plant_percent = plRow[87] ? plRow[87] : "10";
-        pl.fusion_plant_percent = plRow[88] ? plRow[88] : "10";
-        pl.solar_satellite_percent = plRow[89] ? plRow[89] : "10";
+        pl.metal_mine_percent = plRow[i] ? plRow[i] : "10"; i++;
+        pl.crystal_mine_percent = plRow[i] ? plRow[i] : "10"; i++;
+        pl.deuterium_synthesizer_percent = plRow[i] ? plRow[i] : "10"; i++;
+        pl.solar_plant_percent = plRow[i] ? plRow[i] : "10"; i++;
+        pl.fusion_plant_percent = plRow[i] ? plRow[i] : "10"; i++;
+        pl.solar_satellite_percent = plRow[i] ? plRow[i] : "10"; i++;
 
         // galaxy related
-        pl.last_jump_time = plRow[90] ? std::stoi(plRow[90]) : 0;
-        pl.debris_metal = plRow[91] ? std::stod(plRow[91]) : 0.0;
-        pl.debris_crystal = plRow[92] ? std::stod(plRow[92]) : 0.0;
-        pl.id_moon = plRow[93] ? std::stoi(plRow[93]) : 0;
-        pl.last_relocate = plRow[95] ? std::stoi(plRow[95]) : 0;
-        pl.version = plRow[96] ? std::stoull(plRow[96]) : 0;
+        pl.last_jump_time = plRow[i] ? std::stoi(plRow[i]) : 0; i++;
+        pl.debris_metal = plRow[i] ? std::stod(plRow[i]) : 0.0; i++;
+        pl.debris_crystal = plRow[i] ? std::stod(plRow[i]) : 0.0; i++;
+        pl.id_moon = plRow[i] ? std::stoi(plRow[i]) : 0; i++;
+        pl.last_relocate = plRow[i] ? std::stoi(plRow[i]) : 0; i++;
+        pl.version = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
 
         pl.is_bot = 1;
         // find bot with planet id_owner
