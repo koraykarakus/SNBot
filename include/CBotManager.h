@@ -67,24 +67,24 @@ class CBotManager
 {
 private:
 	// wait time in seconds between each bot handle overall loops.
-	int m_loopTime;
+	int loop_time_;
 	// timestamp
-	time_t m_sysTime;
+	time_t system_time_;
 	// current system hour
-	int m_sysHour;
-	time_var m_timeLastRun;
-	bool m_bFirstRun;
-	std::vector<table_users> m_vecBots;
+	int system_hour_;
+	time_var time_last_run_;
+	bool first_run_;
+	std::vector<table_users> bots_;
 
-	CDatabase* m_pDatabase;
+	CDatabase* database_;
 
 	// logging
-	std::vector<stlog> m_vecLog;
-	stlog m_log;
+	std::vector<stlog> logs_;
+	stlog log_;
 
 	
-	std::queue<cmd_queue> m_commands;
-	std::mutex m_cmdMutex;
+	std::queue<cmd_queue> commands_;
+	std::mutex mutex_command_;
 
 public:
 	CBotManager();
@@ -94,25 +94,25 @@ public:
 	// time related
 	inline void SetHour() 
 	{
-		std::tm* pLocalTime = std::localtime(&m_sysTime);
+		std::tm* pLocalTime = std::localtime(&system_time_);
 		int hour = 0;
 		if (pLocalTime != nullptr)
 		{
 			hour = pLocalTime->tm_hour;
 		}
-		m_sysHour = hour;
+		system_hour_ = hour;
 	}
 
 	inline void SetSystemTime() 
 	{
-		m_sysTime = std::time(nullptr);
+		system_time_ = std::time(nullptr);
 	}
 
 	// console commands processing, such as add bot remove bot etc.
 	inline void PushCmdRequest(cmd_queue& st) 
 	{
-		std::lock_guard<std::mutex> lock(m_cmdMutex);
-		m_commands.push(st);
+		std::lock_guard<std::mutex> lock(mutex_command_);
+		commands_.push(st);
 	}
 
 	// command handlers.
@@ -134,23 +134,23 @@ public:
 	}
 	inline int GetRemainingAwayTimeInSeconds(const table_users& bot) const 
 	{
-		return (bot.playTime.check_time * 60) - (static_cast<int>(m_sysTime) - bot.onlinetime);
+		return (bot.playTime.check_time * 60) - (static_cast<int>(system_time_) - bot.onlinetime);
 	}
 	bool IsInTimeRange(int current_hour, int start_time, int end_time) const;
 
 	inline void AddBot(const table_users& bot)
 	{
-		m_vecBots.push_back(bot);
+		bots_.push_back(bot);
 	}
 
 	inline void ClearBots()
 	{
-		m_vecBots.clear();
+		bots_.clear();
 	}
 
 	std::vector<table_users>& GetBots()
 	{
-		return m_vecBots;
+		return bots_;
 	}
 	// main bot loot, run once. loop once.
 	void HandleMain();

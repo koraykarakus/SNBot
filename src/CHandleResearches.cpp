@@ -10,16 +10,16 @@ void CBotManager::HandleResearches(table_users& bot,
 {
     if (IsResearching(bot))
     {
-        m_log.type = 11;
-        m_vecLog.push_back(m_log);
+        log_.type = 11;
+        logs_.push_back(log_);
         return;
     }
 
     // have lab ?
     if (planet.resource[31] == 0)
     {
-        m_log.type = 12;
-        m_vecLog.push_back(m_log);
+        log_.type = 12;
+        logs_.push_back(log_);
         return;
     }
 
@@ -31,8 +31,8 @@ void CBotManager::HandleResearches(table_users& bot,
     int tar_research_id = GetTargetResearchID(current_levels_tech);
     if (tar_research_id == -1)
     {
-        m_log.type = 13;
-        m_vecLog.push_back(m_log);
+        log_.type = 13;
+        logs_.push_back(log_);
         return;
     }
 
@@ -40,18 +40,18 @@ void CBotManager::HandleResearches(table_users& bot,
     auto it = vars.find(tar_research_id);
     if (it == vars.end())
     {
-        m_log.type = 14;
-        m_log.research_id = tar_research_id;
-        m_vecLog.push_back(m_log);
+        log_.type = 14;
+        log_.research_id = tar_research_id;
+        logs_.push_back(log_);
         return;
     }
 
     // if tech accessible ? check
     if (!IsTechAccessible(tar_research_id, vars_requirements, planet, bot))
     {
-        m_log.type = 15;
-        m_log.research_id = tar_research_id;
-        m_vecLog.push_back(m_log);
+        log_.type = 15;
+        log_.research_id = tar_research_id;
+        logs_.push_back(log_);
         return;
     }
 
@@ -67,27 +67,27 @@ void CBotManager::HandleResearches(table_users& bot,
     if (!HaveEnoughResources(planet, array_cost))
     {
 
-        m_log.type = 16;
-        m_log.galaxy = planet.galaxy;
-        m_log.system = planet.system;
-        m_log.planet = planet.planet;
-        m_log.email = bot.email;
-        m_log.research_id = tar_research_id;
-        m_log.cost901 = array_cost[0];
-        m_log.cost902 = array_cost[1];
-        m_log.cost903 = array_cost[2];
-        m_log.planet_metal = planet.metal;
-        m_log.planet_crystal = planet.crystal;
-        m_log.planet_deu = planet.deuterium;
+        log_.type = 16;
+        log_.galaxy = planet.galaxy;
+        log_.system = planet.system;
+        log_.planet = planet.planet;
+        log_.email = bot.email;
+        log_.research_id = tar_research_id;
+        log_.cost901 = array_cost[0];
+        log_.cost902 = array_cost[1];
+        log_.cost903 = array_cost[2];
+        log_.planet_metal = planet.metal;
+        log_.planet_crystal = planet.crystal;
+        log_.planet_deu = planet.deuterium;
 
-        m_vecLog.push_back(m_log);
+        logs_.push_back(log_);
         return;
     }
 
     RemoveCostFromPlanet(planet, array_cost);
 
     double buildTime = ((array_cost[0] + array_cost[1] + 3.0) / (1000.0 * level_up)) / game_speed * (1.0 + planet.resource[31]);
-    time_t endTime = m_sysTime + static_cast<time_t>(buildTime);
+    time_t endTime = system_time_ + static_cast<time_t>(buildTime);
 
     bot.b_tech_planet = planet.id;
     bot.b_tech = endTime;
@@ -101,10 +101,10 @@ void CBotManager::HandleResearches(table_users& bot,
         ";i:4;i:" + std::to_string(planet.id) + ";}}";
 
 
-    m_log.type = 17;
-    m_log.research_name = element.name;
-    m_log.research_level = level_up;
-    m_vecLog.push_back(m_log);
+    log_.type = 17;
+    log_.research_name = element.name;
+    log_.research_level = level_up;
+    logs_.push_back(log_);
 
 
     // update it

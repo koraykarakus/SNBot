@@ -10,7 +10,7 @@ void CBotManager::HandleColonization()
         return;
     }
 
-    for (auto& bot : m_vecBots)
+    for (auto& bot : bots_)
     {
         const table_config* pConfig = GetConfigByUniID(bot.universe);
         if (pConfig == nullptr) continue;

@@ -13,13 +13,13 @@ bool CBotManager::ProcessPendingRequests()
         cmd_queue cmd;
 
         {
-            std::lock_guard<std::mutex> lock(m_cmdMutex);
+            std::lock_guard<std::mutex> lock(mutex_command_);
 
-            if (m_commands.empty())
+            if (commands_.empty())
                 break;
 
-            cmd = m_commands.front();
-            m_commands.pop();
+            cmd = commands_.front();
+            commands_.pop();
         }
 
         processed = true;
@@ -43,14 +43,14 @@ bool CBotManager::ProcessPendingRequests()
 void CBotManager::CreateBots(int count)
 {
     CLogger::Info("Creating {} bots..", count);
-    m_pDatabase->AddBots(count);
+    database_->AddBots(count);
 }
 
 void CBotManager::RemoveBots() 
 {
-    if (m_pDatabase->RemoveBots())
+    if (database_->RemoveBots())
     {
-        m_vecBots = m_pDatabase->GetLoadedBots();
+        bots_ = database_->GetLoadedBots();
         CLogger::Info("All bots and their planet removed from database by success.");
     }
 }

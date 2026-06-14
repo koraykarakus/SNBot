@@ -13,7 +13,7 @@ void CBotManager::HandleResourceUpdate(table_users& bot, table_planets& planet)
 bool CBotManager::BuildingQueue(table_planets& planet)
 {
     if (planet.b_building_id.empty()
-        || planet.b_building > m_sysTime)
+        || planet.b_building > system_time_)
     {
         // CLogger::Info("CheckPlanetBuildingQueue : not time\n");
         return false;
@@ -74,7 +74,7 @@ bool CBotManager::BuildingQueue(table_planets& planet)
 bool CBotManager::ResearchQueue(table_users& user)
 {
     if (user.b_tech_id == 0
-        || (user.b_tech > m_sysTime
+        || (user.b_tech > system_time_
             && !user.b_tech_queue.empty()))
     {
         return false;
@@ -91,11 +91,11 @@ bool CBotManager::ResearchQueue(table_users& user)
 
 void CBotManager::UpdateResource(table_planets& planet, table_users& user)
 {
-    time_t production_time = m_sysTime - planet.last_update;
+    time_t production_time = system_time_ - planet.last_update;
 
     if (production_time > 0)
     {
-        planet.last_update = m_sysTime;
+        planet.last_update = system_time_;
         /*
         if ($hash == false)
         {
@@ -150,7 +150,7 @@ void CBotManager::UpdateCache(table_planets& planet, table_users& user)
     int build_level = 0;
 
     // prod_id = 22, 23, 24
-    const auto& reslist = m_pDatabase->GetReslist();
+    const auto& reslist = database_->GetReslist();
     for (const auto prod_id : reslist.storage)
     {
         // id = 901,902,903

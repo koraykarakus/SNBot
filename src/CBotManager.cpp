@@ -4,20 +4,20 @@
 #include "CApplication.h"
 
 CBotManager::CBotManager()
-    : m_vecBots{}
-    , m_bFirstRun(true)
-    , m_timeLastRun(std::chrono::steady_clock::time_point{})
-    , m_pDatabase(nullptr)
-    , m_sysTime(0)
-    , m_sysHour(0)
-    , m_loopTime(30)
+    : bots_{}
+    , first_run_(true)
+    , time_last_run_(std::chrono::steady_clock::time_point{})
+    , database_(nullptr)
+    , system_time_(0)
+    , system_hour_(0)
+    , loop_time_(30)
 {
     
 }
 
 CBotManager::~CBotManager()
 {
-	m_vecBots.clear();
+    bots_.clear();
 }
 
 bool CBotManager::IsInTimeRange(int current_hour, int start_time, int end_time) const
@@ -39,13 +39,13 @@ bool CBotManager::IsInTimeRange(int current_hour, int start_time, int end_time) 
 bool CBotManager::IsPlayingNow(const table_users& bot) const
 {
     play_time bot_info = bot.playTime;
-    if (IsInTimeRange(m_sysHour, bot_info.play_start_time_1, bot_info.play_end_time_1)) 
+    if (IsInTimeRange(system_hour_, bot_info.play_start_time_1, bot_info.play_end_time_1))
         return true;
-    if (IsInTimeRange(m_sysHour, bot_info.play_start_time_2, bot_info.play_end_time_2))
+    if (IsInTimeRange(system_hour_, bot_info.play_start_time_2, bot_info.play_end_time_2))
         return true;
-    if (IsInTimeRange(m_sysHour, bot_info.play_start_time_3, bot_info.play_end_time_3))
+    if (IsInTimeRange(system_hour_, bot_info.play_start_time_3, bot_info.play_end_time_3))
         return true;
-    if (IsInTimeRange(m_sysHour, bot_info.play_start_time_4, bot_info.play_end_time_4))
+    if (IsInTimeRange(system_hour_, bot_info.play_start_time_4, bot_info.play_end_time_4))
         return true;
 
     return false;
@@ -53,13 +53,13 @@ bool CBotManager::IsPlayingNow(const table_users& bot) const
 
 bool CBotManager::IsAway(const table_users& bot) const
 {
-    return (bot.playTime.check_time * 60) > (static_cast<int>(m_sysTime) - bot.onlinetime);
+    return (bot.playTime.check_time * 60) > (static_cast<int>(system_time_) - bot.onlinetime);
 }
 
 void CBotManager::Run(CDatabase* pDatabase, const CApplication& app)
 {
     // will use it to get vars, reslist etc.
-    m_pDatabase = pDatabase;
+    database_ = pDatabase;
 
     // sleep if not loaded yet.
     while (app.IsRunning() 
@@ -74,8 +74,8 @@ void CBotManager::Run(CDatabase* pDatabase, const CApplication& app)
 		return;
 	}
 
-    m_vecBots = m_pDatabase->GetLoadedBots();
-    m_loopTime = m_pDatabase->GetLoopTime();
+    bots_ = database_->GetLoadedBots();
+    loop_time_ = database_->GetLoopTime();
     // main loop as long as it is running
     while (app.IsRunning())
     {
@@ -88,8 +88,8 @@ void CBotManager::Run(CDatabase* pDatabase, const CApplication& app)
         auto timeNow = std::chrono::steady_clock::now();
 
         // time check
-		if (!m_bFirstRun
-			&& (timeNow < m_timeLastRun + std::chrono::seconds(m_loopTime)))
+		if (!first_run_
+			&& (timeNow < time_last_run_ + std::chrono::seconds(loop_time_)))
 		{
 			// sleep shortly to avoid overuse of CPU
 			std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -104,7 +104,7 @@ void CBotManager::Run(CDatabase* pDatabase, const CApplication& app)
         // HandleColonization();
 
         // save to db
-        pDatabase->UpdateBots(m_vecBots);
+        pDatabase->UpdateBots(bots_);
         // reload from db
         if (pDatabase->LoadBots())
         {
@@ -114,14 +114,14 @@ void CBotManager::Run(CDatabase* pDatabase, const CApplication& app)
 
         ProcessPendingRequests();
         // update time and firstrun flag
-        m_bFirstRun = false;
-        m_timeLastRun = timeNow;
+        first_run_ = false;
+        time_last_run_ = timeNow;
         auto duration_micros = GetElapsedMicroseconds(start, end);
         double duration_millis = GetElapsedMilliseconds(start, end);
         CLogger::Info(
             "Process handled in [{} microsec / {} millisec]\n"
             "Next run is in {} seconds.",
-             duration_micros, duration_millis, m_loopTime);
+             duration_micros, duration_millis, loop_time_);
         // sleep
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
@@ -134,56 +134,56 @@ void CBotManager::HandleMain()
     SetSystemTime();
     SetHour(); 
 
-    const std::unordered_map<int, table_vars>& vars = m_pDatabase->GetVars();
+    const std::unordered_map<int, table_vars>& vars = database_->GetVars();
     const std::unordered_map<int, std::vector<table_vars_requirements>>& 
-        vars_requirements = m_pDatabase->GetVarsRequirements();
+        vars_requirements = database_->GetVarsRequirements();
 
-    for (auto& bot : m_vecBots)
+    for (auto& bot : bots_)
     {
         // reset logs at the start..
-        m_log.Reset();
-        m_log.bot_id = bot.id;
+        log_.Reset();
+        log_.bot_id = bot.id;
 
 
         if (!IsPlayingNow(bot))
         {
-            m_log.type = 1;
-            m_vecLog.push_back(m_log);
+            log_.type = 1;
+            logs_.push_back(log_);
             continue;
         }
 
         if (IsAway(bot))
         {
-            m_log.type = 2;
-            m_log.away_time = GetRemainingAwayTimeInSeconds(bot);
-            m_vecLog.push_back(m_log);
+            log_.type = 2;
+            log_.away_time = GetRemainingAwayTimeInSeconds(bot);
+            logs_.push_back(log_);
             continue;
         }
 
         if (IsInVacation(bot))
         {
-            m_log.type = 3;
-            m_vecLog.push_back(m_log);
+            log_.type = 3;
+            logs_.push_back(log_);
             continue;
         }
 
         const table_config* pConfig = GetConfigByUniID(bot.universe);
         if (pConfig == nullptr)
         {
-            m_log.universe = bot.universe;
-            m_log.type = 4;
-            m_vecLog.push_back(m_log);
+            log_.universe = bot.universe;
+            log_.type = 4;
+            logs_.push_back(log_);
             continue;
         }
         
         const uint64_t game_speed = std::floor(pConfig->game_speed / 2500);
 
-        bot.onlinetime = static_cast<int>(m_sysTime);
+        bot.onlinetime = static_cast<int>(system_time_);
 
         // loop planets of the bot..
         for (auto& planet : bot.vecPlanets)
         {
-            m_log.id_planet = planet.id;
+            log_.id_planet = planet.id;
 
             // 1- HandleResourceUpdate
             HandleResourceUpdate(bot, planet);
@@ -202,7 +202,7 @@ void CBotManager::LogResult()
 {
     fmt::memory_buffer buf;
     // no I/O
-    for (const auto& log : m_vecLog)
+    for (const auto& log : logs_)
     {
         switch (log.type)
         {
@@ -307,7 +307,7 @@ void CBotManager::LogResult()
         }
     }
 
-    m_vecLog.clear();
+    logs_.clear();
 
     // 5000 botun tüm bilgisini TEK BİR SEFERDE diske/konsola yazar. 
     // I/O işlemi 5000 kez değil, sadece 1 kez çağrılır!
@@ -461,7 +461,7 @@ PhpArray CBotManager::php_unserialize(const std::string& serialized_data) {
 
 const table_config* CBotManager::GetConfigByUniID(int uni) const
 {
-    auto& config = m_pDatabase->GetConfig();
+    auto& config = database_->GetConfig();
     auto it = config.find(uni);
     if (it == config.end())
     {
@@ -472,7 +472,7 @@ const table_config* CBotManager::GetConfigByUniID(int uni) const
 
 const table_vars* CBotManager::GetVarsByID(int id) const
 {
-    const auto& vars = m_pDatabase->GetVars();
+    const auto& vars = database_->GetVars();
     auto it = vars.find(id);
     if (it == vars.end())
     {
