@@ -136,7 +136,7 @@ public:
 	{
 		return (bot.playTime.check_time * 60) - (static_cast<int>(system_time_) - bot.onlinetime);
 	}
-	bool IsInTimeRange(int current_hour, int start_time, int end_time) const;
+	bool IsInTimeRange(int start_time, int end_time) const;
 
 	inline void AddBot(const table_users& bot)
 	{

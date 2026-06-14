@@ -20,7 +20,7 @@ CBotManager::~CBotManager()
     bots_.clear();
 }
 
-bool CBotManager::IsInTimeRange(int current_hour, int start_time, int end_time) const
+bool CBotManager::IsInTimeRange(int start_time, int end_time) const
 {
     if (start_time == -1 
         || end_time == -1) 
@@ -29,23 +29,23 @@ bool CBotManager::IsInTimeRange(int current_hour, int start_time, int end_time) 
     // normal (exp: 13-23)
     if (start_time < end_time)
     {
-        return (current_hour >= start_time && current_hour < end_time);
+        return (system_hour_ >= start_time && system_hour_ < end_time);
     }
 
     // 2: exceed midnight (exp: 23-1 arası)
-    return (current_hour >= start_time || current_hour < end_time);
+    return (system_hour_ >= start_time || system_hour_ < end_time);
 }
 
 bool CBotManager::IsPlayingNow(const table_users& bot) const
 {
     play_time bot_info = bot.playTime;
-    if (IsInTimeRange(system_hour_, bot_info.play_start_time_1, bot_info.play_end_time_1))
+    if (IsInTimeRange(bot_info.play_start_time_1, bot_info.play_end_time_1))
         return true;
-    if (IsInTimeRange(system_hour_, bot_info.play_start_time_2, bot_info.play_end_time_2))
+    if (IsInTimeRange(bot_info.play_start_time_2, bot_info.play_end_time_2))
         return true;
-    if (IsInTimeRange(system_hour_, bot_info.play_start_time_3, bot_info.play_end_time_3))
+    if (IsInTimeRange(bot_info.play_start_time_3, bot_info.play_end_time_3))
         return true;
-    if (IsInTimeRange(system_hour_, bot_info.play_start_time_4, bot_info.play_end_time_4))
+    if (IsInTimeRange(bot_info.play_start_time_4, bot_info.play_end_time_4))
         return true;
 
     return false;
