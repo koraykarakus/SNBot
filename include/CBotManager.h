@@ -73,6 +73,10 @@ private:
 
 	CDatabase* m_pDatabase;
 
+	// logging
+	std::vector<stlog> m_vecLog;
+	stlog m_log;
+
 	
 	std::queue<cmd_queue> m_commands;
 	std::mutex m_cmdMutex;
@@ -134,20 +138,38 @@ public:
 	{
 		return m_vecBots;
 	}
+	// main bot loot, run once. loop once.
+	void HandleMain();
+
 	// build research, building, fleet or defence
-	void HandleBuildings();
+	void HandleBuildings(table_users& bot, table_planets& planet,
+		const time_t time, 
+		const std::unordered_map<int, table_vars>& vars,
+		const std::unordered_map<int, std::vector<table_vars_requirements>>& vars_requirements,
+		const int hour, 
+		const uint64_t game_speed);
+	void HandleResearches(table_users& bot, 
+		table_planets& planet,
+		const time_t time,
+		const std::unordered_map<int, table_vars>& vars,
+		const std::unordered_map<int, std::vector<table_vars_requirements>>& vars_requirements,
+		const uint64_t game_speed);
 	// simulates..
 	int GetTargetBuildID(const int* arrLevels) const;
 	int GetTargetResearchID(const int* arrLevels) const;
 	bool HaveEnoughResources(const table_planets& planet , double* arrCost);
 	void RemoveCostFromPlanet(table_planets& planet, double* arrCost);
+	bool IsTechAccessible(int element_id, 
+		const std::unordered_map<int, std::vector<table_vars_requirements>>& vars_requirements,
+		const table_planets& planet,
+		const table_users& user);
 	inline bool IsResearching(const table_users& user) const
 	{
 		return user.b_tech > 0;
 	}
-	void LogResult(const std::vector<stlog>& logs) const;
+	void LogResult();
 	// resource update and its helpers
-	void HandleResourceUpdate();
+	void HandleResourceUpdate(table_users& bot, table_planets& planet, const time_t time);
 	bool BuildingQueue(table_planets& planet, const time_t currentTime);
 	bool ResearchQueue(table_users& user, const time_t timeNow);
 	void UpdateResource(table_planets& planet, table_users& user, const time_t timeNow);

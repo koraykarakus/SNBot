@@ -21,6 +21,18 @@ struct table_vars {
 
 };
 
+struct table_vars_requirements 
+{
+	int require_id = 0;
+	int require_level = 0;
+
+	void Reset() 
+	{
+		*this = table_vars_requirements();
+	}
+
+};
+
 struct table_config
 {
 	int uni;

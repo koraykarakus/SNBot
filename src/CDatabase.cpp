@@ -18,6 +18,7 @@ CDatabase::CDatabase()
     , m_strDBPrefix()
     , m_pBotManager(nullptr)
     , m_vars{}
+    , m_vars_requirements{}
     , m_resource{}
     , m_combatcaps{}
     , m_pricelist{}
@@ -586,6 +587,57 @@ bool CDatabase::LoadVars()
 
     mysql_free_result(result);
     CLogger::Info("[CDatabase] - Vars NUM : {} (vars) has been successfully loaded.", iLoadNum);
+
+    return true;
+}
+
+bool CDatabase::LoadVarsRequirements() 
+{
+    if (m_pConn == nullptr)
+    {
+        CLogger::Error("[CDatabase] - LoadVarsRequirements error: no database connection.");
+        return false;
+    }
+
+    std::string strQuery = "SELECT * FROM `" + m_strDBPrefix + "vars_requirements`";
+
+    if (mysql_query(m_pConn, strQuery.c_str()) != 0)
+    {
+        CLogger::Error("[CDatabase] - LoadVarsRequirements Query Error: {}", mysql_error(m_pConn));
+        return false;
+    }
+
+    MYSQL_RES* result = mysql_store_result(m_pConn);
+    if (result == nullptr)
+    {
+        CLogger::Error("[CDatabase] - LoadVarsRequirements Result Missing: {}", mysql_error(m_pConn));
+        return false;
+    }
+
+    m_vars_requirements.clear();
+
+    MYSQL_ROW row;
+    int iLoadNum = 0;
+
+    table_vars_requirements item;
+    while ((row = mysql_fetch_row(result)))
+    {
+        if (!row[0] || !row[1] || !row[2])
+        {
+            continue;
+        }
+
+        item.Reset();
+        int element_id = std::stoi(row[0]);
+        item.require_id = std::stoi(row[1]);
+        item.require_level = std::stoi(row[2]);
+
+        m_vars_requirements[element_id].push_back(item);
+        iLoadNum++;
+    }
+
+    mysql_free_result(result);
+    CLogger::Info("[CDatabase] - Vars_Requirements NUM : {} (vars_req) has been successfully loaded.", iLoadNum);
 
     return true;
 }

@@ -37,6 +37,7 @@ bool CApplication::Init()
     }
 
     if (!LoadVarsFromDatabase()
+        || !LoadVarsRequirementsFromDatabase()
         || !LoadConfigFromDatabase()
         || !LoadBotsFromDatabase())
     {
@@ -79,6 +80,10 @@ bool CApplication::LoadBotsFromDatabase() {
 
 bool CApplication::LoadVarsFromDatabase() {
     return m_database->LoadVars();
+}
+
+bool CApplication::LoadVarsRequirementsFromDatabase() {
+    return m_database->LoadVarsRequirements();
 }
 
 bool CApplication::LoadConfigFromDatabase() {

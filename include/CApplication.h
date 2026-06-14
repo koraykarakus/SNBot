@@ -40,6 +40,8 @@ public:
 	bool LoadBotsFromDatabase();
 	bool LoadVarsFromDatabase();
 	bool LoadConfigFromDatabase();
+	bool LoadVarsRequirementsFromDatabase();
+
 	bool IsRunning() const { return m_bRunning; }
 	bool IsLoaded() const { return m_bLoaded; }
 	bool IsStarted() const { return m_bStarted; }

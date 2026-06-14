@@ -22,6 +22,7 @@ private:
     std::string m_strDBPrefix;
 
     std::unordered_map<int, table_vars> m_vars;
+    std::unordered_map<int, std::vector<table_vars_requirements>> m_vars_requirements;
     std::unordered_map<int, std::string> m_resource;
     std::unordered_map<int, combat_caps> m_combatcaps;
     std::unordered_map<int, pricelist_data> m_pricelist;
@@ -40,6 +41,7 @@ public:
     void Disconnect();
     bool LoadBots();
     bool LoadVars();
+    bool LoadVarsRequirements();
     bool LoadConfig();
     bool UpdateBots(std::vector<table_users>& vecBots);
     bool AddBots(int count);
@@ -48,6 +50,12 @@ public:
     inline const std::unordered_map<int, table_vars>& GetVars() const
     {
         return m_vars;
+    }
+
+    inline const std::unordered_map<int, std::vector<table_vars_requirements>>& 
+        GetVarsRequirements() const
+    {
+        return m_vars_requirements;
     }
 
     inline const std::unordered_map<int, std::string>& GetResource() const

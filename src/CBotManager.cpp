@@ -94,9 +94,10 @@ void CBotManager::Run(CDatabase* pDatabase, const CApplication& app)
 
         // handlers.
         auto start = GetTimeNow();
-        HandleResourceUpdate();
-        HandleBuildings();
-        HandleColonization();
+        HandleMain();
+        // HandleResourceUpdate();
+        // HandleBuildings();
+        // HandleColonization();
 
         // save to db
         pDatabase->UpdateBots(m_vecBots);
@@ -118,6 +119,190 @@ void CBotManager::Run(CDatabase* pDatabase, const CApplication& app)
     CLogger::Info("Bot Run thread finished.\n");
 }
 
+void CBotManager::HandleMain() 
+{
+    int hour = GetHour();
+    const time_t time_now = std::time(nullptr);
+    const std::unordered_map<int, table_vars>& vars = m_pDatabase->GetVars();
+    const std::unordered_map<int, std::vector<table_vars_requirements>>& 
+        vars_requirements = m_pDatabase->GetVarsRequirements();
+
+    for (auto& bot : m_vecBots)
+    {
+        // reset logs at the start..
+        m_log.Reset();
+        m_log.bot_id = bot.id;
+
+
+        if (!IsPlayingNow(bot.playTime, hour))
+        {
+            m_log.type = 12;
+            m_vecLog.push_back(m_log);
+            continue;
+        }
+
+        if (IsAway(bot, time_now))
+        {
+            m_log.type = 13;
+            m_log.away_time = GetRemainingAwayTimeInSeconds(bot, time_now);
+            m_vecLog.push_back(m_log);
+            continue;
+        }
+
+        if (bot.vacation_mode == 1)
+        {
+            // todo: add 14
+            m_log.type = 14;
+            m_vecLog.push_back(m_log);
+            continue;
+        }
+
+        const table_config* pConfig = GetConfigByUniID(bot.universe);
+        if (pConfig == nullptr)
+        {
+            m_log.universe = bot.universe;
+            m_log.type = 1;
+            m_vecLog.push_back(m_log);
+            continue;
+        }
+        
+        const uint64_t game_speed = std::floor(pConfig->game_speed / 2500);
+
+        bot.onlinetime = static_cast<int>(time_now);
+
+        // loop planets of the bot..
+        for (auto& planet : bot.vecPlanets)
+        {
+            m_log.id_planet = planet.id;
+
+            // 1- HandleResourceUpdate
+            HandleResourceUpdate(bot, planet, time_now);
+            // 2- HandleBuildings
+            HandleBuildings(bot, planet, time_now, vars, vars_requirements, hour, game_speed);
+            // 3- HandleResearches
+            HandleResearches(bot, planet, time_now, vars, vars_requirements, game_speed);
+           
+        }
+    }
+
+    LogResult();
+}
+
+void CBotManager::LogResult()
+{
+    fmt::memory_buffer buf;
+    std::string strMsg;
+    // Bu döngü sadece RAM içinde string birleştirir, I/O yapmaz (Çok hızlıdır)
+    for (const auto& log : m_vecLog)
+    {
+        switch (log.type)
+        {
+        case 1:
+            // CLogger::Error("[CBotManager] - Config map missing : uni_id '{}' not found !\n", bot.universe);
+            fmt::format_to(std::back_inserter(buf),
+                "[CBotManager] - Config map missing : uni_id '{}' not found !\n", log.universe);
+            break;
+        case 2:
+            // CLogger::Info("[CBotManager] - corrected a bot with buggy data !\n", bot.id, planet.id);
+            fmt::format_to(std::back_inserter(buf),
+                "[CBotManager] - corrected a bot with buggy data id:{}planet_id:{}!\n",
+                log.bot_id, log.id_planet);
+            break;
+        case 3:
+            fmt::format_to(std::back_inserter(buf),
+                "[CBotManager] - SKIP [botID: {} - planetID: {}], building already !\n",
+                log.bot_id, log.id_planet);
+            break;
+        case 4:
+            fmt::format_to(std::back_inserter(buf),
+                "[CBotManager] - Research list has been completed for bot: {}\n", log.bot_id);
+            break;
+        case 5:
+            fmt::format_to(std::back_inserter(buf), "[CBotManager] - wrong element id. bot_id : {}!\n", log.bot_id);
+            break;
+        case 6:
+            fmt::format_to(std::back_inserter(buf),
+                "[CBotManager] - SKIP [botID:{} - planetID:{}]\n"
+                "coordinates:[{}:{}:{}] - email:[{}] \n"
+                "not enough resources for element id:{} \n"
+                "required: [metal:{}|crystal:{}|deu:{}]\n"
+                "have: [metal:{}|crystal:{}|deu:{}]\n",
+                log.bot_id,
+                log.id_planet,
+                log.galaxy, log.system, log.planet,
+                log.email,
+                log.research_id,
+                log.cost901,
+                log.cost902,
+                log.cost903,
+                log.planet_metal,
+                log.planet_crystal,
+                log.planet_deu);
+            break;
+        case 7:
+            fmt::format_to(std::back_inserter(buf),
+                "[CBotManager] - Bot ID {} [Planet: {}] -> Started Research: {} Level {}\n", log.bot_id,
+                log.id_planet, log.research_name, log.research_level);
+            break;
+            break;
+        case 8:
+            fmt::format_to(std::back_inserter(buf),
+                "[CBotManager] - building list has been completed for planet: {}\n",
+                log.id_planet);
+            break;
+        case 9:
+            fmt::format_to(std::back_inserter(buf), "[CBotManager] - WRONG ELEMENT ID:{} , NOT FOUND !\n", log.building_id);
+            break;
+        case 10:
+            fmt::format_to(std::back_inserter(buf),
+                "[CBotManager] - SKIP [botID:{} - planetID:{}]\n"
+                "coordinates:[{}:{}:{}] - email:[{}] \n"
+                "not enough resources for element id:{} \n"
+                "required: [metal:{}|crystal:{}|deu:{}]\n"
+                "have: [metal:{}|crystal:{}|deu:{}]\n",
+                log.bot_id, log.id_planet, log.galaxy, log.system, log.planet,
+                log.email, log.building_id, log.cost901, log.cost902, log.cost903,
+                log.planet_metal, log.planet_crystal, log.planet_deu);
+            break;
+        case 11:
+            fmt::format_to(std::back_inserter(buf),
+                "[CBotManager] - Bot ID {} [Planet: {}] -> Started Building: {} Level {}\n",
+                log.bot_id, log.id_planet, log.building_name, log.building_level);
+            break;
+        case 12:
+            fmt::format_to(std::back_inserter(buf),
+                "[CBotManager] - Bot ID {} Bot is not online now !\n",
+                log.bot_id);
+            break;
+        case 13:
+            fmt::format_to(std::back_inserter(buf),
+                "[CBotManager] - Bot ID {} Bot is away for {} seconds...\n",
+                log.bot_id, log.away_time);
+            break;
+        case 15:
+            fmt::format_to(std::back_inserter(buf),
+                "[CBotManager] - Bot ID {} Tech is not accessible.[research_id:{}] \n",
+                log.bot_id, log.research_id);
+            break;
+        case 16:
+            fmt::format_to(std::back_inserter(buf),
+                "[CBotManager] - Bot ID {} Don't have research lab yet. \n",
+                log.bot_id);
+            break;
+        default:
+            fmt::format_to(std::back_inserter(buf), "Bot:{}, Planet:{}\n", log.bot_id, log.id_planet);
+            break;
+        }
+    }
+
+    m_vecLog.clear();
+
+    // 5000 botun tüm bilgisini TEK BİR SEFERDE diske/konsola yazar. 
+    // I/O işlemi 5000 kez değil, sadece 1 kez çağrılır!
+    CLogger::Info("### BUILD LOGS ###\n{}", fmt::to_string(buf));
+}
+
+
 bool CBotManager::HaveEnoughResources(const table_planets& planet, double* arrCost)
 {
 	return planet.metal >= arrCost[0]
@@ -131,6 +316,37 @@ void CBotManager::RemoveCostFromPlanet(table_planets& planet, double* arrCost)
     planet.crystal -= arrCost[1];
     planet.deuterium -= arrCost[2];
 }
+
+bool CBotManager::IsTechAccessible(int element_id, 
+    const std::unordered_map<int, std::vector<table_vars_requirements>>& vars_requirements,
+    const table_planets& planet,
+    const table_users& user)
+{
+    auto it = vars_requirements.find(element_id);
+    if (it == vars_requirements.end())
+    {
+        return true;
+    }
+
+    for (const auto& req : it->second)
+    {
+        // buildings
+        if (req.require_id < 100)
+        {
+            if (planet.resource[req.require_id] < req.require_level)
+                return false;
+        }
+        // tech
+        else
+        {
+            if (user.resource[req.require_id] < req.require_level)
+                return false;
+        }
+    }
+
+    return true;
+}
+
 
 // php helpers
 std::string CBotManager::php_serialize(const PhpArray& arr) {

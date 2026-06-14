@@ -3,57 +3,19 @@
 #include "CLogger.h"
 #include "CDatabase.h"
 
-void CBotManager::HandleResourceUpdate()
-{
-    int hour = GetHour();
-    time_t timeNow = std::time(nullptr);
-    for (auto& bot : m_vecBots)
-    {
-        if (!IsPlayingNow(bot.playTime, hour))
-        {
-            continue;
-        }
-
-        if (IsAway(bot, timeNow))
-        {
-            continue;
-        }
-
-        if (bot.vacation_mode == 1)
-        {
-            CLogger::Info("Bot is in vacation mode id: {}\n", bot.id);
-            continue;
-        }
-
-        // loop planets of the bot..
-        for (auto& planet : bot.vecPlanets)
-        {
-            if (planet.b_building != 0)
-            {
-                BuildingQueue(planet, timeNow);
-            }
-
-            if (bot.b_tech != 0
-                && bot.b_tech < timeNow)
-            {
-                ResearchQueue(bot, timeNow);
-                bot.need_update = true;
-            }
-
-            UpdateResource(planet, bot, timeNow);
-
-            planet.need_update = true;
-        }
-    }
+void CBotManager::HandleResourceUpdate(table_users& bot, table_planets& planet, const time_t time)
+{               
+    BuildingQueue(planet, time);
+    ResearchQueue(bot, time);
+    UpdateResource(planet, bot, time);
 }
 
 bool CBotManager::BuildingQueue(table_planets& planet, const time_t currentTime)
 {
-
     if (planet.b_building_id.empty()
         || planet.b_building > currentTime)
     {
-        CLogger::Info("CheckPlanetBuildingQueue : not time\n");
+        // CLogger::Info("CheckPlanetBuildingQueue : not time\n");
         return false;
     }
 
@@ -88,9 +50,8 @@ bool CBotManager::BuildingQueue(table_planets& planet, const time_t currentTime)
 
     planet.b_building = 0;
     planet.b_building_id = "";
-
+    planet.need_update = true;
     return true;
-
     /* multi queue not really needed
     array_shift($current_queue);
     $on_hash = in_array($element, $RESLIST['prod']);
@@ -124,6 +85,7 @@ bool CBotManager::ResearchQueue(table_users& user, const time_t timeNow)
     user.b_tech_id = 0;
     user.b_tech_planet = 0;
     user.b_tech_queue = "";
+    user.need_update = true;
     return true;
 }
 
@@ -152,6 +114,7 @@ void CBotManager::UpdateResource(table_planets& planet, table_users& user, const
         */
         UpdateCache(planet, user);
         ExecCalc(planet, production_time);
+        planet.need_update = true;
     }
 }
 
