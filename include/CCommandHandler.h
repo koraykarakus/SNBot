@@ -7,7 +7,7 @@ class CApplication;
 class CCommandHandler
 {
 public:
-	CBotManager* m_pBotManager;
+	CBotManager* bot_manager_;
 	CCommandHandler();
 	~CCommandHandler();
 	// console

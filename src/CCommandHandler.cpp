@@ -4,7 +4,7 @@
 
 CCommandHandler::CCommandHandler()
 {
-    m_pBotManager = nullptr;
+    bot_manager_ = nullptr;
 }
 
 CCommandHandler::~CCommandHandler()
@@ -17,7 +17,7 @@ void CCommandHandler::Run(CBotManager* pBotManager, CApplication& app)
     std::cout << "[Console] App is ready! Write /help to display commands." << std::endl;
     std::cout << "==========================================================\n" << std::endl;
 
-    m_pBotManager = pBotManager;
+    bot_manager_ = pBotManager;
 
     std::string line;
     while (app.IsRunning())
@@ -45,11 +45,11 @@ bool CCommandHandler::ProcessCommand(std::string& line, CApplication& app)
         if (count > 0)
         {
             // into queue
-            if (m_pBotManager != nullptr)
+            if (bot_manager_ != nullptr)
             {
                 info.type = 1;
                 info.count = count;
-                m_pBotManager->PushCmdRequest(info);
+                bot_manager_->PushCmdRequest(info);
                 std::cout << "[Console] " << count << " bot add request accepted.\n";
             }
         }
@@ -68,7 +68,7 @@ bool CCommandHandler::ProcessCommand(std::string& line, CApplication& app)
     else if (cmd == "/remove_bots")
     {
         info.type = 2;
-        m_pBotManager->PushCmdRequest(info);
+        bot_manager_->PushCmdRequest(info);
     }
     else if (cmd == "/exit")
     {
