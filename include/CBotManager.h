@@ -94,13 +94,15 @@ public:
 	// time related
 	inline void SetHour() 
 	{
-		std::tm* pLocalTime = std::localtime(&system_time_);
-		int hour = 0;
-		if (pLocalTime != nullptr)
+		std::tm* local_time = std::localtime(&system_time_);
+
+		if (local_time != nullptr)
 		{
-			hour = pLocalTime->tm_hour;
+			system_hour_ = local_time->tm_hour;
+			return;
 		}
-		system_hour_ = hour;
+
+		system_hour_ = 0;
 	}
 
 	inline void SetSystemTime() 
