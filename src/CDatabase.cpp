@@ -669,7 +669,13 @@ bool CDatabase::LoadConfig()
         return false;
     }
 
-    std::string strQuery = std::format("SELECT * FROM `{}config`", m_strDBPrefix);
+    std::string strQuery = std::format(
+        "SELECT `uni`, `game_speed`, `resource_multiplier`, "
+        "`storage_multiplier`, `metal_basic_income`, `crystal_basic_income`, "
+        "`deuterium_basic_income`, `max_galaxy`, `max_system`, "
+        "`max_planets`, `max_overflow`, `energySpeed` "
+        "FROM `{}config`",
+        m_strDBPrefix);
 
     if (mysql_query(m_pConn, strQuery.c_str()) != 0)
     {
@@ -694,17 +700,20 @@ bool CDatabase::LoadConfig()
     {
         item.Reset();
         item.uni = std::stoi(row[0]);
-        item.game_speed = std::stoll(row[4]);
-        item.resource_multiplier = std::stoi(row[6]);
-        item.storage_multiplier = std::stoi(row[7]);
-        item.metal_basic_income = std::stoi(row[18]);
-        item.crystal_basic_income = std::stoi(row[19]);
-        item.deuterium_basic_income = std::stoi(row[20]);
-        item.max_galaxy = std::stoi(row[78]);
-        item.max_system = std::stoi(row[79]);
-        item.max_planet = std::stoi(row[80]);
-        item.max_overflow = std::stod(row[92]);
-        item.energySpeed = std::stoi(row[114]);
+        item.game_speed = std::stoll(row[1]);
+        item.resource_multiplier = std::stoi(row[2]);
+        item.storage_multiplier = std::stoi(row[3]);
+        item.metal_basic_income = std::stoi(row[4]);
+        item.crystal_basic_income = std::stoi(row[5]);
+        item.deuterium_basic_income = std::stoi(row[6]);
+        item.max_galaxy = std::stoi(row[7]);
+        item.max_system = std::stoi(row[8]);
+        item.max_planet = std::stoi(row[9]);
+        item.max_overflow = std::stod(row[10]);
+        item.energySpeed = std::stoi(row[11]);
+
+        CLogger::Info("game_speed:{}", std::stoll(row[1]));
+        CLogger::Info("max_planet:{}", std::stoll(row[9]));
 
         m_config.emplace(item.uni, item);
         loadedCount++;
