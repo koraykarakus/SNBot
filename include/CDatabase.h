@@ -7,6 +7,7 @@
 
 class CApplication;
 class CBotManager;
+using time_var = std::chrono::steady_clock::time_point;
 
 class CDatabase
 {
@@ -21,7 +22,11 @@ private:
     std::string m_strDBName;
     std::string m_strDBPrefix;
     // loop time in seconds
-    int m_loopTime = 30;
+    int m_loopTime;
+    // last time bots loaded from db
+    time_var m_lastLoadTime;
+    // reload time of bots
+    int m_reloadTime;
 
     std::unordered_map<int, table_vars> m_vars;
     std::unordered_map<int, std::vector<table_vars_requirements>> m_vars_requirements;
@@ -94,7 +99,7 @@ public:
         return m_loopTime;
     }
 
-
+    
     inline table_users* GetBotRef(int botId)
     {
         for (auto& bot : m_vecTempBots)

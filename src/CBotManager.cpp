@@ -106,7 +106,10 @@ void CBotManager::Run(CDatabase* pDatabase, const CApplication& app)
         // save to db
         pDatabase->UpdateBots(m_vecBots);
         // reload from db
-        // pDatabase->LoadBots();
+        if (pDatabase->LoadBots())
+        {
+            CLogger::Info("bot data has been refreshed");
+        }
         auto end = GetTimeNow();
 
         ProcessPendingRequests();

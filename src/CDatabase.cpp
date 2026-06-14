@@ -27,6 +27,8 @@ CDatabase::CDatabase()
     , m_reslist{}
     , m_vecTempBots{}
     , m_loopTime(30)
+    , m_lastLoadTime(std::chrono::steady_clock::time_point{})
+    , m_reloadTime(300)
 {
     Init();
 }
@@ -56,7 +58,8 @@ void CDatabase::Init()
                 { "prefix", "uni1_" }
             }},
             { "general", toml::table{
-                {"loop_time", 30}
+                {"loop_time", 30},
+                {"bot_reload_time", 300}
             }}
         };
 
@@ -95,6 +98,7 @@ void CDatabase::Init()
     
     // general settings
     m_loopTime = config["general"]["loop_time"].value_or(30);
+    m_reloadTime = config["general"]["bot_reload_time"].value_or(300);
 
     CLogger::Info("[CDatabase] settings read from settings.toml Host: {}", m_strDBHost);
 }
@@ -146,6 +150,12 @@ void CDatabase::Disconnect()
 
 bool CDatabase::LoadBots()
 {
+    // only load bots evey x seconds
+    if (GetTimeNow() < m_lastLoadTime + std::chrono::seconds(m_reloadTime))
+    {
+        return false;
+    }
+
     auto start = GetTimeNow();
     std::string strQuery = std::format("SELECT * FROM `{}users` WHERE is_bot = 1", m_strDBPrefix);
 
@@ -408,11 +418,13 @@ bool CDatabase::LoadBots()
     }
    
     mysql_free_result(plResult);
+
+    m_lastLoadTime = std::chrono::steady_clock::now();
    
     auto end = GetTimeNow();
     auto duration_micros = GetElapsedMicroseconds(start, end);
     double duration_millis = GetElapsedMilliseconds(start, end);
-	CLogger::Info("[CDatabase] ### {} bots and {} planets"
+	CLogger::Info("[CDatabase] ### {} bots and {} planets "
 		"loaded successfully. ### [time:{} us / {} ms]\n",
 		ibotCounter, iPlanetCounter, duration_micros, duration_millis);
     return true;
