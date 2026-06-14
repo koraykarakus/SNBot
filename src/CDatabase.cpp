@@ -10,25 +10,25 @@
 using namespace std::literals;
 
 CDatabase::CDatabase()
-    : m_pConn(nullptr)
-    , m_strDBUser()
-    , m_strDBPass()
-    , m_strDBHost()
-    , m_strDBName()
-    , m_strDBPrefix()
+    : conn_(nullptr)
+    , db_user_()
+    , db_pass_()
+    , db_host_()
+    , db_name_()
+    , db_uni_prefix_()
     , m_pBotManager(nullptr)
-    , m_vars{}
-    , m_vars_requirements{}
-    , m_resource{}
-    , m_combatcaps{}
-    , m_pricelist{}
-    , m_prodgrid{}
-    , m_config{}
-    , m_reslist{}
-    , m_vecTempBots{}
-    , m_loopTime(30)
-    , m_lastLoadTime(std::chrono::steady_clock::time_point{})
-    , m_reloadTime(300)
+    , vars_{}
+    , vars_requirements_{}
+    , resource_{}
+    , combatcaps_{}
+    , pricelist_{}
+    , prodgrid_{}
+    , config_{}
+    , reslist_{}
+    , temp_bots_{}
+    , loop_time_(30)
+    , last_load_time_(std::chrono::steady_clock::time_point{})
+    , reload_time_(300)
 {
     Init();
 }
@@ -90,24 +90,24 @@ void CDatabase::Init()
     }
 
     // 3. Değerleri oku ve sınıf üyelerine ata (Veri yoksa fallback olarak ""sv kullanır)
-    m_strDBHost = config["database"]["host"].value_or(""sv);
-    m_strDBUser = config["database"]["user"].value_or(""sv);
-    m_strDBPass = config["database"]["password"].value_or(""sv);
-    m_strDBName = config["database"]["db_name"].value_or(""sv);
-    m_strDBPrefix = config["database"]["prefix"].value_or(""sv);
+    db_host_ = config["database"]["host"].value_or(""sv);
+    db_user_ = config["database"]["user"].value_or(""sv);
+    db_pass_ = config["database"]["password"].value_or(""sv);
+    db_name_ = config["database"]["db_name"].value_or(""sv);
+    db_uni_prefix_ = config["database"]["prefix"].value_or(""sv);
     
     // general settings
-    m_loopTime = config["general"]["loop_time"].value_or(30);
-    m_reloadTime = config["general"]["bot_reload_time"].value_or(300);
+    loop_time_ = config["general"]["loop_time"].value_or(30);
+    reload_time_ = config["general"]["bot_reload_time"].value_or(300);
 
-    CLogger::Info("[CDatabase] settings read from settings.toml Host: {}", m_strDBHost);
+    CLogger::Info("[CDatabase] settings read from settings.toml Host: {}", db_host_);
 }
 
 bool CDatabase::Connect()
 {
-    m_pConn = mysql_init(nullptr);
+    conn_ = mysql_init(nullptr);
 
-    if (m_pConn == nullptr)
+    if (conn_ == nullptr)
     {
         CLogger::Error("[CDatabase] - mysql_init failed");
         return false;
@@ -115,24 +115,24 @@ bool CDatabase::Connect()
 
     // close ssl
     int ssl_verify = 0; 
-    mysql_optionsv(m_pConn, MYSQL_OPT_SSL_VERIFY_SERVER_CERT, &ssl_verify);
+    mysql_optionsv(conn_, MYSQL_OPT_SSL_VERIFY_SERVER_CERT, &ssl_verify);
     // ----------------------------------------
 
     if (!mysql_real_connect(
-        m_pConn,
-        m_strDBHost.c_str(),
-        m_strDBUser.c_str(),
-        m_strDBPass.c_str(),
-        m_strDBName.c_str(),
+        conn_,
+        db_host_.c_str(),
+        db_user_.c_str(),
+        db_pass_.c_str(),
+        db_name_.c_str(),
         3306,
         nullptr,
         0))
     {
-        CLogger::Error("[CDatabase] - MySQL Connection Failed. Error: {} ({})", mysql_error(m_pConn), mysql_errno(m_pConn));
+        CLogger::Error("[CDatabase] - MySQL Connection Failed. Error: {} ({})", mysql_error(conn_), mysql_errno(conn_));
 
         // close db always
-        mysql_close(m_pConn);
-        m_pConn = nullptr;
+        mysql_close(conn_);
+        conn_ = nullptr;
         return false;
     }
 
@@ -141,17 +141,17 @@ bool CDatabase::Connect()
 
 void CDatabase::Disconnect()
 {
-    if (m_pConn != nullptr)
+    if (conn_ != nullptr)
     {
-        mysql_close(m_pConn);
-        m_pConn = nullptr;
+        mysql_close(conn_);
+        conn_ = nullptr;
     }
 }
 
 bool CDatabase::LoadBots()
 {
     // only load bots evey x seconds
-    if (GetTimeNow() < m_lastLoadTime + std::chrono::seconds(m_reloadTime))
+    if (GetTimeNow() < last_load_time_ + std::chrono::seconds(reload_time_))
     {
         return false;
     }
@@ -178,20 +178,20 @@ bool CDatabase::LoadBots()
         "`rpg_emperor` "
         "FROM {}users "
         "WHERE is_bot = 1"
-    , m_strDBPrefix);
+    , db_uni_prefix_);
 
-    if (mysql_query(m_pConn, strQuery.c_str()))
+    if (mysql_query(conn_, strQuery.c_str()))
     {
-        CLogger::Error("[CDatabase] - Query Error (Users): {}", mysql_error(m_pConn));
+        CLogger::Error("[CDatabase] - Query Error (Users): {}", mysql_error(conn_));
         return false;
     }
 
-    MYSQL_RES* result = mysql_store_result(m_pConn);
+    MYSQL_RES* result = mysql_store_result(conn_);
     if (result == nullptr)
     {
-        if (mysql_field_count(m_pConn) > 0) 
+        if (mysql_field_count(conn_) > 0)
         {
-            CLogger::Error("[CDatabase] - Retrieve result error (Users): {}", mysql_error(m_pConn));
+            CLogger::Error("[CDatabase] - Retrieve result error (Users): {}", mysql_error(conn_));
         }
 
         return false;
@@ -200,7 +200,7 @@ bool CDatabase::LoadBots()
     uint64_t rowCount = mysql_num_rows(result);
     CLogger::Info("[CDatabase] - Found {} bots in database.", rowCount);
 
-    m_vecTempBots.clear();
+    temp_bots_.clear();
 
     MYSQL_ROW row;
 
@@ -277,8 +277,8 @@ bool CDatabase::LoadBots()
 
         // column is_bot to simplify
         bot.is_bot = 1;
-        bot.SetFactor(now, m_reslist, m_pricelist);
-        m_vecTempBots.push_back(std::move(bot));
+        bot.SetFactor(now, reslist_, pricelist_);
+        temp_bots_.push_back(std::move(bot));
         ++ibotCounter;
     }
     mysql_free_result(result);
@@ -333,20 +333,20 @@ bool CDatabase::LoadBots()
 
         "FROM `{}planets` "
         "WHERE is_bot = 1",
-        m_strDBPrefix);
+        db_uni_prefix_);
 
-    if (mysql_query(m_pConn, strPlanetQuery.c_str()))
+    if (mysql_query(conn_, strPlanetQuery.c_str()))
     {
-        CLogger::Error("[CDatabase] - Query Error (Planets): {}", mysql_error(m_pConn));
+        CLogger::Error("[CDatabase] - Query Error (Planets): {}", mysql_error(conn_));
         return false;
     }
 
-    MYSQL_RES* plResult = mysql_store_result(m_pConn);
+    MYSQL_RES* plResult = mysql_store_result(conn_);
     if (plResult == nullptr)
     {
-        if (mysql_field_count(m_pConn) > 0) 
+        if (mysql_field_count(conn_) > 0) 
         {
-            CLogger::Error("[CDatabase] - Retrieve result error (Planets): {}", mysql_error(m_pConn));
+            CLogger::Error("[CDatabase] - Retrieve result error (Planets): {}", mysql_error(conn_));
         }
 
         return false;
@@ -485,7 +485,7 @@ bool CDatabase::LoadBots()
    
     mysql_free_result(plResult);
 
-    m_lastLoadTime = std::chrono::steady_clock::now();
+    last_load_time_ = std::chrono::steady_clock::now();
    
     auto end = GetTimeNow();
     auto duration_micros = GetElapsedMicroseconds(start, end);
@@ -498,28 +498,28 @@ bool CDatabase::LoadBots()
 
 bool CDatabase::LoadVars()
 {
-    if (m_pConn == nullptr)
+    if (conn_ == nullptr)
     {
         CLogger::Error("[CDatabase] - LoadVars error: no database connection.");
         return false;
     }
 
-    std::string strQuery = "SELECT * FROM `" + m_strDBPrefix + "vars`";
+    std::string strQuery = "SELECT * FROM `" + db_uni_prefix_ + "vars`";
 
-    if (mysql_query(m_pConn, strQuery.c_str()) != 0)
+    if (mysql_query(conn_, strQuery.c_str()) != 0)
     {
-        CLogger::Error("[CDatabase] - LoadVars Query Error: {}", mysql_error(m_pConn));
+        CLogger::Error("[CDatabase] - LoadVars Query Error: {}", mysql_error(conn_));
         return false;
     }
 
-    MYSQL_RES* result = mysql_store_result(m_pConn);
+    MYSQL_RES* result = mysql_store_result(conn_);
     if (result == nullptr)
     {
-        CLogger::Error("[CDatabase] - LoadVars Result Missing: {}", mysql_error(m_pConn));
+        CLogger::Error("[CDatabase] - LoadVars Result Missing: {}", mysql_error(conn_));
         return false;
     }
 
-    m_vars.clear();
+    vars_.clear();
 
     MYSQL_ROW row;
     int iLoadNum = 0;
@@ -545,81 +545,81 @@ bool CDatabase::LoadVars()
         int id = item.element_id;
 
         // 1. PHP: $RESOURCE
-        m_resource[id] = item.name;
+        resource_[id] = item.name;
 
         // 2. PHP: $COMBATCAPS (with correct order attack ve defend)
-        m_combatcaps[id].attack = row[22] ? std::stod(row[22]) : 0.0; // attack
-        m_combatcaps[id].shield = row[23] ? std::stod(row[23]) : 0.0; // defend (shield)
+        combatcaps_[id].attack = row[22] ? std::stod(row[22]) : 0.0; // attack
+        combatcaps_[id].shield = row[23] ? std::stod(row[23]) : 0.0; // defend (shield)
 
         // 3. PHP: $PRICELIST -> cost
-        m_pricelist[id].cost[901] = item.cost901;
-        m_pricelist[id].cost[902] = item.cost902;
-        m_pricelist[id].cost[903] = item.cost903;
-        m_pricelist[id].cost[911] = row[10] ? std::stod(row[10]) : 0.0; // cost911 (energy)
-        m_pricelist[id].cost[921] = row[11] ? std::stod(row[11]) : 0.0; // cost921 (dark matter)
+        pricelist_[id].cost[901] = item.cost901;
+        pricelist_[id].cost[902] = item.cost902;
+        pricelist_[id].cost[903] = item.cost903;
+        pricelist_[id].cost[911] = row[10] ? std::stod(row[10]) : 0.0; // cost911 (energy)
+        pricelist_[id].cost[921] = row[11] ? std::stod(row[11]) : 0.0; // cost921 (dark matter)
 
-        m_pricelist[id].factor = item.factor;
-        m_pricelist[id].max = row[6] ? std::stoi(row[6]) : 0;   // max_level
-        m_pricelist[id].consumption = row[12] ? std::stod(row[12]) : 0.0; // consumption1
-        m_pricelist[id].consumption2 = row[13] ? std::stod(row[13]) : 0.0; // consumption2
-        m_pricelist[id].speed = row[15] ? std::stod(row[15]) : 0.0; // speed1
-        m_pricelist[id].speed2 = row[16] ? std::stod(row[16]) : 0.0; // speed2
-        m_pricelist[id].capacity = row[21] ? std::stod(row[21]) : 0.0; // capacity
-        m_pricelist[id].tech = row[14] ? std::stoi(row[14]) : 0;   // speed_tech
-        m_pricelist[id].time = row[24] ? std::stod(row[24]) : 0.0; // time_bonus
+        pricelist_[id].factor = item.factor;
+        pricelist_[id].max = row[6] ? std::stoi(row[6]) : 0;   // max_level
+        pricelist_[id].consumption = row[12] ? std::stod(row[12]) : 0.0; // consumption1
+        pricelist_[id].consumption2 = row[13] ? std::stod(row[13]) : 0.0; // consumption2
+        pricelist_[id].speed = row[15] ? std::stod(row[15]) : 0.0; // speed1
+        pricelist_[id].speed2 = row[16] ? std::stod(row[16]) : 0.0; // speed2
+        pricelist_[id].capacity = row[21] ? std::stod(row[21]) : 0.0; // capacity
+        pricelist_[id].tech = row[14] ? std::stoi(row[14]) : 0;   // speed_tech
+        pricelist_[id].time = row[24] ? std::stod(row[24]) : 0.0; // time_bonus
 
         // PHP: $PRICELIST -> bonus & _unit
-        m_pricelist[id].bonus["Attack"] = { row[25] ? std::stod(row[25]) : 0.0, row[43] ? std::stoi(row[43]) : 0 }; // bonus_attack , _unit
-        m_pricelist[id].bonus["Defensive"] = { row[26] ? std::stod(row[26]) : 0.0, row[44] ? std::stoi(row[44]) : 0 }; // bonus_defensive , _unit
-        m_pricelist[id].bonus["Shield"] = { row[27] ? std::stod(row[27]) : 0.0, row[45] ? std::stoi(row[45]) : 0 }; // bonus_shield , _unit
-        m_pricelist[id].bonus["BuildTime"] = { row[28] ? std::stod(row[28]) : 0.0, row[46] ? std::stoi(row[46]) : 0 }; // bonus_build_time , _unit
-        m_pricelist[id].bonus["ResearchTime"] = { row[29] ? std::stod(row[29]) : 0.0, row[47] ? std::stoi(row[47]) : 0 }; // bonus_research_time , _unit
-        m_pricelist[id].bonus["Resource"] = { row[32] ? std::stod(row[32]) : 0.0, row[50] ? std::stoi(row[50]) : 0 }; // bonus_resource , _unit
-        m_pricelist[id].bonus["Energy"] = { row[33] ? std::stod(row[33]) : 0.0, row[51] ? std::stoi(row[51]) : 0 }; // bonus_energy , _unit
+        pricelist_[id].bonus["Attack"] = { row[25] ? std::stod(row[25]) : 0.0, row[43] ? std::stoi(row[43]) : 0 }; // bonus_attack , _unit
+        pricelist_[id].bonus["Defensive"] = { row[26] ? std::stod(row[26]) : 0.0, row[44] ? std::stoi(row[44]) : 0 }; // bonus_defensive , _unit
+        pricelist_[id].bonus["Shield"] = { row[27] ? std::stod(row[27]) : 0.0, row[45] ? std::stoi(row[45]) : 0 }; // bonus_shield , _unit
+        pricelist_[id].bonus["BuildTime"] = { row[28] ? std::stod(row[28]) : 0.0, row[46] ? std::stoi(row[46]) : 0 }; // bonus_build_time , _unit
+        pricelist_[id].bonus["ResearchTime"] = { row[29] ? std::stod(row[29]) : 0.0, row[47] ? std::stoi(row[47]) : 0 }; // bonus_research_time , _unit
+        pricelist_[id].bonus["Resource"] = { row[32] ? std::stod(row[32]) : 0.0, row[50] ? std::stoi(row[50]) : 0 }; // bonus_resource , _unit
+        pricelist_[id].bonus["Energy"] = { row[33] ? std::stod(row[33]) : 0.0, row[51] ? std::stoi(row[51]) : 0 }; // bonus_energy , _unit
 
         // 4. PHP: $PRODGRID -> production
-        m_prodgrid[id].production[901] = row[62] ? row[62] : ""; // production901
-        m_prodgrid[id].production[902] = row[63] ? row[63] : ""; // production902
-        m_prodgrid[id].production[903] = row[64] ? row[64] : ""; // production903
-        m_prodgrid[id].production[911] = row[65] ? row[65] : ""; // production911
-        m_prodgrid[id].production[921] = row[66] ? row[66] : ""; // production921
+        prodgrid_[id].production[901] = row[62] ? row[62] : ""; // production901
+        prodgrid_[id].production[902] = row[63] ? row[63] : ""; // production902
+        prodgrid_[id].production[903] = row[64] ? row[64] : ""; // production903
+        prodgrid_[id].production[911] = row[65] ? row[65] : ""; // production911
+        prodgrid_[id].production[921] = row[66] ? row[66] : ""; // production921
 
         // PHP: $PRODGRID -> storage
-        m_prodgrid[id].storage[901] = row[67] ? row[67] : ""; // storage901
-        m_prodgrid[id].storage[902] = row[68] ? row[68] : ""; // storage902
-        m_prodgrid[id].storage[903] = row[69] ? row[69] : ""; // storage903
+        prodgrid_[id].storage[901] = row[67] ? row[67] : ""; // storage901
+        prodgrid_[id].storage[902] = row[68] ? row[68] : ""; // storage902
+        prodgrid_[id].storage[903] = row[69] ? row[69] : ""; // storage903
 
         // PHP: array_filter($PRODGRID...['production'])
-        if (!m_prodgrid[id].production[901].empty()
-            || !m_prodgrid[id].production[902].empty()
-            || !m_prodgrid[id].production[903].empty()
-            || !m_prodgrid[id].production[911].empty())
+        if (!prodgrid_[id].production[901].empty()
+            || !prodgrid_[id].production[902].empty()
+            || !prodgrid_[id].production[903].empty()
+            || !prodgrid_[id].production[911].empty())
         {
-            m_reslist.prod.push_back(id);
+            reslist_.prod.push_back(id);
         }
 
         // PHP: array_filter($PRODGRID...['storage'])
-        if (!m_prodgrid[id].storage[901].empty()
-            || !m_prodgrid[id].storage[902].empty()
-            || !m_prodgrid[id].storage[903].empty())
+        if (!prodgrid_[id].storage[901].empty()
+            || !prodgrid_[id].storage[902].empty()
+            || !prodgrid_[id].storage[903].empty())
         {
-            m_reslist.storage.push_back(id);
+            reslist_.storage.push_back(id);
         }
 
         // PHP: Bonus total check
         double checkBonus = 0.0;
-        for (const auto& b : m_pricelist[id].bonus) {
+        for (const auto& b : pricelist_[id].bonus) {
             checkBonus += b.second.value;
         }
         if (checkBonus != 0.0)
         {
-            m_reslist.bonus.push_back(id);
+            reslist_.bonus.push_back(id);
         }
 
         // PHP: if ($varsRow['one_per_planet'] == 1)
         if (row[4] && std::stoi(row[4]) == 1) // one_per_planet
         {
-            m_reslist.one.push_back(id);
+            reslist_.one.push_back(id);
         }
 
         // PHP: switch ($varsRow['class'])
@@ -627,7 +627,7 @@ bool CDatabase::LoadVars()
         switch (itemClass)
         {
         case 0:
-            m_reslist.build.push_back(id);
+            reslist_.build.push_back(id);
             // PHP: $tmp = explode(',', $varsRow['on_planet_type']);
             if (row[4]) // on_planet_type kolonu ("1,2,3")
             {
@@ -636,39 +636,39 @@ bool CDatabase::LoadVars()
                 while (std::getline(ss, token, ',')) {
                     if (!token.empty()) {
                         int type = std::stoi(token);
-                        m_reslist.allow[type].push_back(id);
+                        reslist_.allow[type].push_back(id);
                     }
                 }
             }
             break;
-        case 100:  m_reslist.tech.push_back(id);      break;
-        case 200:  m_reslist.fleet.push_back(id);     break;
-        case 400:  m_reslist.defense.push_back(id);   break;
-        case 500:  m_reslist.missile.push_back(id);   break;
-        case 600:  m_reslist.officers.push_back(id);  break;
-        case 700:  m_reslist.dmfunc.push_back(id);    break;
+        case 100:  reslist_.tech.push_back(id);      break;
+        case 200:  reslist_.fleet.push_back(id);     break;
+        case 400:  reslist_.defense.push_back(id);   break;
+        case 500:  reslist_.missile.push_back(id);   break;
+        case 600:  reslist_.officers.push_back(id);  break;
+        case 700:  reslist_.dmfunc.push_back(id);    break;
         }
 
-        m_vars.emplace(item.element_id, item);
+        vars_.emplace(item.element_id, item);
         iLoadNum++;
     }
 
     // --- overrites, which are not in vars table as default ---
 
-    // 1. m_resource 
-    m_resource[901] = "metal";
-    m_resource[902] = "crystal";
-    m_resource[903] = "deuterium";
-    m_resource[911] = "energy";
-    m_resource[921] = "darkmatter";
+    // 1. resource_ 
+    resource_[901] = "metal";
+    resource_[902] = "crystal";
+    resource_[903] = "deuterium";
+    resource_[911] = "energy";
+    resource_[921] = "darkmatter";
 
-    // 2. m_reslist -> ressources list [901, 902, 903, 911, 921]
-    m_reslist.ressources.insert(m_reslist.ressources.end(), { 901, 902, 903, 911, 921 });
+    // 2. reslist_ -> ressources list [901, 902, 903, 911, 921]
+    reslist_.ressources.insert(reslist_.ressources.end(), { 901, 902, 903, 911, 921 });
 
-    // 3. m_reslist -> resstype list
-    m_reslist.resstype[1].insert(m_reslist.resstype[1].end(), { 901, 902, 903 });
-    m_reslist.resstype[2].push_back(911);
-    m_reslist.resstype[3].push_back(921);
+    // 3. reslist_ -> resstype list
+    reslist_.resstype[1].insert(reslist_.resstype[1].end(), { 901, 902, 903 });
+    reslist_.resstype[2].push_back(911);
+    reslist_.resstype[3].push_back(921);
 
     mysql_free_result(result);
     CLogger::Info("[CDatabase] - Vars NUM : {} (vars) has been successfully loaded.", iLoadNum);
@@ -678,28 +678,28 @@ bool CDatabase::LoadVars()
 
 bool CDatabase::LoadVarsRequirements() 
 {
-    if (m_pConn == nullptr)
+    if (conn_ == nullptr)
     {
         CLogger::Error("[CDatabase] - LoadVarsRequirements error: no database connection.");
         return false;
     }
 
-    std::string strQuery = "SELECT * FROM `" + m_strDBPrefix + "vars_requirements`";
+    std::string strQuery = "SELECT * FROM `" + db_uni_prefix_ + "vars_requirements`";
 
-    if (mysql_query(m_pConn, strQuery.c_str()) != 0)
+    if (mysql_query(conn_, strQuery.c_str()) != 0)
     {
-        CLogger::Error("[CDatabase] - LoadVarsRequirements Query Error: {}", mysql_error(m_pConn));
+        CLogger::Error("[CDatabase] - LoadVarsRequirements Query Error: {}", mysql_error(conn_));
         return false;
     }
 
-    MYSQL_RES* result = mysql_store_result(m_pConn);
+    MYSQL_RES* result = mysql_store_result(conn_);
     if (result == nullptr)
     {
-        CLogger::Error("[CDatabase] - LoadVarsRequirements Result Missing: {}", mysql_error(m_pConn));
+        CLogger::Error("[CDatabase] - LoadVarsRequirements Result Missing: {}", mysql_error(conn_));
         return false;
     }
 
-    m_vars_requirements.clear();
+    vars_requirements_.clear();
 
     MYSQL_ROW row;
     int iLoadNum = 0;
@@ -717,7 +717,7 @@ bool CDatabase::LoadVarsRequirements()
         item.require_id = std::stoi(row[1]);
         item.require_level = std::stoi(row[2]);
 
-        m_vars_requirements[element_id].push_back(item);
+        vars_requirements_[element_id].push_back(item);
         iLoadNum++;
     }
 
@@ -729,7 +729,7 @@ bool CDatabase::LoadVarsRequirements()
 
 bool CDatabase::LoadConfig() 
 {
-    if (m_pConn == nullptr)
+    if (conn_ == nullptr)
     {
         CLogger::Error("[CDatabase] - LoadConfig - no connection.");
         return false;
@@ -741,22 +741,22 @@ bool CDatabase::LoadConfig()
         "`deuterium_basic_income`, `max_galaxy`, `max_system`, "
         "`max_planets`, `max_overflow`, `energySpeed` "
         "FROM `{}config`",
-        m_strDBPrefix);
+        db_uni_prefix_);
 
-    if (mysql_query(m_pConn, strQuery.c_str()) != 0)
+    if (mysql_query(conn_, strQuery.c_str()) != 0)
     {
-        CLogger::Error("[CDatabase] - LoadConfig query error: {}", mysql_error(m_pConn));
+        CLogger::Error("[CDatabase] - LoadConfig query error: {}", mysql_error(conn_));
         return false;
     }
 
-    MYSQL_RES* result = mysql_store_result(m_pConn);
+    MYSQL_RES* result = mysql_store_result(conn_);
     if (result == nullptr)
     {
-        CLogger::Error("[CDatabase] - LoadConfig Result Error: {}", mysql_error(m_pConn));
+        CLogger::Error("[CDatabase] - LoadConfig Result Error: {}", mysql_error(conn_));
         return false;
     }
 
-    m_config.clear();
+    config_.clear();
 
     MYSQL_ROW row;
     int loadedCount = 0;
@@ -781,7 +781,7 @@ bool CDatabase::LoadConfig()
         item.max_overflow = std::stod(row[i]); i++;
         item.energySpeed = std::stoi(row[i]); i++;
 
-        m_config.emplace(item.uni, item);
+        config_.emplace(item.uni, item);
         loadedCount++;
     }
 
@@ -795,7 +795,7 @@ bool CDatabase::UpdateBots(std::vector<table_users>& vecBots)
 {
 
     if (vecBots.empty()) return false;
-    if (m_pConn == nullptr) return false;
+    if (conn_ == nullptr) return false;
     // =========================================================================
     // PART 1: UPDATE BOT RESEARCH (USERS TABLE)
     // =========================================================================
@@ -805,7 +805,7 @@ bool CDatabase::UpdateBots(std::vector<table_users>& vecBots)
         "combustion_tech, impulse_motor_tech, hyperspace_motor_tech, laser_tech, "
         "ion_tech, plasma_tech, intergalactic_tech, expedition_tech, "
         "metal_proc_tech, crystal_proc_tech, deuterium_proc_tech, graviton_tech, onlinetime) VALUES "
-        , m_strDBPrefix);
+        , db_uni_prefix_);
 
 
     const std::string strUserFooter = " ON DUPLICATE KEY UPDATE "
@@ -904,9 +904,9 @@ bool CDatabase::UpdateBots(std::vector<table_users>& vecBots)
 
             strQuery += strUserFooter;
 
-            if (mysql_query(m_pConn, strQuery.c_str()) != 0)
+            if (mysql_query(conn_, strQuery.c_str()) != 0)
             {
-                CLogger::Error("[CDatabase] - UpdateBots (Users) Paket Hatasi (Index {}-{}): {}", i, endIndex - 1, mysql_error(m_pConn));
+                CLogger::Error("[CDatabase] - UpdateBots (Users) Paket Hatasi (Index {}-{}): {}", i, endIndex - 1, mysql_error(conn_));
                 return false;
             }
         }
@@ -945,7 +945,7 @@ bool CDatabase::UpdateBots(std::vector<table_users>& vecBots)
         "rocket_launcher, light_laser, heavy_laser, gauss_cannon, ion_cannon, plasma_turret, small_protection_shield, planet_protector, big_protection_shield, graviton_cannon, interceptor_misil, interplanetary_misil, "
         "metal_mine_percent, crystal_mine_percent, deuterium_synthesizer_percent, solar_plant_percent, fusion_plant_percent, solar_satellite_percent "
         ") VALUES "
-        , m_strDBPrefix);
+        , db_uni_prefix_);
 
     // footer
     const std::string strPlanetFooter = " ON DUPLICATE KEY UPDATE "
@@ -1091,9 +1091,9 @@ bool CDatabase::UpdateBots(std::vector<table_users>& vecBots)
 
             strQuery += strPlanetFooter;
 
-            if (mysql_query(m_pConn, strQuery.c_str()) != 0)
+            if (mysql_query(conn_, strQuery.c_str()) != 0)
             {
-                CLogger::Error("[CDatabase] - UpdateBots (Planets) Paket Hatasi (Index {}-{}): {}", i, endIndex - 1, mysql_error(m_pConn));
+                CLogger::Error("[CDatabase] - UpdateBots (Planets) Paket Hatasi (Index {}-{}): {}", i, endIndex - 1, mysql_error(conn_));
                 return false;
             }
         }
@@ -1118,59 +1118,59 @@ bool CDatabase::AddBots(int count)
 
 bool CDatabase::RemoveBots() 
 {
-    if (m_pConn == nullptr)
+    if (conn_ == nullptr)
     {
         return false;
     }
 
     std::string usersQuery =
-        "DELETE FROM `" + m_strDBPrefix + "users` WHERE `is_bot` = 1";
+        "DELETE FROM `" + db_uni_prefix_ + "users` WHERE `is_bot` = 1";
 
     std::string planetsQuery =
-        "DELETE FROM `" + m_strDBPrefix + "planets` WHERE `is_bot` = 1";
+        "DELETE FROM `" + db_uni_prefix_ + "planets` WHERE `is_bot` = 1";
 
     // Transaction start
-    if (mysql_autocommit(m_pConn, 0) != 0)
+    if (mysql_autocommit(conn_, 0) != 0)
     {
         CLogger::Error("[CDatabase] - Failed to disable autocommit: {}",
-            mysql_error(m_pConn));
+            mysql_error(conn_));
         return false;
     }
 
     bool success = true;
 
-    if (mysql_query(m_pConn, usersQuery.c_str()) != 0)
+    if (mysql_query(conn_, usersQuery.c_str()) != 0)
     {
         CLogger::Error("[CDatabase] - RemoveBots Users Query Error: {}",
-            mysql_error(m_pConn));
+            mysql_error(conn_));
         success = false;
     }
 
     if (success &&
-        mysql_query(m_pConn, planetsQuery.c_str()) != 0)
+        mysql_query(conn_, planetsQuery.c_str()) != 0)
     {
         CLogger::Error("[CDatabase] - RemoveBots Planets Query Error: {}",
-            mysql_error(m_pConn));
+            mysql_error(conn_));
         success = false;
     }
 
     if (success)
     {
-        if (mysql_commit(m_pConn) != 0)
+        if (mysql_commit(conn_) != 0)
         {
             CLogger::Error("[CDatabase] - Commit Error: {}",
-                mysql_error(m_pConn));
+                mysql_error(conn_));
             success = false;
         }
     }
 
     if (!success)
     {
-        mysql_rollback(m_pConn);
+        mysql_rollback(conn_);
     }
 
-    mysql_autocommit(m_pConn, 1);
-    m_vecTempBots.clear();
+    mysql_autocommit(conn_, 1);
+    temp_bots_.clear();
 
     return success;
 }

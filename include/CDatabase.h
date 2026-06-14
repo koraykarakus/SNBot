@@ -13,31 +13,31 @@ class CDatabase
 {
 private:
     static const int BATCH_SIZE = 300;
-    MYSQL* m_pConn;
+    MYSQL* conn_;
     CBotManager* m_pBotManager;
 
-    std::string m_strDBUser;
-    std::string m_strDBPass;
-    std::string m_strDBHost;
-    std::string m_strDBName;
-    std::string m_strDBPrefix;
+    std::string db_user_;
+    std::string db_pass_;
+    std::string db_host_;
+    std::string db_name_;
+    std::string db_uni_prefix_;
     // loop time in seconds
-    int m_loopTime;
+    int loop_time_;
     // last time bots loaded from db
-    time_var m_lastLoadTime;
+    time_var last_load_time_;
     // reload time of bots
-    int m_reloadTime;
+    int reload_time_;
 
-    std::unordered_map<int, table_vars> m_vars;
-    std::unordered_map<int, std::vector<table_vars_requirements>> m_vars_requirements;
-    std::unordered_map<int, std::string> m_resource;
-    std::unordered_map<int, combat_caps> m_combatcaps;
-    std::unordered_map<int, pricelist_data> m_pricelist;
-    std::unordered_map<int, prodgrid_data> m_prodgrid;
-    std::unordered_map<int, table_config> m_config;
-    reslist_data m_reslist;
+    std::unordered_map<int, table_vars> vars_;
+    std::unordered_map<int, std::vector<table_vars_requirements>> vars_requirements_;
+    std::unordered_map<int, std::string> resource_;
+    std::unordered_map<int, combat_caps> combatcaps_;
+    std::unordered_map<int, pricelist_data> pricelist_;
+    std::unordered_map<int, prodgrid_data> prodgrid_;
+    std::unordered_map<int, table_config> config_;
+    reslist_data reslist_;
 
-    std::vector<table_users> m_vecTempBots;
+    std::vector<table_users> temp_bots_;
 
 public:
     CDatabase();
@@ -56,53 +56,53 @@ public:
 
     inline const std::unordered_map<int, table_vars>& GetVars() const
     {
-        return m_vars;
+        return vars_;
     }
 
     inline const std::unordered_map<int, std::vector<table_vars_requirements>>& 
         GetVarsRequirements() const
     {
-        return m_vars_requirements;
+        return vars_requirements_;
     }
 
     inline const std::unordered_map<int, std::string>& GetResource() const
     {
-        return m_resource;
+        return resource_;
     }
 
     inline const std::unordered_map<int, combat_caps>& GetCombatCaps() const
     {
-        return m_combatcaps;
+        return combatcaps_;
     }
 
     inline const std::unordered_map<int, pricelist_data>& GetPriceList() const
     {
-        return m_pricelist;
+        return pricelist_;
     }
 
     inline const std::unordered_map<int, prodgrid_data>& GetProdGrid() const
     {
-        return m_prodgrid;
+        return prodgrid_;
     }
 
     inline const std::unordered_map<int, table_config>& GetConfig() const 
     {
-        return m_config;
+        return config_;
     }
 
     inline const reslist_data& GetReslist() const
     {
-        return m_reslist;
+        return reslist_;
     }
 
     inline const int GetLoopTime() const {
-        return m_loopTime;
+        return loop_time_;
     }
 
     
     inline table_users* GetBotRef(int botId)
     {
-        for (auto& bot : m_vecTempBots)
+        for (auto& bot : temp_bots_)
         {
             if (bot.id == botId)
                 return &bot;
@@ -110,8 +110,8 @@ public:
         return nullptr;
     }
 
-    const std::vector<table_users>& GetLoadedBots() const { return m_vecTempBots; }
+    const std::vector<table_users>& GetLoadedBots() const { return temp_bots_; }
 
 
-    MYSQL* GetConnection() const { return m_pConn; }
+    MYSQL* GetConnection() const { return conn_; }
 };
