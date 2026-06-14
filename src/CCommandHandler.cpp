@@ -3,8 +3,8 @@
 #include "CApplication.h"
 
 CCommandHandler::CCommandHandler()
+	: bot_manager_(nullptr)
 {
-    bot_manager_ = nullptr;
 }
 
 CCommandHandler::~CCommandHandler()
