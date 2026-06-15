@@ -7,13 +7,22 @@ CApplication::CApplication()
 	, loaded_(false)
     , started_(false)
 {
-    database_ = std::make_unique<CDatabase>();
+    language_ = std::make_unique<CLanguage>();
+    
+    database_ = std::make_unique<CDatabase>(
+        language_->GetLangStrings()
+    );
+
     bot_manager_ = std::make_unique<CBotManager>(
         database_->GetVars(),
-        database_->GetVarsRequirements()
+        database_->GetVarsRequirements(),
+        language_->GetLangStrings()
     );
+
     logger_ = std::make_unique<CLogger>();
-    command_handler_ = std::make_unique<CCommandHandler>();
+    command_handler_ = std::make_unique<CCommandHandler>(
+        language_->GetLangStrings()
+    );
 }
 
 CApplication::~CApplication()

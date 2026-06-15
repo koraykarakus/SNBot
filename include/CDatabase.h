@@ -7,11 +7,14 @@
 
 class CApplication;
 class CBotManager;
+class CLanguage;
 using time_var = std::chrono::steady_clock::time_point;
 
 class CDatabase
 {
 private:
+    const std::unordered_map<std::string, std::string>& lang_;
+
     static const int BATCH_SIZE = 300;
     MYSQL* conn_;
 
@@ -40,7 +43,9 @@ private:
     std::vector<table_users> temp_bots_;
 
 public:
-    CDatabase();
+    CDatabase(
+        const std::unordered_map<std::string, std::string>& lang
+    );
     ~CDatabase();
     void Init();
 

@@ -66,6 +66,9 @@ using time_var = std::chrono::steady_clock::time_point;
 class CBotManager 
 {
 private:
+	// language umap
+	const std::unordered_map<std::string, std::string>& lang_;
+
 	// wait time in seconds between each bot handle overall loops.
 	int loop_time_;
 	// timestamp
@@ -90,7 +93,9 @@ private:
 public:
 	CBotManager(
 		const std::unordered_map<int, table_vars>& dbvars_,
-		const std::unordered_map<int, std::vector<table_vars_requirements>>& dbvars_requirements_);
+		const std::unordered_map<int, std::vector<table_vars_requirements>>& dbvars_requirements_,
+		const std::unordered_map<std::string, std::string>& lang
+	);
 	~CBotManager();
 	void Run(CDatabase* database, const CApplication& app);
 

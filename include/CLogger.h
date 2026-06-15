@@ -28,21 +28,27 @@ public:
     }
 
     template<typename... Args>
-    static void Info(fmt::format_string<Args...> fmt, Args&&... args)
+    static void Info(const std::string& fmt_str, Args&&... args)
     {
-        spdlog::info(fmt, std::forward<Args>(args)...);
+        spdlog::info(
+            fmt::runtime(fmt_str),
+            std::forward<Args>(args)...);
     }
 
     template<typename... Args>
-    static void Warn(fmt::format_string<Args...> fmt, Args&&... args)
+    static void Warn(const std::string& fmt_str, Args&&... args)
     {
-        spdlog::warn(fmt, std::forward<Args>(args)...);
+        spdlog::warn(
+            fmt::runtime(fmt_str),
+            std::forward<Args>(args)...);
     }
 
     template<typename... Args>
-    static void Error(fmt::format_string<Args...> fmt, Args&&... args)
+    static void Error(const std::string& fmt_str, Args&&... args)
     {
-        spdlog::error(fmt, std::forward<Args>(args)...);
+        spdlog::error(
+            fmt::runtime(fmt_str),
+            std::forward<Args>(args)...);
     }
 
     template<typename... Args>

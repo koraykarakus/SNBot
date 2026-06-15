@@ -8,6 +8,7 @@
 #include "CDatabase.h"
 #include "CLogger.h"
 #include "CCommandHandler.h"
+#include "CLanguage.h"
 #include "globals.h"
 #include "table_fleets.h"
 #include "table_users.h"
@@ -31,6 +32,7 @@ private:
 	std::unique_ptr<CDatabase> database_;
 	std::unique_ptr<CLogger> logger_;
 	std::unique_ptr<CCommandHandler> command_handler_;
+	std::unique_ptr<CLanguage> language_;
 public:
 	CApplication();
 	~CApplication();

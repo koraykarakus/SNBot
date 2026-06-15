@@ -2,8 +2,11 @@
 #include "CCommandHandler.h"
 #include "CApplication.h"
 
-CCommandHandler::CCommandHandler()
+CCommandHandler::CCommandHandler(
+    const std::unordered_map<std::string, std::string>& lang
+)
 	: bot_manager_(nullptr)
+    , lang_(lang)
 {
 }
 

@@ -5,8 +5,10 @@
 
 CBotManager::CBotManager(
     const std::unordered_map<int, table_vars>& dbvars_,
-    const std::unordered_map<int, std::vector<table_vars_requirements>>& dbvars_requirements_)
+    const std::unordered_map<int, std::vector<table_vars_requirements>>& dbvars_requirements_,
+    const std::unordered_map<std::string, std::string>& lang)
     : vars_(dbvars_)
+    , lang_(lang)
     , vars_requirements_(dbvars_requirements_)
     , bots_{}
     , first_run_(true)
@@ -112,7 +114,7 @@ void CBotManager::Run(CDatabase* database, const CApplication& app)
         // reload from db
         if (database->LoadBots())
         {
-            CLogger::Info("bot data has been refreshed");
+            CLogger::Info(lang_.at("ids_bot_data_refreshed"));
         }
         auto end = GetTimeNow();
 
@@ -122,15 +124,13 @@ void CBotManager::Run(CDatabase* database, const CApplication& app)
         time_last_run_ = timeNow;
         auto duration_micros = GetElapsedMicroseconds(start, end);
         double duration_millis = GetElapsedMilliseconds(start, end);
-        CLogger::Info(
-            "Process handled in [{} microsec / {} millisec]\n"
-            "Next run is in {} seconds.",
+        CLogger::Info(lang_.at("ids_process_handled"),
              duration_micros, duration_millis, loop_time_);
         // sleep
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    CLogger::Info("Bot Run thread finished.\n");
+    CLogger::Info(lang_.at("ids_run_thread_finished"));
 }
 
 void CBotManager::HandleMain() 
@@ -208,50 +208,47 @@ void CBotManager::LogResult()
         {
 		case 1:
 			fmt::format_to(std::back_inserter(buf),
-				"skip - bot is not online now. uid:{} - pid:{}\n",
+                fmt::runtime(lang_.at("ids_bot_is_not_online")),
 				log.bot_id, log.id_planet);
 			break;
 		case 2:
 			fmt::format_to(std::back_inserter(buf),
-				"skip - bot is away for {} seconds. uid:{} - pid:{}\n",
+                fmt::runtime(lang_.at("ids_bot_is_away")),
 				log.away_time, log.bot_id, log.id_planet);
 			break;
 		case 3:
 			fmt::format_to(std::back_inserter(buf),
-				"skip - bot is in vacation mode. uid:{} - pid:{}\n",
+				fmt::runtime(lang_.at("ids_bot_in_vacation")),
 				log.bot_id, log.id_planet);
 			break;
         case 4:
             fmt::format_to(std::back_inserter(buf),
-                "skip - config map missing : uni_id:{} not found. uid:{} - pid:{}\n", 
+                fmt::runtime(lang_.at("ids_config_map_missing")),
                 log.universe, log.bot_id, log.id_planet);
             break;
         case 5:
             fmt::format_to(std::back_inserter(buf),
-                "skip - already building. uid:{} - pid:{}\n",
+                fmt::runtime(lang_.at("ids_already_building")),
                 log.bot_id, log.id_planet);
             break;
         case 6:
             fmt::format_to(std::back_inserter(buf),
-                "skip - building list has been completed. uid:{} - pid:{}\n",
+                fmt::runtime(lang_.at("ids_build_list_completed")),
                 log.bot_id, log.id_planet);
             break;
         case 7:
             fmt::format_to(std::back_inserter(buf), 
-                "skip - wrong element id:[{}]. uid:{} - pid:{}\n", 
+                fmt::runtime(lang_.at("ids_wrong_elem_id")),
                 log.building_id, log.bot_id, log.id_planet);
             break;
         case 8:
             fmt::format_to(std::back_inserter(buf),
-                "skip - tech is not accessible for research id:[{}]. uid:{} - pid:{}\n",
+                fmt::runtime(lang_.at("ids_tech_not_accessible")),
                 log.research_id, log.bot_id, log.id_planet);
             break;
         case 9:
             fmt::format_to(std::back_inserter(buf),
-                "skip - [g{}:s{}:p{}] email:[{}]\n"
-                "not enough resources for build id:{}\n"
-                "required:[metal:{}|crystal:{}|deu:{}] have:[metal:{}|crystal:{}|deu:{}]\n"
-                "bid:{} - pid:{}\n",
+                 fmt::runtime(lang_.at("ids_not_enough_res")),
                  log.galaxy, log.system, log.planet,
                  log.email, log.building_id, log.cost901, log.cost902, log.cost903,
                  log.planet_metal, log.planet_crystal, log.planet_deu,
@@ -259,50 +256,48 @@ void CBotManager::LogResult()
             break;
         case 10:
             fmt::format_to(std::back_inserter(buf),
-                "started building - {}, level:{}. uid:{} - pid:{}\n",
+                fmt::runtime(lang_.at("ids_started_building")),
                 log.building_name, log.building_level, log.bot_id, log.id_planet);
             break;
         case 11:
             fmt::format_to(std::back_inserter(buf),
-                "skip - already researching.. uid:{} - pid:{}\n",
+                fmt::runtime(lang_.at("ids_already_researching")),
                 log.bot_id, log.id_planet);
             break;
         case 12:
             fmt::format_to(std::back_inserter(buf),
-                "skip - planet don't have laboratory. uid:{} - pid:{}\n",
+                fmt::runtime(lang_.at("ids_planet_dont_have_lab")),
                 log.bot_id, log.id_planet);
             break;
         case 13:
             fmt::format_to(std::back_inserter(buf),
-                "skip - research list has been completed for bot. uid:{} - pid:{}\n", 
+                fmt::runtime(lang_.at("ids_research_list_complete")),
                 log.bot_id, log.id_planet);
             break;
         case 14:
             fmt::format_to(std::back_inserter(buf), 
-                "skip - wrong element id:{}. uid:{} - pid:{}\n", 
+                fmt::runtime(lang_.at("ids_wrong_elem_id")),
                 log.building_id,log.bot_id, log.id_planet);
             break;
         case 15:
             fmt::format_to(std::back_inserter(buf),
-                "skip - tech is not accessible for [research_id:{}]. uid:{} - pid:{}\n",
+                fmt::runtime(lang_.at("ids_tech_not_accessible")),
                 log.research_id, log.bot_id, log.id_planet);
             break;
         case 16:
             fmt::format_to(std::back_inserter(buf),
-                "skip - uid:{} - pid:{} [g{}:s{}:p{}] - email:[{}] \n"
-                "not enough res for element id:{} \n"
-                "required: [metal:{}|crystal:{}|deu:{}] have: [metal:{}|crystal:{}|deu:{}]\n",
+                fmt::runtime(lang_.at("ids_not_enough_res")),
                 log.bot_id, log.id_planet, log.galaxy, log.system, log.planet,
                 log.email, log.building_id, log.cost901, log.cost902, log.cost903,
                 log.planet_metal, log.planet_crystal, log.planet_deu);
             break;
         case 17:
             fmt::format_to(std::back_inserter(buf),
-                "started research - {}, level:{}. uid:{} - pid:{}\n",
+                fmt::runtime(lang_.at("ids_started_research")),
                 log.research_name, log.research_level, log.id_planet, log.bot_id);
             break;
         default:
-            fmt::format_to(std::back_inserter(buf), "Undefined log type.\n");
+            fmt::format_to(std::back_inserter(buf), fmt::runtime(lang_.at("ids_undef_log")));
             break;
         }
     }
@@ -311,7 +306,7 @@ void CBotManager::LogResult()
 
     // 5000 botun tüm bilgisini TEK BİR SEFERDE diske/konsola yazar. 
     // I/O işlemi 5000 kez değil, sadece 1 kez çağrılır!
-    CLogger::Info("### BUILD LOGS ###\n{}", fmt::to_string(buf));
+    CLogger::Info(lang_.at("ids_build_logs_all"), fmt::to_string(buf));
 }
 
 

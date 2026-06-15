@@ -3,13 +3,16 @@
 
 #include "CDatabase.h"
 #include "CLogger.h"
+#include "CLanguage.h"
 #include <toml++/toml.hpp>
 #include <fmt/ranges.h>
 #include <filesystem>
 
 using namespace std::literals;
 
-CDatabase::CDatabase()
+CDatabase::CDatabase(
+    const std::unordered_map<std::string, std::string>& lang
+)
     : conn_(nullptr)
     , db_user_()
     , db_pass_()
@@ -29,6 +32,7 @@ CDatabase::CDatabase()
     , loop_time_(30)
     , last_load_time_(std::chrono::steady_clock::time_point{})
     , reload_time_(300)
+    , lang_(lang)
 {
     Init();
 }
@@ -46,7 +50,7 @@ void CDatabase::Init()
     // 1. Dosya var mı kontrol et, yoksa varsayılanlarla oluştur
     if (!std::filesystem::exists(config_path))
     {
-        CLogger::Error("settings.toml not found! Creating default configuration file...\n");
+        CLogger::Error(lang_.at("ids_settings_not_found"));
 
         // defaults
         config = toml::table{
@@ -73,7 +77,7 @@ void CDatabase::Init()
         }
         else
         {
-            CLogger::Error("error: settings.toml cannot be saved!\n");
+            CLogger::Error(lang_.at("ids_settings_cannot_be_saved"));
         }
     }
     else
@@ -85,7 +89,7 @@ void CDatabase::Init()
         }
         catch (const toml::parse_error& err)
         {
-            CLogger::Error("Error parsing settings.toml: {}\n", err.description());
+            CLogger::Error(lang_.at("ids_settings_cannot_be_parsed"), err.description());
             return;
         }
     }
@@ -102,7 +106,7 @@ void CDatabase::Init()
     loop_time_ = config["general"]["loop_time"].value_or(30);
     reload_time_ = config["general"]["bot_reload_time"].value_or(300);
 
-    CLogger::Info("[CDatabase] settings read from settings.toml Host: {}", db_host_);
+    CLogger::Info(lang_.at("ids_settings_read"), db_host_);
 }
 
 bool CDatabase::Connect()
@@ -111,7 +115,7 @@ bool CDatabase::Connect()
 
     if (conn_ == nullptr)
     {
-        CLogger::Error("[CDatabase] - mysql_init failed");
+        CLogger::Error(lang_.at("ids_mysql_init_failed"));
         return false;
     }
 
@@ -123,7 +127,7 @@ bool CDatabase::Connect()
     }
     else
     {
-        CLogger::Info("ssl is active\n");
+        CLogger::Info(lang_.at("ids_ssl_is_active"));
     }
     // ----------------------------------------
 
@@ -137,7 +141,7 @@ bool CDatabase::Connect()
         nullptr,
         0))
     {
-        CLogger::Error("[CDatabase] - MySQL Connection Failed. Error: {} ({})", mysql_error(conn_), mysql_errno(conn_));
+        CLogger::Error(lang_.at("ids_mysql_conn_failed"), mysql_error(conn_), mysql_errno(conn_));
 
         // close db always
         mysql_close(conn_);
@@ -191,7 +195,7 @@ bool CDatabase::LoadBots()
 
     if (mysql_query(conn_, strQuery.c_str()))
     {
-        CLogger::Error("[CDatabase] - Query Error (Users): {}", mysql_error(conn_));
+        CLogger::Error(lang_.at("ids_mysql_query_error"), mysql_error(conn_));
         return false;
     }
 
@@ -200,14 +204,14 @@ bool CDatabase::LoadBots()
     {
         if (mysql_field_count(conn_) > 0)
         {
-            CLogger::Error("[CDatabase] - Retrieve result error (Users): {}", mysql_error(conn_));
+            CLogger::Error(lang_.at("ids_mysql_retrieve_error"), mysql_error(conn_));
         }
 
         return false;
     }
 
     uint64_t rowCount = mysql_num_rows(result);
-    CLogger::Info("[CDatabase] - Found {} bots in database.", rowCount);
+    CLogger::Info(lang_.at("ids_found_num_bots"), rowCount);
 
     temp_bots_.clear();
 
@@ -346,7 +350,7 @@ bool CDatabase::LoadBots()
 
     if (mysql_query(conn_, strPlanetQuery.c_str()))
     {
-        CLogger::Error("[CDatabase] - Query Error (Planets): {}", mysql_error(conn_));
+        CLogger::Error(lang_.at("ids_mysql_query_error"), mysql_error(conn_));
         return false;
     }
 
@@ -355,7 +359,7 @@ bool CDatabase::LoadBots()
     {
         if (mysql_field_count(conn_) > 0) 
         {
-            CLogger::Error("[CDatabase] - Retrieve result error (Planets): {}", mysql_error(conn_));
+            CLogger::Error(lang_.at("ids_mysql_retrieve_error"), mysql_error(conn_));
         }
 
         return false;
@@ -488,7 +492,7 @@ bool CDatabase::LoadBots()
         }
         else
         {
-            CLogger::Warn("Planet ID {} has owner ID {} but no matching bot was found!", pl.id, pl.id_owner);
+            CLogger::Warn(lang_.at("ids_no_match_planet_bot"), pl.id, pl.id_owner);
         }
     }
    
@@ -499,8 +503,7 @@ bool CDatabase::LoadBots()
     auto end = GetTimeNow();
     auto duration_micros = GetElapsedMicroseconds(start, end);
     double duration_millis = GetElapsedMilliseconds(start, end);
-	CLogger::Info("[CDatabase] ### {} bots and {} planets "
-		"loaded successfully. ### [time:{} us / {} ms]\n",
+	CLogger::Info(lang_.at("ids_load_planet_bots_succ"),
 		ibotCounter, iPlanetCounter, duration_micros, duration_millis);
     return true;
 }
@@ -509,7 +512,7 @@ bool CDatabase::LoadVars()
 {
     if (conn_ == nullptr)
     {
-        CLogger::Error("[CDatabase] - LoadVars error: no database connection.");
+        CLogger::Error(lang_.at("ids_mysql_conn_failed"));
         return false;
     }
 
@@ -517,14 +520,14 @@ bool CDatabase::LoadVars()
 
     if (mysql_query(conn_, strQuery.c_str()) != 0)
     {
-        CLogger::Error("[CDatabase] - LoadVars Query Error: {}", mysql_error(conn_));
+        CLogger::Error(lang_.at("ids_mysql_query_error"), mysql_error(conn_));
         return false;
     }
 
     MYSQL_RES* result = mysql_store_result(conn_);
     if (result == nullptr)
     {
-        CLogger::Error("[CDatabase] - LoadVars Result Missing: {}", mysql_error(conn_));
+        CLogger::Error(lang_.at("ids_mysql_retrieve_error"), mysql_error(conn_));
         return false;
     }
 
@@ -680,7 +683,7 @@ bool CDatabase::LoadVars()
     reslist_.resstype[3].push_back(921);
 
     mysql_free_result(result);
-    CLogger::Info("[CDatabase] - Vars NUM : {} (vars) has been successfully loaded.", iLoadNum);
+    CLogger::Info(lang_.at("ids_load_vars_succ"), iLoadNum);
 
     return true;
 }
@@ -689,7 +692,7 @@ bool CDatabase::LoadVarsRequirements()
 {
     if (conn_ == nullptr)
     {
-        CLogger::Error("[CDatabase] - LoadVarsRequirements error: no database connection.");
+        CLogger::Error(lang_.at("ids_mysql_conn_failed"));
         return false;
     }
 
@@ -697,14 +700,14 @@ bool CDatabase::LoadVarsRequirements()
 
     if (mysql_query(conn_, strQuery.c_str()) != 0)
     {
-        CLogger::Error("[CDatabase] - LoadVarsRequirements Query Error: {}", mysql_error(conn_));
+        CLogger::Error(lang_.at("ids_mysql_query_error"), mysql_error(conn_));
         return false;
     }
 
     MYSQL_RES* result = mysql_store_result(conn_);
     if (result == nullptr)
     {
-        CLogger::Error("[CDatabase] - LoadVarsRequirements Result Missing: {}", mysql_error(conn_));
+        CLogger::Error(lang_.at("ids_mysql_retrieve_error"), mysql_error(conn_));
         return false;
     }
 
@@ -731,7 +734,7 @@ bool CDatabase::LoadVarsRequirements()
     }
 
     mysql_free_result(result);
-    CLogger::Info("[CDatabase] - Vars_Requirements NUM : {} (vars_req) has been successfully loaded.", load_num);
+    CLogger::Info(lang_.at("ids_load_varsreq_succ"), load_num);
 
     return true;
 }
@@ -740,7 +743,7 @@ bool CDatabase::LoadConfig()
 {
     if (conn_ == nullptr)
     {
-        CLogger::Error("[CDatabase] - LoadConfig - no connection.");
+        CLogger::Error(lang_.at("ids_mysql_conn_failed"));
         return false;
     }
 
@@ -754,14 +757,14 @@ bool CDatabase::LoadConfig()
 
     if (mysql_query(conn_, query.c_str()) != 0)
     {
-        CLogger::Error("[CDatabase] - LoadConfig query error: {}", mysql_error(conn_));
+        CLogger::Error(lang_.at("ids_mysql_query_error"), mysql_error(conn_));
         return false;
     }
 
     MYSQL_RES* result = mysql_store_result(conn_);
     if (result == nullptr)
     {
-        CLogger::Error("[CDatabase] - LoadConfig Result Error: {}", mysql_error(conn_));
+        CLogger::Error(lang_.at("ids_mysql_retrieve_error"), mysql_error(conn_));
         return false;
     }
 
@@ -795,7 +798,7 @@ bool CDatabase::LoadConfig()
     }
 
     mysql_free_result(result);
-    CLogger::Info("[CDatabase] - {}x config row has been loaded. ", loadedCount);
+    CLogger::Info(lang_.at("ids_load_config_succ"), loadedCount);
 
     return true;
 }
@@ -915,7 +918,7 @@ bool CDatabase::UpdateBots(std::vector<table_users>& vecBots)
 
             if (mysql_query(conn_, query.c_str()) != 0)
             {
-                CLogger::Error("[CDatabase] - UpdateBots (Users) Paket Hatasi (Index {}-{}): {}", i, endIndex - 1, mysql_error(conn_));
+                CLogger::Error(lang_.at("ids_mysql_query_error"), mysql_error(conn_));
                 return false;
             }
         }
@@ -1102,7 +1105,7 @@ bool CDatabase::UpdateBots(std::vector<table_users>& vecBots)
 
             if (mysql_query(conn_, query.c_str()) != 0)
             {
-                CLogger::Error("[CDatabase] - UpdateBots (Planets) Paket Hatasi (Index {}-{}): {}", i, endIndex - 1, mysql_error(conn_));
+                CLogger::Error(lang_.at("ids_mysql_query_error"), mysql_error(conn_));
                 return false;
             }
         }
@@ -1111,8 +1114,7 @@ bool CDatabase::UpdateBots(std::vector<table_users>& vecBots)
 
     auto duration_ms = GetElapsedMilliseconds(start, end);
     auto duration_us = GetElapsedMicroseconds(start, end);
-    CLogger::Info("[CDatabase] - {} bots and {} "
-        "planets updated successfully in database.- time {}ms - {}us]",
+    CLogger::Info(lang_.at("ids_update_planet_bots_succ"),
         bot_counter, planet_counter, duration_ms, duration_us);
     return true;
 }
@@ -1141,7 +1143,7 @@ bool CDatabase::RemoveBots()
     // Transaction start
     if (mysql_autocommit(conn_, 0) != 0)
     {
-        CLogger::Error("[CDatabase] - Failed to disable autocommit: {}",
+        CLogger::Error(lang_.at("ids_mysql_autocommit_fail"),
             mysql_error(conn_));
         return false;
     }
@@ -1150,7 +1152,7 @@ bool CDatabase::RemoveBots()
 
     if (mysql_query(conn_, usersQuery.c_str()) != 0)
     {
-        CLogger::Error("[CDatabase] - RemoveBots Users Query Error: {}",
+        CLogger::Error(lang_.at("ids_mysql_query_error"),
             mysql_error(conn_));
         success = false;
     }
@@ -1158,7 +1160,7 @@ bool CDatabase::RemoveBots()
     if (success &&
         mysql_query(conn_, planetsQuery.c_str()) != 0)
     {
-        CLogger::Error("[CDatabase] - RemoveBots Planets Query Error: {}",
+        CLogger::Error(lang_.at("ids_mysql_query_error"),
             mysql_error(conn_));
         success = false;
     }
@@ -1167,7 +1169,7 @@ bool CDatabase::RemoveBots()
     {
         if (mysql_commit(conn_) != 0)
         {
-            CLogger::Error("[CDatabase] - Commit Error: {}",
+            CLogger::Error(lang_.at("ids_mysql_commit_fail"),
                 mysql_error(conn_));
             success = false;
         }
