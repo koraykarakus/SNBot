@@ -53,7 +53,7 @@ bool CCommandHandler::ProcessCommand(std::string& line, CApplication& app)
                 info.type = 1;
                 info.count = count;
                 bot_manager_->PushCmdRequest(info);
-                std::cout << "[Console] " << count << " bot add request accepted.\n";
+                CLogger::Info(lang_.at("ids_addbot_received"));
             }
         }
     }
@@ -61,13 +61,13 @@ bool CCommandHandler::ProcessCommand(std::string& line, CApplication& app)
     {
         app.Start();
     }
-    else if (cmd == "/help")
-    {
-        std::cout << "type /start to start bot processing\n";
-        std::cout << "type /exit to close\n";
-        std::cout << "type /add_bot 100 -> to add 100 bots\n";
-        std::cout << "type /remove_bots -> to delete all bots and their planet\n";
-    }
+	else if (cmd == "/help")
+	{
+		CLogger::Info(lang_.at("ids_help_start"));
+		CLogger::Info(lang_.at("ids_help_exit"));
+		CLogger::Info(lang_.at("ids_help_addbots"));
+		CLogger::Info(lang_.at("ids_help_removebots"));
+	}
     else if (cmd == "/remove_bots")
     {
         info.type = 2;
@@ -75,12 +75,12 @@ bool CCommandHandler::ProcessCommand(std::string& line, CApplication& app)
     }
     else if (cmd == "/exit")
     {
-        std::cout << "[Console] exitting...\n";
+        CLogger::Info(lang_.at("ids_cmd_exid"));
         app.Close();
     }
     else
     {
-        std::cout << "Wrong command, type /help to display commands.\n";
+        CLogger::Info(lang_.at("ids_cmd_wrong"));
     }
 
     return true;

@@ -117,8 +117,20 @@ void CLanguage::CreateDefaultLangFile()
 			{ "ids_started_research", "started research - {}, level:{}. uid:{} - pid:{}\n" },
 			{ "ids_undef_log", "Undefined log type.\n" },
 			{ "ids_build_logs_all", "### BUILD LOGS ###\n{}\n" },
-			{ "", "\n" },
-			{ "", "\n" },
+
+			// CHandleConsoleCommand
+
+			{ "ids_creating_bots", "Creating {} bots..\n" },
+			{ "ids_bot_remove_succ", "All bots and their planet removed from database by success.\n" },
+
+			// CCommandHandler
+		    {"ids_help_start","type /start to start bot processing\n"},
+			{"ids_help_exit","type /exit to close\n"},
+			{"ids_help_addbots","type /add_bot 100 -> to add 100 bots\n"},
+			{"ids_help_removebots","type /remove_bots -> to delete all bots and their planet\n"},
+			{"ids_cmd_exid","[Console] exitting...\n"},
+		    {"ids_cmd_wrong","Wrong command, type /help to display commands.\n"},
+		    {"ids_addbot_received","[Console]: {} bot add request accepted.\n"}
 
 		}
 	}};
