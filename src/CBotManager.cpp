@@ -3,8 +3,12 @@
 #include "CDatabase.h"
 #include "CApplication.h"
 
-CBotManager::CBotManager()
-    : bots_{}
+CBotManager::CBotManager(
+    const std::unordered_map<int, table_vars>& dbvars_,
+    const std::unordered_map<int, std::vector<table_vars_requirements>>& dbvars_requirements_)
+    : vars_(dbvars_)
+    , vars_requirements_(dbvars_requirements_)
+    , bots_{}
     , first_run_(true)
     , time_last_run_(std::chrono::steady_clock::time_point{})
     , database_(nullptr)
@@ -132,11 +136,7 @@ void CBotManager::Run(CDatabase* pDatabase, const CApplication& app)
 void CBotManager::HandleMain() 
 {
     SetSystemTime();
-    SetHour(); 
-
-    const std::unordered_map<int, table_vars>& vars = database_->GetVars();
-    const std::unordered_map<int, std::vector<table_vars_requirements>>& 
-        vars_requirements = database_->GetVarsRequirements();
+    SetHour();
 
     for (auto& bot : bots_)
     {
@@ -188,9 +188,9 @@ void CBotManager::HandleMain()
             // 1- HandleResourceUpdate
             HandleResourceUpdate(bot, planet);
             // 2- HandleBuildings
-            HandleBuildings(bot, planet, vars, vars_requirements, game_speed);
+            HandleBuildings(bot, planet, game_speed);
             // 3- HandleResearches
-            HandleResearches(bot, planet, vars, vars_requirements, game_speed);
+            HandleResearches(bot, planet, game_speed);
            
         }
     }
@@ -330,12 +330,11 @@ void CBotManager::RemoveCostFromPlanet(table_planets& planet, double* arrCost)
 }
 
 bool CBotManager::IsTechAccessible(int element_id, 
-    const std::unordered_map<int, std::vector<table_vars_requirements>>& vars_requirements,
     const table_planets& planet,
     const table_users& user)
 {
-    auto it = vars_requirements.find(element_id);
-    if (it == vars_requirements.end())
+    auto it = vars_requirements_.find(element_id);
+    if (it == vars_requirements_.end())
     {
         return true;
     }

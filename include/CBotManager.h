@@ -77,7 +77,8 @@ private:
 	std::vector<table_users> bots_;
 
 	CDatabase* database_;
-
+	const std::unordered_map<int, table_vars>& vars_;
+	const std::unordered_map<int, std::vector<table_vars_requirements>>& vars_requirements_;
 	// logging
 	std::vector<stlog> logs_;
 	stlog log_;
@@ -87,7 +88,9 @@ private:
 	std::mutex mutex_command_;
 
 public:
-	CBotManager();
+	CBotManager(
+		const std::unordered_map<int, table_vars>& dbvars_,
+		const std::unordered_map<int, std::vector<table_vars_requirements>>& dbvars_requirements_);
 	~CBotManager();
 	void Run(CDatabase* pDatabase, const CApplication& app);
 
@@ -158,13 +161,9 @@ public:
 	void HandleMain();
 
 	void HandleBuildings(table_users& bot, table_planets& planet,
-		const std::unordered_map<int, table_vars>& vars,
-		const std::unordered_map<int, std::vector<table_vars_requirements>>& vars_requirements,
 		const uint64_t game_speed);
 	void HandleResearches(table_users& bot, 
 		table_planets& planet,
-		const std::unordered_map<int, table_vars>& vars,
-		const std::unordered_map<int, std::vector<table_vars_requirements>>& vars_requirements,
 		const uint64_t game_speed);
 	// simulates..
 	int GetTargetBuildID(const int* arrLevels) const;
@@ -172,7 +171,6 @@ public:
 	bool HaveEnoughResources(const table_planets& planet , double* arrCost);
 	void RemoveCostFromPlanet(table_planets& planet, double* arrCost);
 	bool IsTechAccessible(int element_id, 
-		const std::unordered_map<int, std::vector<table_vars_requirements>>& vars_requirements,
 		const table_planets& planet,
 		const table_users& user);
 	inline bool IsResearching(const table_users& user) const

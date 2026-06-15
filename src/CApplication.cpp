@@ -8,7 +8,10 @@ CApplication::CApplication()
     , started_(false)
 {
     database_ = std::make_unique<CDatabase>();
-    bot_manager_ = std::make_unique<CBotManager>();
+    bot_manager_ = std::make_unique<CBotManager>(
+        database_->GetVars(),
+        database_->GetVarsRequirements()
+    );
     logger_ = std::make_unique<CLogger>();
     command_handler_ = std::make_unique<CCommandHandler>();
 }

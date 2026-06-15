@@ -4,8 +4,6 @@
 
 void CBotManager::HandleResearches(table_users& bot,
     table_planets& planet,
-    const std::unordered_map<int, table_vars>& vars,
-    const std::unordered_map<int, std::vector<table_vars_requirements>>& vars_requirements,
     const uint64_t game_speed)
 {
     if (IsResearching(bot))
@@ -37,8 +35,8 @@ void CBotManager::HandleResearches(table_users& bot,
     }
 
     // search id in map
-    auto it = vars.find(tar_research_id);
-    if (it == vars.end())
+    auto it = vars_.find(tar_research_id);
+    if (it == vars_.end())
     {
         log_.type = 14;
         log_.research_id = tar_research_id;
@@ -47,7 +45,7 @@ void CBotManager::HandleResearches(table_users& bot,
     }
 
     // if tech accessible ? check
-    if (!IsTechAccessible(tar_research_id, vars_requirements, planet, bot))
+    if (!IsTechAccessible(tar_research_id, planet, bot))
     {
         log_.type = 15;
         log_.research_id = tar_research_id;
