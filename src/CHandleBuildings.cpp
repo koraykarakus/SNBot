@@ -40,7 +40,7 @@ void CBotManager::HandleBuildings(table_users& bot,
     const std::unordered_map<int, std::vector<table_vars_requirements>>& vars_requirements,
     const uint64_t game_speed)
 {
-    if (planet.b_building > 0)
+    if (IsBuilding(planet))
     {
         log_.type = 5;
         logs_.push_back(log_);
@@ -70,7 +70,6 @@ void CBotManager::HandleBuildings(table_users& bot,
         return;
     }
 
-    // todo , is tech accessible ?
     // if tech accessible ? check
     if (!IsTechAccessible(tar_building_id, vars_requirements, planet, bot))
     {

@@ -157,7 +157,6 @@ public:
 	// main bot loot, run once. loop once.
 	void HandleMain();
 
-	// build research, building, fleet or defence
 	void HandleBuildings(table_users& bot, table_planets& planet,
 		const std::unordered_map<int, table_vars>& vars,
 		const std::unordered_map<int, std::vector<table_vars_requirements>>& vars_requirements,
@@ -179,6 +178,10 @@ public:
 	inline bool IsResearching(const table_users& user) const
 	{
 		return user.b_tech > 0;
+	}
+	inline bool IsBuilding(const table_planets& planet) const 
+	{
+		return planet.b_building > 0;
 	}
 	void LogResult();
 	// resource update and its helpers
