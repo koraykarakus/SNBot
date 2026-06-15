@@ -20,6 +20,7 @@ private:
     std::string db_host_;
     std::string db_name_;
     std::string db_uni_prefix_;
+    bool db_ssl_;
     // loop time in seconds
     int loop_time_;
     // last time bots loaded from db

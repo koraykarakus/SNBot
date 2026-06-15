@@ -15,6 +15,7 @@ CDatabase::CDatabase()
     , db_pass_()
     , db_host_()
     , db_name_()
+    , db_ssl_(false)
     , db_uni_prefix_()
     , vars_{}
     , vars_requirements_{}
@@ -54,7 +55,8 @@ void CDatabase::Init()
                 { "user", "username" },
                 { "password", "password" },
                 { "db_name", "steemnova" },
-                { "prefix", "uni1_" }
+                { "prefix", "uni1_" },
+                { "ssl", false}
             }},
             { "general", toml::table{
                 {"loop_time", 30},
@@ -93,6 +95,7 @@ void CDatabase::Init()
     db_user_ = config["database"]["user"].value_or(""sv);
     db_pass_ = config["database"]["password"].value_or(""sv);
     db_name_ = config["database"]["db_name"].value_or(""sv);
+    db_ssl_ = config["database"]["ssl"].value_or(false);
     db_uni_prefix_ = config["database"]["prefix"].value_or(""sv);
     
     // general settings
@@ -113,8 +116,15 @@ bool CDatabase::Connect()
     }
 
     // close ssl
-    int ssl_verify = 0; 
-    mysql_optionsv(conn_, MYSQL_OPT_SSL_VERIFY_SERVER_CERT, &ssl_verify);
+    if (!db_ssl_)
+    {
+        int ssl_verify = 0;
+        mysql_optionsv(conn_, MYSQL_OPT_SSL_VERIFY_SERVER_CERT, &ssl_verify);
+    }
+    else
+    {
+        CLogger::Info("ssl is active\n");
+    }
     // ----------------------------------------
 
     if (!mysql_real_connect(
