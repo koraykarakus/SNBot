@@ -16,15 +16,19 @@ public:
     static void Critical(const std::string& msg);
 
     template<typename... Args>
-    static void Trace(fmt::format_string<Args...> fmt, Args&&... args)
+    static void Trace(const std::string& fmt_str, Args&&... args)
     {
-        spdlog::trace(fmt, std::forward<Args>(args)...);
+        spdlog::trace(
+            fmt::runtime(fmt_str),
+            std::forward<Args>(args)...);
     }
 
     template<typename... Args>
-    static void Debug(fmt::format_string<Args...> fmt, Args&&... args)
+    static void Debug(const std::string& fmt_str, Args&&... args)
     {
-        spdlog::debug(fmt, std::forward<Args>(args)...);
+        spdlog::debug(
+            fmt::runtime(fmt_str),
+            std::forward<Args>(args)...);
     }
 
     template<typename... Args>
@@ -52,8 +56,10 @@ public:
     }
 
     template<typename... Args>
-    static void Critical(fmt::format_string<Args...> fmt, Args&&... args)
+    static void Critical(const std::string& fmt_str, Args&&... args)
     {
-        spdlog::critical(fmt, std::forward<Args>(args)...);
+        spdlog::critical(
+            fmt::runtime(fmt_str),
+            std::forward<Args>(args)...);
     }
 };
