@@ -214,6 +214,7 @@ bool CDatabase::LoadBots()
     CLogger::Info(lang_.at("ids_found_num_bots"), rowCount);
 
     temp_bots_.clear();
+    temp_bots_.reserve(rowCount);
 
     MYSQL_ROW row;
 
@@ -342,7 +343,7 @@ bool CDatabase::LoadBots()
         "`metal_mine_percent`, `crystal_mine_percent`, `deuterium_synthesizer_percent`, "
         "`solar_plant_percent`, `fusion_plant_percent`, `solar_satellite_percent`, "
         "`last_jump_time`, `debris_metal`, `debris_crystal`, "
-        "`id_moon`, `last_relocate`, `version` "
+        "`id_moon`, `last_relocate` "
 
         "FROM `{}planets` "
         "WHERE is_bot = 1",
@@ -480,7 +481,6 @@ bool CDatabase::LoadBots()
         pl.debris_crystal = plRow[i] ? std::stod(plRow[i]) : 0.0; i++;
         pl.id_moon = plRow[i] ? std::stoi(plRow[i]) : 0; i++;
         pl.last_relocate = plRow[i] ? std::stoi(plRow[i]) : 0; i++;
-        pl.version = plRow[i] ? std::stoull(plRow[i]) : 0; i++;
 
         pl.is_bot = 1;
         // find bot with planet id_owner

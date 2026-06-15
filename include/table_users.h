@@ -121,6 +121,7 @@ struct table_users
         , onlinetime(0)
         , need_update(false)
     {
+        vecPlanets.reserve(20);
         // init factor..
         for (const auto& bonus : bonus_list) 
         {
