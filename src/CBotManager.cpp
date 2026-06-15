@@ -60,10 +60,10 @@ bool CBotManager::IsAway(const table_users& bot) const
     return (bot.playTime.check_time * 60) > (static_cast<int>(system_time_) - bot.onlinetime);
 }
 
-void CBotManager::Run(CDatabase* pDatabase, const CApplication& app)
+void CBotManager::Run(CDatabase* database, const CApplication& app)
 {
     // will use it to get vars, reslist etc.
-    database_ = pDatabase;
+    database_ = database;
 
     // sleep if not loaded yet.
     while (app.IsRunning() 
@@ -108,9 +108,9 @@ void CBotManager::Run(CDatabase* pDatabase, const CApplication& app)
         // HandleColonization();
 
         // save to db
-        pDatabase->UpdateBots(bots_);
+        database->UpdateBots(bots_);
         // reload from db
-        if (pDatabase->LoadBots())
+        if (database->LoadBots())
         {
             CLogger::Info("bot data has been refreshed");
         }
@@ -167,8 +167,8 @@ void CBotManager::HandleMain()
             continue;
         }
 
-        const table_config* pConfig = GetConfigByUniID(bot.universe);
-        if (pConfig == nullptr)
+        const table_config* config = GetConfigByUniID(bot.universe);
+        if (config == nullptr)
         {
             log_.universe = bot.universe;
             log_.type = 4;
@@ -176,7 +176,7 @@ void CBotManager::HandleMain()
             continue;
         }
         
-        const uint64_t game_speed = std::floor(pConfig->game_speed / 2500);
+        const uint64_t game_speed = std::floor(config->game_speed / 2500);
 
         bot.onlinetime = static_cast<int>(system_time_);
 
@@ -315,18 +315,18 @@ void CBotManager::LogResult()
 }
 
 
-bool CBotManager::HaveEnoughResources(const table_planets& planet, double* arrCost)
+bool CBotManager::HaveEnoughResources(const table_planets& planet, double* cost)
 {
-	return planet.metal >= arrCost[0]
-		&& planet.crystal >= arrCost[1]
-		&& planet.deuterium >= arrCost[2];
+	return planet.metal >= cost[0]
+		&& planet.crystal >= cost[1]
+		&& planet.deuterium >= cost[2];
 }
 
-void CBotManager::RemoveCostFromPlanet(table_planets& planet, double* arrCost) 
+void CBotManager::RemoveCostFromPlanet(table_planets& planet, double* cost) 
 {
-    planet.metal -= arrCost[0];
-    planet.crystal -= arrCost[1];
-    planet.deuterium -= arrCost[2];
+    planet.metal -= cost[0];
+    planet.crystal -= cost[1];
+    planet.deuterium -= cost[2];
 }
 
 bool CBotManager::IsTechAccessible(int element_id, 

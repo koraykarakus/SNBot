@@ -92,7 +92,7 @@ public:
 		const std::unordered_map<int, table_vars>& dbvars_,
 		const std::unordered_map<int, std::vector<table_vars_requirements>>& dbvars_requirements_);
 	~CBotManager();
-	void Run(CDatabase* pDatabase, const CApplication& app);
+	void Run(CDatabase* database, const CApplication& app);
 
 	// time related
 	inline void SetHour() 
@@ -166,10 +166,10 @@ public:
 		table_planets& planet,
 		const uint64_t game_speed);
 	// simulates..
-	int GetTargetBuildID(const int* arrLevels) const;
-	int GetTargetResearchID(const int* arrLevels) const;
-	bool HaveEnoughResources(const table_planets& planet , double* arrCost);
-	void RemoveCostFromPlanet(table_planets& planet, double* arrCost);
+	int GetTargetBuildID(const int* levels) const;
+	int GetTargetResearchID(const int* levels) const;
+	bool HaveEnoughResources(const table_planets& planet , double* cost);
+	void RemoveCostFromPlanet(table_planets& planet, double* cost);
 	bool IsTechAccessible(int element_id, 
 		const table_planets& planet,
 		const table_users& user);
@@ -198,7 +198,7 @@ public:
 		return user.vecPlanets.size();
 	}
 	bool HaveSpotForNewPlanet(const table_users& user) const;
-	int FindFirstPlanetCanColonize(const table_users& user, const table_vars* pColonyShip) const;
+	int FindFirstPlanetCanColonize(const table_users& user, const table_vars* data_colonyship) const;
 	int GetFirstPlanetWithColonyShip(const table_users& user) const;
 
 	// php helpers

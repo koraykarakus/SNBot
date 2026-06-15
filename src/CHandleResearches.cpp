@@ -84,18 +84,18 @@ void CBotManager::HandleResearches(table_users& bot,
 
     RemoveCostFromPlanet(planet, array_cost);
 
-    double buildTime = ((array_cost[0] + array_cost[1] + 3.0) / (1000.0 * level_up)) / game_speed * (1.0 + planet.resource[31]);
-    time_t endTime = system_time_ + static_cast<time_t>(buildTime);
+    double build_time = ((array_cost[0] + array_cost[1] + 3.0) / (1000.0 * level_up)) / game_speed * (1.0 + planet.resource[31]);
+    time_t end_time = system_time_ + static_cast<time_t>(build_time);
 
     bot.b_tech_planet = planet.id;
-    bot.b_tech = endTime;
+    bot.b_tech = end_time;
     bot.b_tech_id = element.element_id;
 
     // todo : check this order
     bot.b_tech_queue = "a:1:{i:0;a:5:{i:0;i:" + std::to_string(element.element_id) +
         ";i:1;i:" + std::to_string(level_up) +
-        ";i:2;i:" + std::to_string(static_cast<int>(buildTime)) +
-        ";i:3;i:" + std::to_string(endTime) +
+        ";i:2;i:" + std::to_string(static_cast<int>(build_time)) +
+        ";i:3;i:" + std::to_string(end_time) +
         ";i:4;i:" + std::to_string(planet.id) + ";}}";
 
 

@@ -120,17 +120,17 @@ void CBotManager::UpdateResource(table_planets& planet, table_users& user)
 
 void CBotManager::UpdateCache(table_planets& planet, table_users& user)
 {
-    const table_config* pConfig = GetConfigByUniID(planet.universe);
+    const table_config* config = GetConfigByUniID(planet.universe);
 
-    if (pConfig == nullptr)
+    if (config == nullptr)
     {
         CLogger::Info("ExecCalc - Config for bot not found !");
         return;
     }
 
-    int metal_basic_income = pConfig->metal_basic_income;
-    int crystal_basic_income = pConfig->crystal_basic_income;
-    int deuterium_basic_income = pConfig->deuterium_basic_income;
+    int metal_basic_income = config->metal_basic_income;
+    int crystal_basic_income = config->crystal_basic_income;
+    int deuterium_basic_income = config->deuterium_basic_income;
     if (planet.planet_type == 3)
     {
         metal_basic_income = 0;
@@ -233,14 +233,14 @@ void CBotManager::UpdateCache(table_planets& planet, table_users& user)
 
     }
 
-    planet.metal_max = temp[901]["max"] * pConfig->storage_multiplier * (1 + user.factor["ResourceStorage"]);
-    planet.crystal_max = temp[902]["max"] * pConfig->storage_multiplier * (1 + user.factor["ResourceStorage"]);
-    planet.deuterium_max = temp[903]["max"] * pConfig->storage_multiplier * (1 + user.factor["ResourceStorage"]);
+    planet.metal_max = temp[901]["max"] * config->storage_multiplier * (1 + user.factor["ResourceStorage"]);
+    planet.crystal_max = temp[902]["max"] * config->storage_multiplier * (1 + user.factor["ResourceStorage"]);
+    planet.deuterium_max = temp[903]["max"] * config->storage_multiplier * (1 + user.factor["ResourceStorage"]);
 
 
 
-    planet.energy = std::round(temp[911]["plus"] * pConfig->energySpeed * (1 + user.factor["Energy"]));
-    planet.energy_used = temp[911]["minus"] * pConfig->energySpeed;
+    planet.energy = std::round(temp[911]["plus"] * config->energySpeed * (1 + user.factor["Energy"]));
+    planet.energy_used = temp[911]["minus"] * config->energySpeed;
     if (planet.energy_used == 0)
     {
         planet.metal_perhour = 0;
@@ -251,9 +251,9 @@ void CBotManager::UpdateCache(table_planets& planet, table_users& user)
     {
         double prod_level = GetMin(static_cast<double>(1), planet.energy / std::abs(planet.energy_used));
 
-        planet.metal_perhour = (temp[901]["plus"] * (1 + user.factor["Resource"] + 0.02 * user.resource[131]) * prod_level + temp[901]["minus"]) * pConfig->resource_multiplier;
-        planet.crystal_perhour = (temp[902]["plus"] * (1 + user.factor["Resource"] + 0.02 * user.resource[132]) * prod_level + temp[902]["minus"]) * pConfig->resource_multiplier;
-        planet.deuterium_perhour = (temp[903]["plus"] * (1 + user.factor["Resource"] + 0.02 * user.resource[133]) * prod_level + temp[903]["minus"]) * pConfig->resource_multiplier;
+        planet.metal_perhour = (temp[901]["plus"] * (1 + user.factor["Resource"] + 0.02 * user.resource[131]) * prod_level + temp[901]["minus"]) * config->resource_multiplier;
+        planet.crystal_perhour = (temp[902]["plus"] * (1 + user.factor["Resource"] + 0.02 * user.resource[132]) * prod_level + temp[902]["minus"]) * config->resource_multiplier;
+        planet.deuterium_perhour = (temp[903]["plus"] * (1 + user.factor["Resource"] + 0.02 * user.resource[133]) * prod_level + temp[903]["minus"]) * config->resource_multiplier;
     }
 }
 
@@ -264,20 +264,20 @@ void CBotManager::ExecCalc(table_planets& planet, time_t production_time)
         return;
     }
 
-    const table_config* pConfig = GetConfigByUniID(planet.universe);
+    const table_config* config = GetConfigByUniID(planet.universe);
 
-    if (pConfig == nullptr)
+    if (config == nullptr)
     {
         CLogger::Info("ExecCalc - Config for bot not found !");
         return;
     }
 
     // todo: double lose precision but this comes through steemnova database
-    double max_metal_storage = planet.metal_max * pConfig->max_overflow;
-    double max_crystal_storage = planet.crystal_max * pConfig->max_overflow;
-    double max_deu_storage = planet.deuterium_max * pConfig->max_overflow;
+    double max_metal_storage = planet.metal_max * config->max_overflow;
+    double max_crystal_storage = planet.crystal_max * config->max_overflow;
+    double max_deu_storage = planet.deuterium_max * config->max_overflow;
 
-    double metal_theoretical = production_time * ((pConfig->metal_basic_income * pConfig->resource_multiplier) + planet.metal_perhour) / 3600;
+    double metal_theoretical = production_time * ((config->metal_basic_income * config->resource_multiplier) + planet.metal_perhour) / 3600;
 
     if (metal_theoretical < 0)
     {
@@ -288,7 +288,7 @@ void CBotManager::ExecCalc(table_planets& planet, time_t production_time)
         planet.metal = GetMin(planet.metal + metal_theoretical, max_metal_storage);
     }
 
-    double crystal_theoretical = production_time * ((pConfig->crystal_basic_income * pConfig->resource_multiplier) + planet.crystal_perhour) / 3600;
+    double crystal_theoretical = production_time * ((config->crystal_basic_income * config->resource_multiplier) + planet.crystal_perhour) / 3600;
     if (crystal_theoretical < 0)
     {
         planet.crystal = GetMax(planet.crystal + crystal_theoretical, static_cast<double>(0));
@@ -298,7 +298,7 @@ void CBotManager::ExecCalc(table_planets& planet, time_t production_time)
         planet.crystal = GetMin(planet.crystal + crystal_theoretical, max_crystal_storage);
     }
 
-    double deu_theoretical = production_time * ((pConfig->deuterium_basic_income * pConfig->resource_multiplier) + planet.deuterium_perhour) / 3600;
+    double deu_theoretical = production_time * ((config->deuterium_basic_income * config->resource_multiplier) + planet.deuterium_perhour) / 3600;
     if (deu_theoretical < 0)
     {
         planet.deuterium = GetMax(planet.deuterium + deu_theoretical, static_cast<double>(0));

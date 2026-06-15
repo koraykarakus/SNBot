@@ -4,16 +4,16 @@
 void CBotManager::HandleColonization() 
 {
     // get colony ship's database info..
-    const table_vars* pColonyShip = GetVarsByID(208);
-    if (pColonyShip == nullptr)
+    const table_vars* colonyship = GetVarsByID(208);
+    if (colonyship == nullptr)
     {
         return;
     }
 
     for (auto& bot : bots_)
     {
-        const table_config* pConfig = GetConfigByUniID(bot.universe);
-        if (pConfig == nullptr) continue;
+        const table_config* config = GetConfigByUniID(bot.universe);
+        if (config == nullptr) continue;
 
         if (!HaveSpotForNewPlanet(bot))
         {
@@ -24,16 +24,16 @@ void CBotManager::HandleColonization()
         {
             // build colony ship and continue..
 
-            int iIndex = FindFirstPlanetCanColonize(bot, pColonyShip);
+            int iIndex = FindFirstPlanetCanColonize(bot, colonyship);
 
             if (iIndex == -1)
             {
                 continue;
             }
 
-            bot.vecPlanets[iIndex].metal -= pColonyShip->cost901;
-            bot.vecPlanets[iIndex].crystal -= pColonyShip->cost902;
-            bot.vecPlanets[iIndex].deuterium -= pColonyShip->cost903;
+            bot.vecPlanets[iIndex].metal -= colonyship->cost901;
+            bot.vecPlanets[iIndex].crystal -= colonyship->cost902;
+            bot.vecPlanets[iIndex].deuterium -= colonyship->cost903;
 
             // todo: add build list instead of just adding one.
             bot.vecPlanets[iIndex].resource[208] += 1;
@@ -42,19 +42,19 @@ void CBotManager::HandleColonization()
             continue;
         }
 
-        int iIndex = GetFirstPlanetWithColonyShip(bot);
+        int index = GetFirstPlanetWithColonyShip(bot);
 
-        if (iIndex == -1)
+        if (index == -1)
         {
             continue;
         }
 
         // update planet
-        bot.vecPlanets[iIndex].resource[208] -= 1;
-        bot.vecPlanets[iIndex].need_update = true;
+        bot.vecPlanets[index].resource[208] -= 1;
+        bot.vecPlanets[index].need_update = true;
 
         // send fleet
-        bot.vecPlanets[iIndex].need_fleet_colony = true;
+        bot.vecPlanets[index].need_fleet_colony = true;
     }
 }
 
@@ -80,14 +80,14 @@ bool CBotManager::HaveColonyShip(const table_users& user) const
     return false;
 }
 
-int CBotManager::FindFirstPlanetCanColonize(const table_users& user, const table_vars* pColonyShip) const
+int CBotManager::FindFirstPlanetCanColonize(const table_users& user, const table_vars* data_colonyship) const
 {
     int index = 0;
     for (const auto& p : user.vecPlanets)
     {
-        if (p.metal >= pColonyShip->cost901
-            && p.crystal >= pColonyShip->cost902
-            && p.deuterium >= pColonyShip->cost903)
+        if (p.metal >= data_colonyship->cost901
+            && p.crystal >= data_colonyship->cost902
+            && p.deuterium >= data_colonyship->cost903)
         {
             return index;
         }

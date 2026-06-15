@@ -126,7 +126,7 @@ void CBotManager::HandleBuildings(table_users& bot,
     bot.need_update = true;
 }
 
-int CBotManager::GetTargetBuildID(const int* arrLevels) const
+int CBotManager::GetTargetBuildID(const int* levels) const
 {
     // todo: reserve last spot for terraformer.
 
@@ -138,7 +138,7 @@ int CBotManager::GetTargetBuildID(const int* arrLevels) const
         int element_id = basic_buildings[m];
         simulated_levels[element_id]++;
 
-        if (simulated_levels[element_id] > arrLevels[element_id])
+        if (simulated_levels[element_id] > levels[element_id])
         {
             tar_building_id = element_id;
             break;
@@ -148,7 +148,7 @@ int CBotManager::GetTargetBuildID(const int* arrLevels) const
     return tar_building_id;
 }
 
-int CBotManager::GetTargetResearchID(const int* arrLevels) const {
+int CBotManager::GetTargetResearchID(const int* levels) const {
     int simulated_levels[200] = { 0 };
     int tar_research_id = -1;
     // scan the list for buildings
@@ -157,7 +157,7 @@ int CBotManager::GetTargetResearchID(const int* arrLevels) const {
         int element_id = basic_research[m];
         simulated_levels[element_id]++;
 
-        if (simulated_levels[element_id] > arrLevels[element_id])
+        if (simulated_levels[element_id] > levels[element_id])
         {
             tar_research_id = element_id;
             break;

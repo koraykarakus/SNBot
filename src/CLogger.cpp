@@ -1,31 +1,31 @@
 ﻿#include "CLogger.h"
 
-void CLogger::Trace(const std::string& strMsg)
+void CLogger::Trace(const std::string& msg)
 {
-    spdlog::trace(strMsg);
+    spdlog::trace(msg);
 }
 
-void CLogger::Debug(const std::string& strMsg)
+void CLogger::Debug(const std::string& msg)
 {
-    spdlog::debug(strMsg);
+    spdlog::debug(msg);
 }
 
-void CLogger::Info(const std::string& strMsg)
+void CLogger::Info(const std::string& msg)
 {
-    spdlog::info(strMsg);
+    spdlog::info(msg);
 }
 
-void CLogger::Warn(const std::string& strMsg)
+void CLogger::Warn(const std::string& msg)
 {
-    spdlog::warn(strMsg);
+    spdlog::warn(msg);
 }
 
-void CLogger::Error(const std::string& strMsg)
+void CLogger::Error(const std::string& msg)
 {
-    spdlog::error(strMsg);
+    spdlog::error(msg);
 }
 
-void CLogger::Critical(const std::string& strMsg)
+void CLogger::Critical(const std::string& msg)
 {
-    spdlog::critical(strMsg);
+    spdlog::critical(msg);
 }
