@@ -58,12 +58,12 @@ struct table_users
     std::string email;
 
     int id_planet;
-    int universe;
-    int galaxy;
-    int system;
-    int planet;
+    uint8_t universe;
+    uint8_t galaxy;
+    uint16_t system;
+    uint8_t planet;
 
-    int vacation_mode;
+    uint8_t vacation_mode;
     int vacation_until;
 
     int b_tech_planet;
@@ -75,23 +75,23 @@ struct table_users
     uint8_t resource[200];
 
     // commanders.
-	int rpg_geologist;
-	int rpg_admiral;
-	int rpg_engineer;
-	int rpg_technocrat;
-	int rpg_espion;
-	int rpg_constructor;
-	int rpg_scientist;
-	int rpg_commander;
-	int rpg_stocker;
-	int rpg_defender;
-	int rpg_destructor;
-	int rpg_general;
-	int rpg_bunker;
-	int rpg_raider;
-	int rpg_emperor;
+    uint8_t rpg_geologist;
+    uint8_t rpg_admiral;
+    uint8_t rpg_engineer;
+    uint8_t rpg_technocrat;
+    uint8_t rpg_espion;
+    uint8_t rpg_constructor;
+    uint8_t rpg_scientist;
+    uint8_t rpg_commander;
+    uint8_t rpg_stocker;
+    uint8_t rpg_defender;
+    uint8_t rpg_destructor;
+    uint8_t rpg_general;
+    uint8_t rpg_bunker;
+    uint8_t rpg_raider;
+    uint8_t rpg_emperor;
 
-    int is_bot;
+    uint8_t is_bot;
     std::vector<table_planets> vecPlanets;
     std::map<std::string_view,int> factor;
     play_time playTime;
@@ -121,7 +121,7 @@ struct table_users
         , onlinetime(0)
         , need_update(false)
     {
-        vecPlanets.reserve(20);
+        vecPlanets.reserve(15);
         // init factor..
         for (const auto& bonus : bonus_list) 
         {
@@ -287,7 +287,7 @@ struct table_users
             playTime.play_start_time_1 = 8;
             playTime.play_end_time_1 = 18;
             playTime.play_start_time_2 = 20;
-            playTime.play_end_time_2 = 4;
+            playTime.play_end_time_2 = 5;
 			break;
 		}
     }

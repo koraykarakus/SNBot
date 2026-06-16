@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <string>
 #include <array>
+#include <cstdint>
 #include "enums.h"
 
 struct table_planets
@@ -8,13 +9,13 @@ struct table_planets
     int id;
     std::string name;
     int id_owner;
-    int universe;
-    int galaxy;
-    int system;
-    int planet;
+    uint8_t universe;
+    uint8_t galaxy;
+    uint16_t system;
+    uint8_t planet;
     int last_update;
-    int planet_type;
-    int destroyed;
+    uint8_t planet_type;
+    uint8_t destroyed;
 
     int b_building;
     std::string b_building_id;
@@ -23,9 +24,9 @@ struct table_planets
     int b_shipyard_plus;
     std::string image;
 
-    int diameter;
-    int field_current;
-    int field_max;
+    uint16_t diameter;
+    uint16_t field_current;
+    uint16_t field_max;
     int temp_min;
     int temp_max;
 
@@ -45,7 +46,7 @@ struct table_planets
     // =========================================================================
     // all data related to planet, ships, buildings, defences, missiles
     // =========================================================================
-    unsigned long long resource[1000] = { 0 };
+    uint8_t resource[600] = { 0 };
 
     // production
     std::string metal_mine_percent;
@@ -61,7 +62,6 @@ struct table_planets
     int id_moon;
     bool is_bot;
     int last_relocate;
-    unsigned long long version;
 
     // flag used to decide if planet needs an update.
     bool need_update;
@@ -88,7 +88,6 @@ struct table_planets
         , debris_crystal(0.0), id_moon(0)
         , is_bot(false)
         , last_relocate(0)
-        , version(0)
         , need_update(false)
         , need_fleet_colony(false)
     {
