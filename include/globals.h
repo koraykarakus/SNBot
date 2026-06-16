@@ -120,6 +120,18 @@ struct reslist_data
 	std::map<int, std::vector<int>> resstype;
 };
 
+struct settlement_data 
+{
+	uint8_t galaxy = 0;
+	uint16_t system = 0;
+	uint8_t planet = 0;
+	uint8_t universe = 0;
+	void Reset() 
+	{
+		*this = settlement_data();
+	}
+};
+
 static std::chrono::steady_clock::time_point GetTimeNow()
 {
 	return std::chrono::steady_clock::now();

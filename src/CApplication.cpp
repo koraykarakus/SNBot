@@ -51,7 +51,8 @@ bool CApplication::Init()
     if (!LoadVarsFromDatabase()
         || !LoadVarsRequirementsFromDatabase()
         || !LoadConfigFromDatabase()
-        || !LoadBotsFromDatabase())
+        || !LoadBotsFromDatabase()
+        || !LoadSettlementDataFromDatabase())
     {
         return false;
     }
@@ -100,4 +101,8 @@ bool CApplication::LoadVarsRequirementsFromDatabase() {
 
 bool CApplication::LoadConfigFromDatabase() {
     return database_->LoadConfig();
+}
+
+bool CApplication::LoadSettlementDataFromDatabase() {
+    return database_->LoadSettlementData();
 }

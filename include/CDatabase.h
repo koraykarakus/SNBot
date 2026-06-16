@@ -41,6 +41,7 @@ private:
     reslist_data reslist_;
 
     std::vector<table_users> temp_bots_;
+    std::vector<settlement_data> settlement_data_;
 
 public:
     CDatabase(
@@ -55,8 +56,10 @@ public:
     bool LoadVars();
     bool LoadVarsRequirements();
     bool LoadConfig();
+    bool LoadSettlementData();
+    bool RefreshData();
+
     bool UpdateBots(std::vector<table_users>& vecBots);
-    bool AddBots(int count);
     bool RemoveBots();
 
     inline const std::unordered_map<int, table_vars>& GetVars() const
@@ -100,6 +103,11 @@ public:
         return reslist_;
     }
 
+    inline std::vector<settlement_data>* GetSettlementData()
+    {
+        return &settlement_data_;
+    }
+
     inline const int GetLoopTime() const {
         return loop_time_;
     }
@@ -117,6 +125,10 @@ public:
 
     const std::vector<table_users>& GetLoadedBots() const { return temp_bots_; }
 
+
+    // create bots related
+    bool AddBots(int count);
+    void GetName(std::string& str);
 
     MYSQL* GetConnection() const { return conn_; }
 };

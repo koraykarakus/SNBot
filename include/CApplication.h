@@ -43,6 +43,7 @@ public:
 	bool LoadVarsFromDatabase();
 	bool LoadConfigFromDatabase();
 	bool LoadVarsRequirementsFromDatabase();
+	bool LoadSettlementDataFromDatabase();
 
 	bool IsRunning() const { return running_; }
 	bool IsLoaded() const { return loaded_; }

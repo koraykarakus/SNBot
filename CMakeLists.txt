@@ -22,7 +22,7 @@ add_executable(SNBot
     
     
     "include/CLogger.h"
- "include/table_planets.h"  "include/CBotManager.h" "src/CBotManager.cpp"  "include/table_users.h"  "include/enums.h" "include/globals.h" "src/CHandleBuildings.cpp" "src/CHandleResourceUpdate.cpp" "src/CHandleColonization.cpp" "include/table_fleets.h" "src/CApplication.cpp" "include/CApplication.h" "include/CCommandHandler.h" "src/CCommandHandler.cpp" "src/CHandleConsoleCommand.cpp" "src/CHandleResearches.cpp" "include/CLanguage.h" "src/CLanguage.cpp")
+ "include/table_planets.h"  "include/CBotManager.h" "src/CBotManager.cpp"  "include/table_users.h"  "include/enums.h" "include/globals.h" "src/CHandleBuildings.cpp" "src/CHandleResourceUpdate.cpp" "src/CHandleColonization.cpp" "include/table_fleets.h" "src/CApplication.cpp" "include/CApplication.h" "include/CCommandHandler.h" "src/CCommandHandler.cpp" "src/CHandleConsoleCommand.cpp" "src/CHandleResearches.cpp" "include/CLanguage.h" "src/CLanguage.cpp" "include/bot_names.h")
 
 # header files
 target_include_directories(SNBot PRIVATE include)

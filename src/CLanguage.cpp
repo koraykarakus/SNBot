@@ -95,6 +95,7 @@ void CLanguage::CreateDefaultLangFile()
 			{ "ids_update_planet_bots_succ", "[CDatabase] - {} bots and {} planets updated successfully in database.- time {}ms - {}us]\n" },
 			{ "ids_mysql_autocommit_fail", "[CDatabase] - Failed to disable autocommit: {}\n" },
 			{ "ids_mysql_commit_fail", "[CDatabase] - Commit Error: {}\n" },
+			{ "ids_load_settlement_succ", "[CDatabase] - {}x settlement data has been loaded.\n" },
 			// end CDatabase.cpp
 		    
 		    // CBotManager

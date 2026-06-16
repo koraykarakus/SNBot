@@ -7,6 +7,7 @@
 #include <toml++/toml.hpp>
 #include <fmt/ranges.h>
 #include <filesystem>
+#include "bot_names.h"
 
 using namespace std::literals;
 
@@ -35,6 +36,8 @@ CDatabase::CDatabase(
     , lang_(lang)
 {
     Init();
+    // seed random for bot name generation
+    std::srand(std::time(nullptr));
 }
 
 CDatabase::~CDatabase()
@@ -163,12 +166,6 @@ void CDatabase::Disconnect()
 
 bool CDatabase::LoadBots()
 {
-    // only load bots evey x seconds
-    if (GetTimeNow() < last_load_time_ + std::chrono::seconds(reload_time_))
-    {
-        return false;
-    }
-
     auto start = GetTimeNow();
     std::string strQuery = std::format(
         "SELECT "
@@ -803,6 +800,103 @@ bool CDatabase::LoadConfig()
     return true;
 }
 
+// settlement data, planet coordinates of all users
+bool CDatabase::LoadSettlementData() 
+{
+    if (conn_ == nullptr)
+    {
+        CLogger::Error(lang_.at("ids_mysql_conn_failed"));
+        return false;
+    }
+
+    std::string queryPlanets = std::format(
+        "SELECT `galaxy`, `system`, `planet`,`universe` "
+        "FROM `{}planets`",
+        db_uni_prefix_);
+
+    if (mysql_query(conn_, queryPlanets.c_str()) != 0)
+    {
+        CLogger::Error(lang_.at("ids_mysql_query_error"), mysql_error(conn_));
+        return false;
+    }
+
+    MYSQL_RES* resultPlanets = mysql_store_result(conn_);
+    if (resultPlanets == nullptr)
+    {
+        CLogger::Error(lang_.at("ids_mysql_retrieve_error"), mysql_error(conn_));
+        return false;
+    }
+
+    MYSQL_ROW row_planets;
+    settlement_data item;
+    int num = 0;
+    while ((row_planets = mysql_fetch_row(resultPlanets)))
+    {
+        size_t i = 0;
+        item.Reset();
+        item.galaxy = row_planets[i] ? std::stoi(row_planets[i]) : 0; i++;
+        item.system = row_planets[i] ? std::stoi(row_planets[i]) : 0; i++;
+        item.planet = row_planets[i] ? std::stoi(row_planets[i]) : 0; i++;
+        item.universe = row_planets[i] ? std::stoi(row_planets[i]) : 0; i++;
+        settlement_data_.push_back(item);
+        num++;
+    }
+
+    mysql_free_result(resultPlanets);
+
+    // get info colonizing fleets
+
+    std::string queryFleets = std::format(
+        "SELECT `fleet_end_galaxy`, `fleet_end_system`, "
+        "`fleet_end_planet`,`fleet_universe` "
+        "FROM `{}fleets` WHERE fleet_mission = 7",
+        db_uni_prefix_);
+
+    if (mysql_query(conn_, queryFleets.c_str()) != 0)
+    {
+        CLogger::Error(lang_.at("ids_mysql_query_error"), mysql_error(conn_));
+        return false;
+    }
+
+    MYSQL_RES* resultFleets = mysql_store_result(conn_);
+    if (resultFleets == nullptr)
+    {
+        CLogger::Error(lang_.at("ids_mysql_retrieve_error"), mysql_error(conn_));
+        return false;
+    }
+
+    MYSQL_ROW row_fleets;
+
+    while ((row_fleets = mysql_fetch_row(resultFleets)))
+    {
+        size_t i = 0;
+        item.Reset();
+        item.galaxy = row_fleets[i] ? std::stoi(row_fleets[i]) : 0; i++;
+        item.system = row_fleets[i] ? std::stoi(row_fleets[i]) : 0; i++;
+        item.planet = row_fleets[i] ? std::stoi(row_fleets[i]) : 0; i++;
+        item.universe = row_fleets[i] ? std::stoi(row_fleets[i]) : 0; i++;
+        settlement_data_.push_back(item);
+        num++;
+    }
+
+    mysql_free_result(resultFleets);
+
+    CLogger::Info(lang_.at("ids_load_settlement_succ"), num);
+
+    return true;
+}
+
+bool CDatabase::RefreshData()
+{
+    // only load bots evey x seconds
+    if (GetTimeNow() < last_load_time_ + std::chrono::seconds(reload_time_))
+    {
+        return false;
+    }
+
+    return LoadBots() && LoadSettlementData();
+}
+
 bool CDatabase::UpdateBots(std::vector<table_users>& vecBots)
 {
 
@@ -1119,14 +1213,6 @@ bool CDatabase::UpdateBots(std::vector<table_users>& vecBots)
     return true;
 }
 
-bool CDatabase::AddBots(int count) 
-{
-    if (count <= 0)
-    {
-        return false;
-    }
-}
-
 bool CDatabase::RemoveBots() 
 {
     if (conn_ == nullptr)
@@ -1184,4 +1270,25 @@ bool CDatabase::RemoveBots()
     temp_bots_.clear();
 
     return success;
+}
+
+bool CDatabase::AddBots(int count)
+{
+    if (count <= 0)
+    {
+        return false;
+    }
+
+    std::string name;
+    GetName(name);
+}
+
+void CDatabase::GetName(std::string& str)
+{
+    int rand_index = std::rand() % bot_title.size();
+    std::string title = bot_title[rand_index];
+    rand_index = std::rand() % bot_name.size();
+    std::string name = bot_name[rand_index];
+
+    str = title + " " + name;
 }

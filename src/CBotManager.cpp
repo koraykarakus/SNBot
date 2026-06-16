@@ -82,6 +82,8 @@ void CBotManager::Run(CDatabase* database, const CApplication& app)
 
     bots_ = database_->GetLoadedBots();
     loop_time_ = database_->GetLoopTime();
+    settlement_data_ptr_ = database_->GetSettlementData();
+    
     // main loop as long as it is running
     while (app.IsRunning())
     {
@@ -112,7 +114,7 @@ void CBotManager::Run(CDatabase* database, const CApplication& app)
         // save to db
         database->UpdateBots(bots_);
         // reload from db
-        if (database->LoadBots())
+        if (database->RefreshData())
         {
             CLogger::Info(lang_.at("ids_bot_data_refreshed"));
         }

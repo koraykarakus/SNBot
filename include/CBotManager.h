@@ -78,6 +78,8 @@ private:
 	time_var time_last_run_;
 	bool first_run_;
 	std::vector<table_users> bots_;
+	std::vector<settlement_data>* settlement_data_ptr_ = nullptr;
+
 
 	CDatabase* database_;
 	const std::unordered_map<int, table_vars>& vars_;
