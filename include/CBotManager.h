@@ -78,7 +78,6 @@ private:
 	std::vector<table_users>* bots_ptr_;
 	std::vector<settlement_data>* settlement_data_ptr_;
 
-	CLanguage* language_;
 	std::unordered_map<std::string, std::string>* lang_;
 
 	CDatabase* database_;
@@ -164,6 +163,10 @@ public:
 	inline bool IsResearching(const table_users& user) const
 	{
 		return user.b_tech > 0;
+	}
+	inline bool HasLaboratory(const table_planets& planet) const 
+	{
+		return planet.resource[31] > 0;
 	}
 	inline bool IsBuilding(const table_planets& planet) const 
 	{

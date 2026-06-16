@@ -5,7 +5,6 @@
 
 CBotManager::CBotManager(CLanguage* language, CDatabase* database)
     : bots_ptr_(nullptr)
-    , language_(nullptr)
     , database_(nullptr)
     , lang_(nullptr)
     , first_run_(true)
@@ -111,9 +110,6 @@ void CBotManager::Run(const CApplication& app)
         // handlers.
         auto start = GetTimeNow();
         HandleMain();
-        // HandleResourceUpdate();
-        // HandleBuildings();
-        // HandleColonization();
 
         // save to db
         database_->UpdateBots();
@@ -468,7 +464,7 @@ PhpArray CBotManager::php_unserialize(const std::string& serialized_data) {
 
 const table_config* CBotManager::GetConfigByUniID(int uni) const
 {
-    auto& config = database_->GetConfig();
+    const auto& config = database_->GetConfig();
     auto it = config.find(uni);
     if (it == config.end())
     {

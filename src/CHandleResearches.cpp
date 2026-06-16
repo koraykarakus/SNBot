@@ -13,8 +13,8 @@ void CBotManager::HandleResearches(table_users& bot,
         return;
     }
 
-    // have lab ?
-    if (planet.resource[31] == 0)
+    // has lab ?
+    if (!HasLaboratory(planet))
     {
         log_.type = 12;
         logs_.push_back(log_);

@@ -11,6 +11,8 @@ class CCommandHandler
 public:
 	std::unordered_map<std::string, std::string>* lang_;
 	CBotManager* bot_manager_;
+
+public:
 	CCommandHandler(CLanguage* language, CBotManager* botManager);
 	~CCommandHandler();
 	// console
