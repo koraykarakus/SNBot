@@ -2,25 +2,31 @@
 #include "CCommandHandler.h"
 #include "CApplication.h"
 
-CCommandHandler::CCommandHandler(
-    const std::unordered_map<std::string, std::string>& lang
-)
+CCommandHandler::CCommandHandler(CLanguage* language, 
+    CBotManager* botManager)
 	: bot_manager_(nullptr)
-    , lang_(lang)
+    , lang_(nullptr)
 {
+    if (language)
+    {
+        lang_ = language->GetLangStrings();
+    }
+
+    if (botManager)
+    {
+        bot_manager_ = botManager;
+    }
 }
 
 CCommandHandler::~CCommandHandler()
 {
 }
 
-void CCommandHandler::Run(CBotManager* pBotManager, CApplication& app)
+void CCommandHandler::Run(CApplication& app)
 {
     std::cout << "\n==========================================================" << std::endl;
     std::cout << "[Console] App is ready! Write /help to display commands." << std::endl;
     std::cout << "==========================================================\n" << std::endl;
-
-    bot_manager_ = pBotManager;
 
     std::string line;
     while (app.IsRunning())
@@ -53,7 +59,7 @@ bool CCommandHandler::ProcessCommand(std::string& line, CApplication& app)
                 info.type = 1;
                 info.count = count;
                 bot_manager_->PushCmdRequest(info);
-                CLogger::Info(lang_.at("ids_addbot_received"));
+                CLogger::Info(lang_->at("ids_addbot_received"));
             }
         }
     }
@@ -63,10 +69,10 @@ bool CCommandHandler::ProcessCommand(std::string& line, CApplication& app)
     }
 	else if (cmd == "/help")
 	{
-		CLogger::Info(lang_.at("ids_help_start"));
-		CLogger::Info(lang_.at("ids_help_exit"));
-		CLogger::Info(lang_.at("ids_help_addbots"));
-		CLogger::Info(lang_.at("ids_help_removebots"));
+		CLogger::Info(lang_->at("ids_help_start"));
+		CLogger::Info(lang_->at("ids_help_exit"));
+		CLogger::Info(lang_->at("ids_help_addbots"));
+		CLogger::Info(lang_->at("ids_help_removebots"));
 	}
     else if (cmd == "/remove_bots")
     {
@@ -75,12 +81,12 @@ bool CCommandHandler::ProcessCommand(std::string& line, CApplication& app)
     }
     else if (cmd == "/exit")
     {
-        CLogger::Info(lang_.at("ids_cmd_exid"));
+        CLogger::Info(lang_->at("ids_cmd_exid"));
         app.Close();
     }
     else
     {
-        CLogger::Info(lang_.at("ids_cmd_wrong"));
+        CLogger::Info(lang_->at("ids_cmd_wrong"));
     }
 
     return true;

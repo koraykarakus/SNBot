@@ -13,8 +13,7 @@ using time_var = std::chrono::steady_clock::time_point;
 class CDatabase
 {
 private:
-    const std::unordered_map<std::string, std::string>& lang_;
-
+    std::unordered_map<std::string, std::string>* lang_;
     static const int BATCH_SIZE = 300;
     MYSQL* conn_;
 
@@ -44,9 +43,7 @@ private:
     std::vector<settlement_data> settlement_data_;
 
 public:
-    CDatabase(
-        const std::unordered_map<std::string, std::string>& lang
-    );
+    CDatabase(CLanguage* language);
     ~CDatabase();
     void Init();
 
@@ -59,18 +56,19 @@ public:
     bool LoadSettlementData();
     bool RefreshData();
 
-    bool UpdateBots(std::vector<table_users>& vecBots);
+    bool UpdateBots();
     bool RemoveBots();
 
-    inline const std::unordered_map<int, table_vars>& GetVars() const
+    inline std::unordered_map<int, table_vars>* GetVars()
     {
-        return vars_;
+        return &vars_;
     }
 
-    inline const std::unordered_map<int, std::vector<table_vars_requirements>>& 
+    inline const std::unordered_map<int, 
+        std::vector<table_vars_requirements>>* 
         GetVarsRequirements() const
     {
-        return vars_requirements_;
+        return &vars_requirements_;
     }
 
     inline const std::unordered_map<int, std::string>& GetResource() const
@@ -123,7 +121,10 @@ public:
         return nullptr;
     }
 
-    const std::vector<table_users>& GetLoadedBots() const { return temp_bots_; }
+    std::vector<table_users>* GetLoadedBots() 
+    { 
+        return &temp_bots_; 
+    }
 
 
     // create bots related

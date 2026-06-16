@@ -3,27 +3,34 @@
 #include "CDatabase.h"
 #include "CApplication.h"
 
-CBotManager::CBotManager(
-    const std::unordered_map<int, table_vars>& dbvars_,
-    const std::unordered_map<int, std::vector<table_vars_requirements>>& dbvars_requirements_,
-    const std::unordered_map<std::string, std::string>& lang)
-    : vars_(dbvars_)
-    , lang_(lang)
-    , vars_requirements_(dbvars_requirements_)
-    , bots_{}
+CBotManager::CBotManager(CLanguage* language, CDatabase* database)
+    : bots_ptr_(nullptr)
+    , language_(nullptr)
+    , database_(nullptr)
+    , lang_(nullptr)
     , first_run_(true)
     , time_last_run_(std::chrono::steady_clock::time_point{})
-    , database_(nullptr)
     , system_time_(0)
     , system_hour_(0)
     , loop_time_(30)
+    , settlement_data_ptr_(nullptr)
+    , vars_ptr_(nullptr)
+    , vars_requirements_ptr_(nullptr)
 {
-    
+    if (language)
+    {
+        lang_ = language->GetLangStrings();
+    }
+
+    if (database)
+    {
+        database_ = database;
+    }
 }
 
 CBotManager::~CBotManager()
 {
-    bots_.clear();
+    bots_ptr_ = nullptr;
 }
 
 bool CBotManager::IsInTimeRange(int start_time, int end_time) const
@@ -62,11 +69,8 @@ bool CBotManager::IsAway(const table_users& bot) const
     return (bot.playTime.check_time * 60) > (static_cast<int>(system_time_) - bot.onlinetime);
 }
 
-void CBotManager::Run(CDatabase* database, const CApplication& app)
+void CBotManager::Run(const CApplication& app)
 {
-    // will use it to get vars, reslist etc.
-    database_ = database;
-
     // sleep if not loaded yet.
     while (app.IsRunning() 
         && !app.IsLoaded())
@@ -80,7 +84,7 @@ void CBotManager::Run(CDatabase* database, const CApplication& app)
 		return;
 	}
 
-    bots_ = database_->GetLoadedBots();
+    bots_ptr_ = database_->GetLoadedBots();
     loop_time_ = database_->GetLoopTime();
     settlement_data_ptr_ = database_->GetSettlementData();
     
@@ -112,11 +116,11 @@ void CBotManager::Run(CDatabase* database, const CApplication& app)
         // HandleColonization();
 
         // save to db
-        database->UpdateBots(bots_);
+        database_->UpdateBots();
         // reload from db
-        if (database->RefreshData())
+        if (database_->RefreshData())
         {
-            CLogger::Info(lang_.at("ids_bot_data_refreshed"));
+            CLogger::Info(lang_->at("ids_bot_data_refreshed"));
         }
         auto end = GetTimeNow();
 
@@ -126,13 +130,13 @@ void CBotManager::Run(CDatabase* database, const CApplication& app)
         time_last_run_ = timeNow;
         auto duration_micros = GetElapsedMicroseconds(start, end);
         double duration_millis = GetElapsedMilliseconds(start, end);
-        CLogger::Info(lang_.at("ids_process_handled"),
+        CLogger::Info(lang_->at("ids_process_handled"),
              duration_micros, duration_millis, loop_time_);
         // sleep
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 
-    CLogger::Info(lang_.at("ids_run_thread_finished"));
+    CLogger::Info(lang_->at("ids_run_thread_finished"));
 }
 
 void CBotManager::HandleMain() 
@@ -140,7 +144,7 @@ void CBotManager::HandleMain()
     SetSystemTime();
     SetHour();
 
-    for (auto& bot : bots_)
+    for (auto& bot : *bots_ptr_)
     {
         // reset logs at the start..
         log_.Reset();
@@ -210,47 +214,47 @@ void CBotManager::LogResult()
         {
 		case 1:
 			fmt::format_to(std::back_inserter(buf),
-                fmt::runtime(lang_.at("ids_bot_is_not_online")),
+                fmt::runtime(lang_->at("ids_bot_is_not_online")),
 				log.bot_id, log.id_planet);
 			break;
 		case 2:
 			fmt::format_to(std::back_inserter(buf),
-                fmt::runtime(lang_.at("ids_bot_is_away")),
+                fmt::runtime(lang_->at("ids_bot_is_away")),
 				log.away_time, log.bot_id, log.id_planet);
 			break;
 		case 3:
 			fmt::format_to(std::back_inserter(buf),
-				fmt::runtime(lang_.at("ids_bot_in_vacation")),
+				fmt::runtime(lang_->at("ids_bot_in_vacation")),
 				log.bot_id, log.id_planet);
 			break;
         case 4:
             fmt::format_to(std::back_inserter(buf),
-                fmt::runtime(lang_.at("ids_config_map_missing")),
+                fmt::runtime(lang_->at("ids_config_map_missing")),
                 log.universe, log.bot_id, log.id_planet);
             break;
         case 5:
             fmt::format_to(std::back_inserter(buf),
-                fmt::runtime(lang_.at("ids_already_building")),
+                fmt::runtime(lang_->at("ids_already_building")),
                 log.bot_id, log.id_planet);
             break;
         case 6:
             fmt::format_to(std::back_inserter(buf),
-                fmt::runtime(lang_.at("ids_build_list_completed")),
+                fmt::runtime(lang_->at("ids_build_list_completed")),
                 log.bot_id, log.id_planet);
             break;
         case 7:
             fmt::format_to(std::back_inserter(buf), 
-                fmt::runtime(lang_.at("ids_wrong_elem_id")),
+                fmt::runtime(lang_->at("ids_wrong_elem_id")),
                 log.building_id, log.bot_id, log.id_planet);
             break;
         case 8:
             fmt::format_to(std::back_inserter(buf),
-                fmt::runtime(lang_.at("ids_tech_not_accessible")),
+                fmt::runtime(lang_->at("ids_tech_not_accessible")),
                 log.research_id, log.bot_id, log.id_planet);
             break;
         case 9:
             fmt::format_to(std::back_inserter(buf),
-                 fmt::runtime(lang_.at("ids_not_enough_res")),
+                 fmt::runtime(lang_->at("ids_not_enough_res")),
                  log.galaxy, log.system, log.planet,
                  log.email, log.building_id, log.cost901, log.cost902, log.cost903,
                  log.planet_metal, log.planet_crystal, log.planet_deu,
@@ -258,48 +262,48 @@ void CBotManager::LogResult()
             break;
         case 10:
             fmt::format_to(std::back_inserter(buf),
-                fmt::runtime(lang_.at("ids_started_building")),
+                fmt::runtime(lang_->at("ids_started_building")),
                 log.building_name, log.building_level, log.bot_id, log.id_planet);
             break;
         case 11:
             fmt::format_to(std::back_inserter(buf),
-                fmt::runtime(lang_.at("ids_already_researching")),
+                fmt::runtime(lang_->at("ids_already_researching")),
                 log.bot_id, log.id_planet);
             break;
         case 12:
             fmt::format_to(std::back_inserter(buf),
-                fmt::runtime(lang_.at("ids_planet_dont_have_lab")),
+                fmt::runtime(lang_->at("ids_planet_dont_have_lab")),
                 log.bot_id, log.id_planet);
             break;
         case 13:
             fmt::format_to(std::back_inserter(buf),
-                fmt::runtime(lang_.at("ids_research_list_complete")),
+                fmt::runtime(lang_->at("ids_research_list_complete")),
                 log.bot_id, log.id_planet);
             break;
         case 14:
             fmt::format_to(std::back_inserter(buf), 
-                fmt::runtime(lang_.at("ids_wrong_elem_id")),
+                fmt::runtime(lang_->at("ids_wrong_elem_id")),
                 log.building_id,log.bot_id, log.id_planet);
             break;
         case 15:
             fmt::format_to(std::back_inserter(buf),
-                fmt::runtime(lang_.at("ids_tech_not_accessible")),
+                fmt::runtime(lang_->at("ids_tech_not_accessible")),
                 log.research_id, log.bot_id, log.id_planet);
             break;
         case 16:
             fmt::format_to(std::back_inserter(buf),
-                fmt::runtime(lang_.at("ids_not_enough_res")),
+                fmt::runtime(lang_->at("ids_not_enough_res")),
                 log.bot_id, log.id_planet, log.galaxy, log.system, log.planet,
                 log.email, log.building_id, log.cost901, log.cost902, log.cost903,
                 log.planet_metal, log.planet_crystal, log.planet_deu);
             break;
         case 17:
             fmt::format_to(std::back_inserter(buf),
-                fmt::runtime(lang_.at("ids_started_research")),
+                fmt::runtime(lang_->at("ids_started_research")),
                 log.research_name, log.research_level, log.id_planet, log.bot_id);
             break;
         default:
-            fmt::format_to(std::back_inserter(buf), fmt::runtime(lang_.at("ids_undef_log")));
+            fmt::format_to(std::back_inserter(buf), fmt::runtime(lang_->at("ids_undef_log")));
             break;
         }
     }
@@ -308,7 +312,7 @@ void CBotManager::LogResult()
 
     // 5000 botun tüm bilgisini TEK BİR SEFERDE diske/konsola yazar. 
     // I/O işlemi 5000 kez değil, sadece 1 kez çağrılır!
-    CLogger::Info(lang_.at("ids_build_logs_all"), fmt::to_string(buf));
+    CLogger::Info(lang_->at("ids_build_logs_all"), fmt::to_string(buf));
 }
 
 
@@ -330,8 +334,15 @@ bool CBotManager::IsTechAccessible(int element_id,
     const table_planets& planet,
     const table_users& user)
 {
-    auto it = vars_requirements_.find(element_id);
-    if (it == vars_requirements_.end())
+    auto* vars_requirements = database_->GetVarsRequirements();
+    
+    if (vars_requirements == nullptr)
+    {
+        return false;
+    }
+
+    auto it = vars_requirements->find(element_id);
+    if (it == vars_requirements->end())
     {
         return true;
     }
@@ -468,11 +479,18 @@ const table_config* CBotManager::GetConfigByUniID(int uni) const
 
 const table_vars* CBotManager::GetVarsByID(int id) const
 {
-    const auto& vars = database_->GetVars();
-    auto it = vars.find(id);
-    if (it == vars.end())
+    auto* vars = database_->GetVars();
+
+    if (vars == nullptr)
     {
         return nullptr;
     }
+
+    auto it = vars->find(id);
+    if (it == vars->end())
+    {
+        return nullptr;
+    }
+
     return &it->second;
 }

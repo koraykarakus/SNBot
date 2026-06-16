@@ -59,8 +59,8 @@ void CBotManager::HandleBuildings(table_users& bot,
     }
 
     // search id in unordered map
-    auto it = vars_.find(tar_building_id);
-    if (it == vars_.end())
+    const table_vars* element = GetVarsByID(tar_building_id);
+    if (element == nullptr)
     {
         log_.type = 7;
         log_.building_id = tar_building_id;
@@ -77,15 +77,14 @@ void CBotManager::HandleBuildings(table_users& bot,
         return;
     }
 
-    const table_vars& element = it->second;
     int current_level = current_levels_buildings[tar_building_id];
     int level_up = current_level + 1;
 
     double array_cost[3] = { 0,0,0 };
 
-    array_cost[0] = std::round(element.cost901 * std::pow(element.factor, current_level));
-    array_cost[1] = std::round(element.cost902 * std::pow(element.factor, current_level));
-    array_cost[2] = std::round(element.cost903 * std::pow(element.factor, current_level));
+    array_cost[0] = std::round(element->cost901 * std::pow(element->factor, current_level));
+    array_cost[1] = std::round(element->cost902 * std::pow(element->factor, current_level));
+    array_cost[2] = std::round(element->cost903 * std::pow(element->factor, current_level));
 
     if (!HaveEnoughResources(planet, array_cost))
     {
@@ -109,17 +108,17 @@ void CBotManager::HandleBuildings(table_users& bot,
     planet.need_update;
     // it is building if id is less than 100
     double baseTime = (array_cost[0] + array_cost[1] + 3.0) / (game_speed * (1.0 + planet.resource[14]));
-    double buildTime = baseTime * std::pow(0.5, planet.resource[15]) * element.factor;
+    double buildTime = baseTime * std::pow(0.5, planet.resource[15]) * element->factor;
     time_t endTime = system_time_ + static_cast<time_t>(buildTime);
     planet.b_building = endTime;
 
-    planet.b_building_id = "a:1:{i:0;a:5:{i:0;i:" + std::to_string(element.element_id) +
+    planet.b_building_id = "a:1:{i:0;a:5:{i:0;i:" + std::to_string(element->element_id) +
         ";i:1;i:" + std::to_string(level_up) +
         ";i:2;i:" + std::to_string(static_cast<int>(buildTime)) +
         ";i:3;i:" + std::to_string(endTime) + ";i:4;s:5:\"build\";}}";
 
     log_.type = 10;
-    log_.building_name = element.name;
+    log_.building_name = element->name;
     log_.building_level = level_up;
     logs_.push_back(log_);
 

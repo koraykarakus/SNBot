@@ -35,8 +35,8 @@ void CBotManager::HandleResearches(table_users& bot,
     }
 
     // search id in map
-    auto it = vars_.find(tar_research_id);
-    if (it == vars_.end())
+    const table_vars* element = GetVarsByID(tar_research_id);
+    if (element == nullptr)
     {
         log_.type = 14;
         log_.research_id = tar_research_id;
@@ -53,14 +53,13 @@ void CBotManager::HandleResearches(table_users& bot,
         return;
     }
 
-    const table_vars& element = it->second;
     int current_level = current_levels_tech[tar_research_id];
     int level_up = current_level + 1;
 
     double array_cost[3] = { 0,0,0 };
-    array_cost[0] = std::round(element.cost901 * std::pow(element.factor, current_level));
-    array_cost[1] = std::round(element.cost902 * std::pow(element.factor, current_level));
-    array_cost[2] = std::round(element.cost903 * std::pow(element.factor, current_level));
+    array_cost[0] = std::round(element->cost901 * std::pow(element->factor, current_level));
+    array_cost[1] = std::round(element->cost902 * std::pow(element->factor, current_level));
+    array_cost[2] = std::round(element->cost903 * std::pow(element->factor, current_level));
 
     if (!HaveEnoughResources(planet, array_cost))
     {
@@ -89,10 +88,10 @@ void CBotManager::HandleResearches(table_users& bot,
 
     bot.b_tech_planet = planet.id;
     bot.b_tech = end_time;
-    bot.b_tech_id = element.element_id;
+    bot.b_tech_id = element->element_id;
 
     // todo : check this order
-    bot.b_tech_queue = "a:1:{i:0;a:5:{i:0;i:" + std::to_string(element.element_id) +
+    bot.b_tech_queue = "a:1:{i:0;a:5:{i:0;i:" + std::to_string(element->element_id) +
         ";i:1;i:" + std::to_string(level_up) +
         ";i:2;i:" + std::to_string(static_cast<int>(build_time)) +
         ";i:3;i:" + std::to_string(end_time) +
@@ -100,7 +99,7 @@ void CBotManager::HandleResearches(table_users& bot,
 
 
     log_.type = 17;
-    log_.research_name = element.name;
+    log_.research_name = element->name;
     log_.research_level = level_up;
     logs_.push_back(log_);
 

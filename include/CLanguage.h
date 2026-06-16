@@ -29,8 +29,8 @@ private:
 public:
 	CLanguage();
 	~CLanguage();
-	inline std::unordered_map<std::string, std::string>& GetLangStrings()
+	inline std::unordered_map<std::string, std::string>* GetLangStrings()
 	{
-		return strings_;
+		return &strings_;
 	}
 };

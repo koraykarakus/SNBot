@@ -60,15 +60,13 @@ struct stlog
 
 class CApplication;
 class CDatabase;
+class CLanguage;
 
 using PhpArray = std::vector<std::string>;
 using time_var = std::chrono::steady_clock::time_point;
 class CBotManager 
 {
 private:
-	// language umap
-	const std::unordered_map<std::string, std::string>& lang_;
-
 	// wait time in seconds between each bot handle overall loops.
 	int loop_time_;
 	// timestamp
@@ -77,13 +75,15 @@ private:
 	int system_hour_;
 	time_var time_last_run_;
 	bool first_run_;
-	std::vector<table_users> bots_;
-	std::vector<settlement_data>* settlement_data_ptr_ = nullptr;
+	std::vector<table_users>* bots_ptr_;
+	std::vector<settlement_data>* settlement_data_ptr_;
 
+	CLanguage* language_;
+	std::unordered_map<std::string, std::string>* lang_;
 
 	CDatabase* database_;
-	const std::unordered_map<int, table_vars>& vars_;
-	const std::unordered_map<int, std::vector<table_vars_requirements>>& vars_requirements_;
+	std::unordered_map<int, table_vars>* vars_ptr_;
+	std::unordered_map<int, std::vector<table_vars_requirements>>* vars_requirements_ptr_;
 	// logging
 	std::vector<stlog> logs_;
 	stlog log_;
@@ -93,13 +93,9 @@ private:
 	std::mutex mutex_command_;
 
 public:
-	CBotManager(
-		const std::unordered_map<int, table_vars>& dbvars_,
-		const std::unordered_map<int, std::vector<table_vars_requirements>>& dbvars_requirements_,
-		const std::unordered_map<std::string, std::string>& lang
-	);
+	CBotManager(CLanguage* language, CDatabase* database);
 	~CBotManager();
-	void Run(CDatabase* database, const CApplication& app);
+	void Run(const CApplication& app);
 
 	// time related
 	inline void SetHour() 
@@ -149,21 +145,6 @@ public:
 		return (bot.playTime.check_time * 60) - (static_cast<int>(system_time_) - bot.onlinetime);
 	}
 	bool IsInTimeRange(int start_time, int end_time) const;
-
-	inline void AddBot(const table_users& bot)
-	{
-		bots_.push_back(bot);
-	}
-
-	inline void ClearBots()
-	{
-		bots_.clear();
-	}
-
-	std::vector<table_users>& GetBots()
-	{
-		return bots_;
-	}
 	// main bot loot, run once. loop once.
 	void HandleMain();
 

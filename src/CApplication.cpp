@@ -10,18 +10,19 @@ CApplication::CApplication()
     language_ = std::make_unique<CLanguage>();
     
     database_ = std::make_unique<CDatabase>(
-        language_->GetLangStrings()
+        language_.get()
     );
 
     bot_manager_ = std::make_unique<CBotManager>(
-        database_->GetVars(),
-        database_->GetVarsRequirements(),
-        language_->GetLangStrings()
+        language_.get(),
+        database_.get()
     );
 
     logger_ = std::make_unique<CLogger>();
+    
     command_handler_ = std::make_unique<CCommandHandler>(
-        language_->GetLangStrings()
+        language_.get(),
+        bot_manager_.get()
     );
 }
 
@@ -65,11 +66,14 @@ void CApplication::Run()
 {
     // give db pointer as 2nd param.
     // give app as 3rd param.
-    bot_thread_ = std::thread(&CBotManager::Run, bot_manager_.get(), database_.get(), std::ref(*this));
+    bot_thread_ = std::thread(&CBotManager::Run, 
+        bot_manager_.get(),
+        std::ref(*this));
     
     // give botmanager as 2nd, app as 3rd
-    console_thread_ = std::thread(&CCommandHandler::Run, command_handler_.get(),
-        bot_manager_.get(), std::ref(*this));
+    console_thread_ = std::thread(&CCommandHandler::Run, 
+        command_handler_.get(),
+        std::ref(*this));
     
     std::unique_lock<std::mutex> lock(mutex_shutdown_);
     cv_shutdown_.wait(lock, [this]() { return !running_; });

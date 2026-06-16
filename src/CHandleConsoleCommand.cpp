@@ -42,7 +42,7 @@ bool CBotManager::ProcessPendingRequests()
 
 void CBotManager::CreateBots(int count)
 {
-    CLogger::Info(lang_.at("ids_creating_bots"), count);
+    CLogger::Info(lang_->at("ids_creating_bots"), count);
     database_->AddBots(count);
 }
 
@@ -50,7 +50,7 @@ void CBotManager::RemoveBots()
 {
     if (database_->RemoveBots())
     {
-        bots_ = database_->GetLoadedBots();
-        CLogger::Info(lang_.at("ids_bot_remove_succ"));
+        bots_ptr_ = database_->GetLoadedBots();
+        CLogger::Info(lang_->at("ids_bot_remove_succ"));
     }
 }

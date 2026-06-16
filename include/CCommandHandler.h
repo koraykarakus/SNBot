@@ -4,17 +4,16 @@
 
 class CBotManager;
 class CApplication;
+class CLanguage;
 
 class CCommandHandler
 {
 public:
-	const std::unordered_map<std::string, std::string>& lang_;
+	std::unordered_map<std::string, std::string>* lang_;
 	CBotManager* bot_manager_;
-	CCommandHandler(
-		const std::unordered_map<std::string, std::string>& lang
-	);
+	CCommandHandler(CLanguage* language, CBotManager* botManager);
 	~CCommandHandler();
 	// console
-	void Run(CBotManager* pBotManager, CApplication& app);
+	void Run(CApplication& app);
 	bool ProcessCommand(std::string& line, CApplication& app);
 };
