@@ -3,7 +3,7 @@
 #include "CBotManager.h"
 #include "CLogger.h"
 #include "CDatabase.h"
-#include "bcrypt.h"
+#include <bcrypt.h>
 #include <iostream>
 #include <string>
 #include <set>

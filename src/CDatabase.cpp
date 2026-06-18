@@ -1,12 +1,13 @@
-﻿#define TOML_ENABLE_UNRELEASED_FEATURES 0 // Eğer varsa bunu da ekleyebilirsiniz
-#define TOML_EXPORTED_CLASS              // IntelliSense'in kafasını rahatlatır
+﻿
+#include <toml++/toml.hpp>
+#include <fmt/ranges.h>
+#include <filesystem>
+#include <fstream>
 
 #include "CDatabase.h"
 #include "CLogger.h"
 #include "CLanguage.h"
-#include <toml++/toml.hpp>
-#include <fmt/ranges.h>
-#include <filesystem>
+
 
 using namespace std::literals;
 
@@ -48,7 +49,7 @@ void CDatabase::Init()
     std::filesystem::path config_path = std::filesystem::current_path() / "settings.toml";
     toml::table config;
 
-    // 1. Dosya var mı kontrol et, yoksa varsayılanlarla oluştur
+    // 1. check if file exists, otherwise create.
     if (!std::filesystem::exists(config_path))
     {
         CLogger::Error(lang_->at("ids_settings_not_found"));
@@ -73,7 +74,7 @@ void CDatabase::Init()
         std::ofstream out_file(config_path);
         if (out_file.is_open())
         {
-            out_file << config; // toml++ tablosunu doğrudan dosyaya akıtabilirsiniz
+            out_file << config; 
             out_file.close();
         }
         else
@@ -83,14 +84,16 @@ void CDatabase::Init()
     }
     else
     {
-        // 2. Dosya zaten varsa oku
+        // 2. read file
         try
         {
             config = toml::parse_file(config_path.string());
         }
         catch (const toml::parse_error& err)
         {
-            CLogger::Error(lang_->at("ids_settings_cannot_be_parsed"), err.description());
+            CLogger::Error(
+                lang_->at("ids_settings_cannot_be_parsed"), 
+                err.description());
             return;
         }
     }

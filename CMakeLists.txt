@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(unofficial-libmariadb CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
 # files
 add_executable(SNBot
     # --- Source Files ---
@@ -20,10 +21,8 @@ add_executable(SNBot
     "src/CHandleResearches.cpp"
     "src/CApplication.cpp"
     "src/CLanguage.cpp"
-    "src/bcrypt.cpp"
-    "src/blowfish.cpp"
-    "src/node_blf.h"
-    "src/openbsd.h"
+    "deps/bcrypt/src/bcrypt.cpp"
+    "deps/bcrypt/src/blowfish.cpp"
 
     # --- Header Files ---
     "include/CDatabase.h"
@@ -38,17 +37,25 @@ add_executable(SNBot
     "include/CCommandHandler.h" 
     "include/CLanguage.h" 
     "include/bot_names.h"
-    "include/bcrypt.h"
+    "deps/bcrypt/include/bcrypt.h"
 )
 
-# header files
-target_include_directories(SNBot PRIVATE include)
+# additional include directories
+target_include_directories(SNBot PRIVATE 
+    include
+    deps/bcrypt/include
+    deps/tomlplusplus/include
+    #${VCPKG_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/include
+)
 target_compile_definitions(SNBot PRIVATE CONCPP_BUILD_SHARED)
 
 target_link_libraries(SNBot PRIVATE
     unofficial::libmariadb
     spdlog::spdlog
 )
+
+add_subdirectory(deps/bcrypt)
+add_subdirectory(deps/tomlplusplus)
 
 # coppy language files from root to build folder
 add_custom_command(TARGET SNBot POST_BUILD

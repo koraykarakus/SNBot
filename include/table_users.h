@@ -28,7 +28,6 @@ inline constexpr std::array<std::string_view, 18> bonus_list = {
     "MoreFound",
 };
 
-// trivial.
 struct play_time
 {
 	// when it starts to play [0 - 23] hour
@@ -148,11 +147,11 @@ struct table_users
             auto itPrice = pricelist.find(element_id);
             if (itPrice == pricelist.end())
             {
-                continue; // Bir sonraki element_id'ye atla
+                continue;
             }
             const std::map<std::string_view, bonus_data>& bonus = itPrice->second.bonus;
 
-            if (bonus.empty()) // veya bonus.size() == 0
+            if (bonus.empty()) // or bonus.size() == 0
             {
                 continue;
             }
@@ -186,20 +185,15 @@ struct table_users
             {
                 for (const auto& bonus_key : bonus_list)
                 {
-                    // bonus_key'i haritada arıyoruz (Örn: "metal_production")
                     auto itBonus = bonus.find(bonus_key);
 
                     if (itBonus != bonus.end())
                     {
-                        // Eleman bulundu! Güvenle değerini alıp factor haritasına ekliyoruz.
-                        // itBonus->second doğrudan bonus_data struct'ına karşılık gelir.
                         factor[bonus_key] += $element_level * itBonus->second.value;
                     }
                     else
                     {
-                        // Eğer veritabanında veya kodda bu bonus_key yoksa oyunun çökmesini engelledik.
-                        // İstersen buraya bir log atıp hangi key'in eksik olduğunu görebilirsin:
-                        // CLogger::Warn("[CBotManager] - Bonus key '{}' bulunamadi!", bonus_key);
+                        // log if needed
                     }
                 }
             }

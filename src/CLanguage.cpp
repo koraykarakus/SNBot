@@ -3,6 +3,7 @@
 #include "CLanguage.h"
 #include "CLogger.h"
 #include <filesystem>
+#include <fstream>
 #include "toml++/toml.hpp"
 
 CLanguage::CLanguage()

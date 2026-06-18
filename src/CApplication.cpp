@@ -92,7 +92,7 @@ void CApplication::Shutdown()
 }
 
 bool CApplication::LoadBotsFromDatabase() {
-    return database_->LoadBots();
+	return database_->LoadBots();
 }
 
 bool CApplication::LoadVarsFromDatabase() {

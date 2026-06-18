@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-// 0 - 100 Arası Binalar
+// 0 - 100 buildings
 enum buildings_id {
     metal_mine = 1,
     crystal_mine = 2,
@@ -23,7 +23,7 @@ enum buildings_id {
     missile_silo = 44
 };
 
-// 100 - 200 Arası Araştırmalar (Struct dışında kullanılacak)
+// 100 - 200 researches
 enum research_id {
     spy_tech = 106,
     computer_tech = 108,
@@ -46,7 +46,7 @@ enum research_id {
     graviton_tech = 199
 };
 
-// 200 - 300 Arası Gemiler
+// 200 - 300 ships
 enum ships_id {
     small_cargo = 202,
     big_cargo = 203,
@@ -69,7 +69,7 @@ enum ships_id {
     dm_ship = 220
 };
 
-// 300 - 400 Arası Savunma Üniteleri
+// 300 - 400 defences
 enum defences_id {
     rocket_launcher = 301, // 401 olan id'ler belirttiğin gibi 300-400 aralığına çekildi
     light_laser = 302,
@@ -84,13 +84,13 @@ enum defences_id {
     orbital_station = 311
 };
 
-// 500 - 600 Arası Füzeler
+// 500 - 600 missiles
 enum missiles_id {
     interceptor_misil = 502,
     interplanetary_misil = 503
 };
 
-// 600 - 700 Arası Subaylar (Officers)
+// 600 - 700 officers
 enum officers_id {
     rpg_geologist = 601, rpg_admiral = 602, rpg_engineer = 603, rpg_technocrat = 604,
     rpg_constructor = 605, rpg_scientist = 606, rpg_stocker = 607, rpg_defender = 608,
