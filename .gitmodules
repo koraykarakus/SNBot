@@ -1,0 +1,12 @@
+[submodule "deps/bcrypt"]
+	path = deps/bcrypt
+	url = https://github.com/hilch/Bcrypt.cpp.git
+[submodule "deps/tomlplusplus"]
+	path = deps/tomlplusplus
+	url = https://github.com/marzer/tomlplusplus.git
+[submodule "deps/spdlog"]
+	path = deps/spdlog
+	url = https://github.com/gabime/spdlog
+[submodule "deps/fmt"]
+	path = deps/fmt
+	url = https://github.com/fmtlib/fmt

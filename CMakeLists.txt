@@ -4,7 +4,6 @@ project(SNBot CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(spdlog CONFIG REQUIRED)
 find_package(unofficial-libmariadb CONFIG REQUIRED)
 # files
 add_executable(SNBot
