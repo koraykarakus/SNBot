@@ -98,12 +98,14 @@ void CBotManager::CreateBots(const cmd_queue& cmd)
         info.onlinetime = static_cast<int>(time_now);
         info.is_bot = 1;
         bots.push_back(info);
-        CLogger::Info("username : {}\n" ,info.username);
-        CLogger::Info("email : {}\n", info.email);
-        CLogger::Info("gsp : {}:{}:{}\n", info.galaxy, info.system, info.planet);
-        CLogger::Info("image: {}\n", info.image);
-        CLogger::Info("temp_min: {}\n", info.temp_min);
-        CLogger::Info("temp_min: {}\n", info.temp_max);
+
+        // testing,logging
+        // CLogger::Info("username : {}\n" ,info.username);
+        // CLogger::Info("email : {}\n", info.email);
+        // CLogger::Info("gsp : {}:{}:{}\n", info.galaxy, info.system, info.planet);
+        // CLogger::Info("image: {}\n", info.image);
+        // CLogger::Info("temp_min: {}\n", info.temp_min);
+        // CLogger::Info("temp_min: {}\n", info.temp_max);
     }
     
     // send vector to database to insert
@@ -169,9 +171,9 @@ void CBotManager::CryptPassword(std::string& pass)
 
 void CBotManager::SetEmail(create_info& st)
 {
-    st.email = "bot" + std::to_string(botMaxEmailNum_) + "@2moons.de";
+    st.email = "bot" + std::to_string(bot_max_email_num_) + "@2moons.de";
     st.email_2 = st.email;
-    botMaxEmailNum_++;
+    bot_max_email_num_++;
 }
 
 void CBotManager::SetImage(create_info& st) 
@@ -318,5 +320,5 @@ void CBotManager::SetEmailStartNum()
             max_num = num;
     }
 
-    botMaxEmailNum_ = max_num + 1;
+    bot_max_email_num_ = max_num + 1;
 }

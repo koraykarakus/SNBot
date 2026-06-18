@@ -63,10 +63,13 @@ bool CCommandHandler::ProcessCommand(std::string& line, CApplication& app)
                 info.type = 1;
                 info.count = count;
                 info.universe = universe;
-                bot_manager_->CreateBots(info);
-                // uncomment
-                //bot_manager_->PushCmdRequest(info);
-                //CLogger::Info(lang_->at("ids_addbot_received"), count);
+
+				if (app.IsStarted())
+					bot_manager_->PushCmdRequest(info);
+				else
+					bot_manager_->CreateBots(info);
+                
+                CLogger::Info(lang_->at("ids_addbot_received"), count);
             }
         }
     }

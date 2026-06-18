@@ -15,6 +15,7 @@ CBotManager::CBotManager(CLanguage* language, CDatabase* database)
     , settlement_data_ptr_(nullptr)
     , vars_ptr_(nullptr)
     , vars_requirements_ptr_(nullptr)
+    , bot_max_email_num_(0)
 {
     if (language)
     {

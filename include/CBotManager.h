@@ -27,9 +27,9 @@ const T& GetMin(const T& a, const T& b)
 
 // console commands processing
 struct cmd_queue {
-	int type;
-	int count;
-	int universe;
+	int type = 0;
+	int count = 0;
+	int universe = 0;
 };
 
 // struct used to log.
@@ -203,7 +203,7 @@ public:
 		const table_config* config, 
 		std::set<std::tuple<int, int, int>>& occupied_locations);
 	void CryptPassword(std::string& pass);
-	void SetEmailStartNum(); int botMaxEmailNum_;
+	void SetEmailStartNum(); int bot_max_email_num_;
 	void SetEmail(create_info& st);
 	void SetImage(create_info& st);
 	void SetTemp(create_info& st);
