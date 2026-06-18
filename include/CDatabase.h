@@ -7,8 +7,6 @@
 #include <mysql/mysql.h>
 #include <string>
 
-class CApplication;
-class CBotManager;
 class CLanguage;
 using time_var = std::chrono::steady_clock::time_point;
 
