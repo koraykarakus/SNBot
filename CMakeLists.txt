@@ -54,9 +54,6 @@ target_link_libraries(SNBot PRIVATE
     spdlog::spdlog
 )
 
-add_subdirectory(deps/bcrypt)
-add_subdirectory(deps/tomlplusplus)
-
 # coppy language files from root to build folder
 add_custom_command(TARGET SNBot POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
