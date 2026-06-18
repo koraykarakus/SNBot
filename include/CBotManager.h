@@ -8,6 +8,9 @@
 #include "globals.h"
 #include "table_users.h"
 #include "table_fleets.h"
+#include "bot_names.h"
+#include <set>
+#include <tuple>
 
 template <typename T>
 const T& GetMax(const T& a, const T& b)
@@ -25,6 +28,7 @@ const T& GetMin(const T& a, const T& b)
 struct cmd_queue {
 	int type;
 	int count;
+	int universe;
 };
 
 // struct used to log.
@@ -124,7 +128,7 @@ public:
 
 	// command handlers.
 	bool ProcessPendingRequests();
-	void CreateBots(int count);
+	void CreateBots(const cmd_queue& cmd);
 	void RemoveBots();
 
 	const table_config* GetConfigByUniID(int uni) const;
@@ -192,6 +196,16 @@ public:
 	int FindFirstPlanetCanColonize(const table_users& user, const table_vars* data_colonyship) const;
 	int GetFirstPlanetWithColonyShip(const table_users& user) const;
 
+	// HandleCommands
+	void SetName(create_info& st);
+	void SetLocation(create_info& st, 
+		const table_config* config, 
+		std::set<std::tuple<int, int, int>>& occupied_locations);
+	void CryptPassword(std::string& pass);
+	void SetEmailStartNum(); int botMaxEmailNum_;
+	void SetEmail(create_info& st);
+	void SetImage(create_info& st);
+	void SetTemp(create_info& st);
 	// php helpers
 	PhpArray php_unserialize(const std::string& serialized_data);
 	std::string php_serialize(const PhpArray& arr);

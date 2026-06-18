@@ -25,6 +25,9 @@ CBotManager::CBotManager(CLanguage* language, CDatabase* database)
     {
         database_ = database;
     }
+
+    // seed random
+    std::srand(std::time(nullptr));
 }
 
 CBotManager::~CBotManager()

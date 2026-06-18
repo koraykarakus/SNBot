@@ -50,7 +50,11 @@ bool CCommandHandler::ProcessCommand(std::string& line, CApplication& app)
 
     if (cmd == "/add_bot")
     {
-        int count = 0; ss >> count;
+        int count = 0; 
+        int universe = 0;
+
+        ss >> count; 
+        ss >> universe;
         if (count > 0)
         {
             // into queue
@@ -58,8 +62,11 @@ bool CCommandHandler::ProcessCommand(std::string& line, CApplication& app)
             {
                 info.type = 1;
                 info.count = count;
-                bot_manager_->PushCmdRequest(info);
-                CLogger::Info(lang_->at("ids_addbot_received"));
+                info.universe = universe;
+                bot_manager_->CreateBots(info);
+                // uncomment
+                //bot_manager_->PushCmdRequest(info);
+                //CLogger::Info(lang_->at("ids_addbot_received"), count);
             }
         }
     }

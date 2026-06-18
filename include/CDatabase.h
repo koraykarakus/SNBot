@@ -4,6 +4,7 @@
 #include <string>
 #include "globals.h"
 #include "table_users.h"
+#include "bot_names.h"
 
 class CApplication;
 class CBotManager;
@@ -128,8 +129,7 @@ public:
 
 
     // create bots related
-    bool AddBots(int count);
-    void GetName(std::string& str);
+    bool AddBots(std::vector<create_info>& bots);
 
     MYSQL* GetConnection() const { return conn_; }
 };

@@ -27,3 +27,37 @@ inline constexpr std::array bot_name = {
     "Ganimed", "Forma", "Pulsar", "Holmes", "Rhea", "Deneb",
     "Nova", "Omega", "Zagadra", "Hunter", "Ranger", "Zibal", "Asteroid"
 };
+
+struct create_info
+{
+    std::string username = "";
+    std::string password = "";
+    std::string email = "";
+    std::string email_2 = "";
+    std::string lang = "en";
+    uint8_t universe = 0;
+    uint8_t galaxy = 0;
+    uint16_t system = 0;
+    uint8_t planet = 0;
+    int darkmatter = 0;
+    int register_time = 0;
+    int onlinetime = 0;
+    uint8_t is_bot = 1;
+
+    // planet related..
+    std::string planet_name = "Main Planet";
+    int last_update = 0;
+    uint8_t planet_type = 1;
+    std::string image = "normaltempplanet01";
+    uint16_t field_max = 163;
+    int temp_min = -17;
+    int temp_max = 23;
+    int metal = 10000;
+    int crystal = 10000;
+    int deuterium = 0;
+
+    void Reset() 
+    {
+        *this = create_info();
+    }
+};

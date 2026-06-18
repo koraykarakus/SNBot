@@ -7,7 +7,6 @@
 #include <toml++/toml.hpp>
 #include <fmt/ranges.h>
 #include <filesystem>
-#include "bot_names.h"
 
 using namespace std::literals;
 
@@ -37,8 +36,6 @@ CDatabase::CDatabase(CLanguage* language)
         lang_ = language->GetLangStrings();
     }
     Init();
-    // seed random for bot name generation
-    std::srand(std::time(nullptr));
 }
 
 CDatabase::~CDatabase()
@@ -1274,23 +1271,129 @@ bool CDatabase::RemoveBots()
     return success;
 }
 
-bool CDatabase::AddBots(int count)
+bool CDatabase::AddBots(std::vector<create_info>& bots)
 {
-    if (count <= 0)
+    if (conn_ == nullptr) return false;
+    if (bots.size() <= 0) return false;
+
+    mysql_query(conn_, "START TRANSACTION");
+
+    // step 1: create bots add them into user table
+    std::string query_user = std::format("INSERT INTO `{}users` ( "
+        "`username`, `password`, `email`, `email_2`, "
+        "`lang`, `universe`, `galaxy`, `system`, `planet`, "
+        "`darkmatter`, `register_time`, `onlinetime`, `is_bot`) "
+        "VALUES ", db_uni_prefix_);
+
+    for (const auto& bot : bots)
     {
+        query_user += "(";
+        query_user += "'" + bot.username + "', ";
+        query_user += "'" + bot.password + "', ";
+        query_user += "'" + bot.email + "', ";
+        query_user += "'" + bot.email_2 + "', ";
+        query_user += "'" + bot.lang + "', ";
+        query_user += std::to_string(bot.universe) + ", ";
+        query_user += std::to_string(bot.galaxy) + ", ";
+        query_user += std::to_string(bot.system) + ", ";
+        query_user += std::to_string(bot.planet) + ", ";
+        query_user += std::to_string(bot.darkmatter) + ", ";
+        query_user += std::to_string(bot.register_time) + ", ";
+        query_user += std::to_string(bot.onlinetime) + ", ";
+        query_user += std::to_string(bot.is_bot);
+        query_user += "), ";
+    }
+
+    query_user.pop_back();
+    query_user.pop_back();
+    
+
+    if(mysql_query(conn_, query_user.c_str()) != 0)
+    {
+        CLogger::Error(lang_->at("ids_mysql_query_error"),
+            mysql_error(conn_));
+        mysql_query(conn_, "ROLLBACK");
         return false;
     }
 
-    std::string name;
-    GetName(name);
-}
+    uint64_t firstUserID = mysql_insert_id(conn_);
 
-void CDatabase::GetName(std::string& str)
-{
-    int rand_index = std::rand() % bot_title.size();
-    std::string title = bot_title[rand_index];
-    rand_index = std::rand() % bot_name.size();
-    std::string name = bot_name[rand_index];
+	std::string query_planet =
+		std::format("INSERT INTO `{}planets` ("
+			"`id_owner`, `name`, `universe`, `galaxy`, `system`, `planet`,"
+			"`last_update`, `planet_type`, `image`, `field_max`,"
+			"`temp_min`, `temp_max`, `metal`, `crystal`, `deuterium`, `is_bot`"
+			") VALUES ", db_uni_prefix_);
 
-    str = title + " " + name;
+    int i = 0;
+    for (const auto& bot : bots)
+    {
+        uint64_t ownerID = firstUserID + i;
+
+        query_planet += "(";
+        query_planet += std::to_string(ownerID) + ",";
+        query_planet += "'" + bot.planet_name + "',";
+        query_planet += std::to_string(bot.universe) + ",";
+        query_planet += std::to_string(bot.galaxy) + ",";
+        query_planet += std::to_string(bot.system) + ",";
+        query_planet += std::to_string(bot.planet) + ",";
+        query_planet += std::to_string(bot.onlinetime) + ",";
+        query_planet += std::to_string(bot.planet_type) + ",";
+        query_planet += "'" + bot.image + "',";
+        query_planet += std::to_string(bot.field_max) + ",";
+        query_planet += std::to_string(bot.temp_min) + ",";
+        query_planet += std::to_string(bot.temp_max) + ",";
+        query_planet += std::to_string(bot.metal) + ",";
+        query_planet += std::to_string(bot.crystal) + ",";
+        query_planet += std::to_string(bot.deuterium) + ",";
+        query_planet += std::to_string(bot.is_bot);
+
+        query_planet += "), ";
+        i++;
+    }
+
+    query_planet.pop_back();
+    query_planet.pop_back();
+
+    if (mysql_query(conn_, query_planet.c_str()) != 0)
+    {
+        CLogger::Error(lang_->at("ids_mysql_query_error"),
+            mysql_error(conn_));
+
+        mysql_query(conn_, "ROLLBACK");
+        return false;
+    }
+
+    uint64_t firstPlanetID = mysql_insert_id(conn_);
+
+    std::string query_update =
+        std::format("UPDATE `{}users` SET id_planet = CASE id ",
+            db_uni_prefix_);
+
+    for (size_t i = 0; i < bots.size(); i++)
+    {
+        query_update +=
+            "WHEN " + std::to_string(firstUserID + i) +
+            " THEN " + std::to_string(firstPlanetID + i) + " ";
+    }
+
+    query_update += "END WHERE id BETWEEN ";
+    query_update += std::to_string(firstUserID);
+    query_update += " AND ";
+    query_update += std::to_string(firstUserID + bots.size() - 1);
+    query_update += ";";
+
+    if (mysql_query(conn_, query_update.c_str()) != 0)
+    {
+        CLogger::Error(lang_->at("ids_mysql_query_error"),
+            mysql_error(conn_));
+
+        mysql_query(conn_, "ROLLBACK");
+        return false;
+    }
+
+
+    mysql_query(conn_, "COMMIT");
+
+    return true;
 }
