@@ -6,7 +6,8 @@
 #include <chrono>
 #include <unordered_map>
 
-struct table_vars {
+struct table_vars
+{
 	int element_id = 0;
 	std::string name = "";
 	unsigned long long cost901 = 0;
@@ -18,19 +19,17 @@ struct table_vars {
 	{
 		*this = table_vars();
 	}
-
 };
 
-struct table_vars_requirements 
+struct table_vars_requirements
 {
 	int require_id = 0;
 	int require_level = 0;
 
-	void Reset() 
+	void Reset()
 	{
 		*this = table_vars_requirements();
 	}
-
 };
 
 struct table_config
@@ -47,7 +46,7 @@ struct table_config
 	int max_galaxy = 9;
 	int max_system = 499;
 	int max_planet = 15;
-	
+
 	table_config()
 	{
 	}
@@ -58,16 +57,16 @@ struct table_config
 	}
 };
 
-struct combat_caps 
-{ 
-	double attack = 0.0; 
-	double shield = 0.0; 
+struct combat_caps
+{
+	double attack = 0.0;
+	double shield = 0.0;
 };
 
-struct bonus_data 
-{ 
-	double value = 0.0; 
-	int unit = 0; 
+struct bonus_data
+{
+	double value = 0.0;
+	int unit = 0;
 };
 
 struct pricelist_data
@@ -85,13 +84,13 @@ struct pricelist_data
 	std::map<std::string_view, bonus_data> bonus = {};
 };
 
-struct prodgrid_data 
+struct prodgrid_data
 {
 	std::map<int, std::string> production = {};
 	std::map<int, std::string> storage = {};
 };
 
-struct reslist_data 
+struct reslist_data
 {
 	std::vector<int> prod = {};
 	std::vector<int> storage = {};
@@ -109,13 +108,13 @@ struct reslist_data
 	std::map<int, std::vector<int>> resstype = {};
 };
 
-struct settlement_data 
+struct settlement_data
 {
 	uint8_t galaxy = 0;
 	uint16_t system = 0;
 	uint8_t planet = 0;
 	uint8_t universe = 0;
-	void Reset() 
+	void Reset()
 	{
 		*this = settlement_data();
 	}
@@ -131,7 +130,8 @@ static int64_t GetElapsedMilliseconds(
 	const std::chrono::steady_clock::time_point& end)
 {
 	return std::chrono::duration_cast<std::chrono::milliseconds>(
-		end - start).count();
+		end - start)
+		.count();
 }
 
 static int64_t GetElapsedMicroseconds(
@@ -139,5 +139,6 @@ static int64_t GetElapsedMicroseconds(
 	const std::chrono::steady_clock::time_point& end)
 {
 	return std::chrono::duration_cast<std::chrono::microseconds>(
-		end - start).count();
+		end - start)
+		.count();
 }

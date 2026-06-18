@@ -34,6 +34,7 @@ private:
 	std::unique_ptr<CLogger> logger_;
 	std::unique_ptr<CCommandHandler> command_handler_;
 	std::unique_ptr<CLanguage> language_;
+
 public:
 	CApplication();
 	~CApplication();
@@ -49,11 +50,13 @@ public:
 	bool IsRunning() const { return running_; }
 	bool IsLoaded() const { return loaded_; }
 	bool IsStarted() const { return started_; }
-	inline void Close() 
+	inline void Close()
 	{
-		running_ = false; cv_shutdown_.notify_all();
+		running_ = false;
+		cv_shutdown_.notify_all();
 	}
-	inline void Start() {
+	inline void Start()
+	{
 		started_ = true;
 	}
 };

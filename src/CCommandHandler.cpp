@@ -2,20 +2,20 @@
 #include "CCommandHandler.h"
 #include "CApplication.h"
 
-CCommandHandler::CCommandHandler(CLanguage* language, 
-    CBotManager* botManager)
+CCommandHandler::CCommandHandler(CLanguage* language,
+	CBotManager* botManager)
 	: bot_manager_(nullptr)
-    , lang_(nullptr)
+	, lang_(nullptr)
 {
-    if (language)
-    {
-        lang_ = language->GetLangStrings();
-    }
+	if (language)
+	{
+		lang_ = language->GetLangStrings();
+	}
 
-    if (botManager)
-    {
-        bot_manager_ = botManager;
-    }
+	if (botManager)
+	{
+		bot_manager_ = botManager;
+	}
 }
 
 CCommandHandler::~CCommandHandler()
@@ -24,59 +24,60 @@ CCommandHandler::~CCommandHandler()
 
 void CCommandHandler::Run(CApplication& app)
 {
-    std::cout << "\n==========================================================" << std::endl;
-    std::cout << "[Console] App is ready! Write /help to display commands." << std::endl;
-    std::cout << "==========================================================\n" << std::endl;
+	std::cout << "\n==========================================================" << std::endl;
+	std::cout << "[Console] App is ready! Write /help to display commands." << std::endl;
+	std::cout << "==========================================================\n"
+			  << std::endl;
 
-    std::string line;
-    while (app.IsRunning())
-    {
-        if (!std::getline(std::cin, line)) 
-            continue;
+	std::string line;
+	while (app.IsRunning())
+	{
+		if (!std::getline(std::cin, line))
+			continue;
 
-        if (line.empty()) 
-            continue;
+		if (line.empty())
+			continue;
 
-        ProcessCommand(line, app);
-    }
+		ProcessCommand(line, app);
+	}
 }
 
 bool CCommandHandler::ProcessCommand(std::string& line, CApplication& app)
 {
-    std::stringstream ss(line);
-    std::string cmd;
-    ss >> cmd;
-    cmd_queue info = {};
+	std::stringstream ss(line);
+	std::string cmd;
+	ss >> cmd;
+	cmd_queue info = {};
 
-    if (cmd == "/add_bot")
-    {
-        int count = 0; 
-        int universe = 0;
+	if (cmd == "/add_bot")
+	{
+		int count = 0;
+		int universe = 0;
 
-        ss >> count; 
-        ss >> universe;
-        if (count > 0)
-        {
-            // into queue
-            if (bot_manager_ != nullptr)
-            {
-                info.type = 1;
-                info.count = count;
-                info.universe = universe;
+		ss >> count;
+		ss >> universe;
+		if (count > 0)
+		{
+			// into queue
+			if (bot_manager_ != nullptr)
+			{
+				info.type = 1;
+				info.count = count;
+				info.universe = universe;
 
 				if (app.IsStarted())
 					bot_manager_->PushCmdRequest(info);
 				else
 					bot_manager_->CreateBots(info);
-                
-                CLogger::Info(lang_->at("ids_addbot_received"), count);
-            }
-        }
-    }
-    else if (cmd == "/start")
-    {
-        app.Start();
-    }
+
+				CLogger::Info(lang_->at("ids_addbot_received"), count);
+			}
+		}
+	}
+	else if (cmd == "/start")
+	{
+		app.Start();
+	}
 	else if (cmd == "/help")
 	{
 		CLogger::Info(lang_->at("ids_help_start"));
@@ -84,20 +85,20 @@ bool CCommandHandler::ProcessCommand(std::string& line, CApplication& app)
 		CLogger::Info(lang_->at("ids_help_addbots"));
 		CLogger::Info(lang_->at("ids_help_removebots"));
 	}
-    else if (cmd == "/remove_bots")
-    {
-        info.type = 2;
-        bot_manager_->PushCmdRequest(info);
-    }
-    else if (cmd == "/exit")
-    {
-        CLogger::Info(lang_->at("ids_cmd_exid"));
-        app.Close();
-    }
-    else
-    {
-        CLogger::Info(lang_->at("ids_cmd_wrong"));
-    }
+	else if (cmd == "/remove_bots")
+	{
+		info.type = 2;
+		bot_manager_->PushCmdRequest(info);
+	}
+	else if (cmd == "/exit")
+	{
+		CLogger::Info(lang_->at("ids_cmd_exid"));
+		app.Close();
+	}
+	else
+	{
+		CLogger::Info(lang_->at("ids_cmd_wrong"));
+	}
 
-    return true;
+	return true;
 }

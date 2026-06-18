@@ -38,7 +38,7 @@ struct table_fleets
 	int8_t fleet_busy = 0;
 	int8_t hasCanceled = 0;
 
-	void Reset() 
+	void Reset()
 	{
 		*this = table_fleets();
 	}

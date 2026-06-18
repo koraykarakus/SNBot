@@ -1,0 +1,103 @@
+﻿# see : https://clang.llvm.org/docs/ClangFormatStyleOptions.html
+
+# style : opt [Microsoft, Google, Chromium, Mozilla, LLVM, ...]
+BasedOnStyle: LLVM
+
+# way of using tabs in file
+# Never : dont use tab.
+# ForIndentation : only for indentation
+UseTab: ForContinuationAndIndentation
+
+# unsigned, number of columns which are used for tab stop
+TabWidth: 4
+
+# unsigned, number of columns which are used for indentation
+IndentWidth: 4
+
+# line continuation indent with
+ContinuationIndentWidth: 4
+
+# (bool), indent cases 1 level inside switch
+IndentCaseLabels: true
+
+AlignAfterOpenBracket: DontAlign
+
+# constructors allign
+BreakConstructorInitializers: BeforeComma
+
+# opt : Left, Right, Middle, pointer allignment style
+PointerAlignment: Left
+
+# if true, pointers are alligned wrt most used style in the file
+DerivePointerAlignment: false
+
+# Right, Left, Middle - reference allignment
+ReferenceAlignment: Left
+
+BreakBeforeBraces: Custom
+# only works with custom
+BraceWrapping:
+ AfterClass: true
+ # wrap case labels
+ AfterCaseLabel: true
+ # wrap if/for/while/switch.. all control statements
+ AfterControlStatement: true
+ # wrap enum definitions [true, false]
+ AfterEnum: true
+ # wrap functiond definitions
+ AfterFunction: true
+ # wrap namespace
+ AfterNamespace: true
+ # wrap struct
+ AfterStruct: true
+ # wrap union
+ AfterUnion: true
+ AfterExternBlock: true
+ BeforeCatch: true
+ BeforeElse: true
+ BeforeLambdaBody: true
+ BeforeWhile: true
+ IndentBraces: false
+ SplitEmptyFunction: true
+ SplitEmptyRecord: true
+ SplitEmptyNamespace: true
+
+KeepEmptyLines:
+ # remove empty lines at the end of file
+ AtEndOfFile: false
+ # remove empty lines at the start of block
+ AtStartOfBlock: false
+ # remove empty lines at the start of file
+ AtStartOfFile: false
+
+SpaceBeforeCpp11BracedList: true
+
+SpaceBeforeParens: ControlStatements
+
+SpaceAfterCStyleCast: true
+
+SpacesBeforeTrailingComments: 1
+
+MaxEmptyLinesToKeep: 1
+
+AccessModifierOffset: -4
+
+AllowShortIfStatementsOnASingleLine: true
+AllowShortLoopsOnASingleLine: true
+
+BinPackArguments: true
+BinPackParameters: true
+
+AllowAllArgumentsOnNextLine: true
+
+BreakBeforeBinaryOperators: NonAssignment
+
+BreakBeforeTernaryOperators: true
+
+# 0 means it will respect line breaks as long as no problems 
+# with other rules
+ColumnLimit: 0
+
+# dont sort includes, opt : [CaseSensitive, CaseInsensitive]
+SortIncludes: Never
+

@@ -25,6 +25,7 @@ private:
 	void CreateDefaultLangFile();
 	bool LoadLangFile();
 	std::string GetLangTail();
+
 public:
 	CLanguage();
 	~CLanguage();

@@ -26,7 +26,8 @@ const T& GetMin(const T& a, const T& b)
 }
 
 // console commands processing
-struct cmd_queue {
+struct cmd_queue
+{
 	int type = 0;
 	int count = 0;
 	int universe = 0;
@@ -56,8 +57,8 @@ struct stlog
 	std::string building_name = "";
 	std::string email = "";
 	int away_time = 0;
-	
-	void Reset() 
+
+	void Reset()
 	{
 		*this = stlog();
 	}
@@ -69,7 +70,7 @@ class CLanguage;
 
 using PhpArray = std::vector<std::string>;
 using time_var = std::chrono::steady_clock::time_point;
-class CBotManager 
+class CBotManager
 {
 private:
 	// wait time in seconds between each bot handle overall loops.
@@ -92,7 +93,6 @@ private:
 	std::vector<stlog> logs_;
 	stlog log_;
 
-	
 	std::queue<cmd_queue> commands_;
 	std::mutex mutex_command_;
 
@@ -102,7 +102,7 @@ public:
 	void Run(const CApplication& app);
 
 	// time related
-	inline void SetHour() 
+	inline void SetHour()
 	{
 		std::tm* local_time = std::localtime(&system_time_);
 
@@ -115,13 +115,13 @@ public:
 		system_hour_ = 0;
 	}
 
-	inline void SetSystemTime() 
+	inline void SetSystemTime()
 	{
 		system_time_ = std::time(nullptr);
 	}
 
 	// console commands processing, such as add bot remove bot etc.
-	inline void PushCmdRequest(cmd_queue& st) 
+	inline void PushCmdRequest(cmd_queue& st)
 	{
 		std::lock_guard<std::mutex> lock(mutex_command_);
 		commands_.push(st);
@@ -140,11 +140,11 @@ public:
 	bool IsPlayingNow(const table_users& bot) const;
 	// compare last click time to this time, some players check 5min,20min etc.
 	bool IsAway(const table_users& bot) const;
-	inline bool IsInVacation(const table_users& bot) 
+	inline bool IsInVacation(const table_users& bot)
 	{
 		return bot.vacation_mode == 1;
 	}
-	inline int GetRemainingAwayTimeInSeconds(const table_users& bot) const 
+	inline int GetRemainingAwayTimeInSeconds(const table_users& bot) const
 	{
 		return (bot.playTime.check_time * 60) - (static_cast<int>(system_time_) - bot.onlinetime);
 	}
@@ -154,26 +154,26 @@ public:
 
 	void HandleBuildings(table_users& bot, table_planets& planet,
 		const uint64_t game_speed);
-	void HandleResearches(table_users& bot, 
+	void HandleResearches(table_users& bot,
 		table_planets& planet,
 		const uint64_t game_speed);
 	// simulates..
 	int GetTargetBuildID(const int* levels) const;
 	int GetTargetResearchID(const int* levels) const;
-	bool HaveEnoughResources(const table_planets& planet , double* cost);
+	bool HaveEnoughResources(const table_planets& planet, double* cost);
 	void RemoveCostFromPlanet(table_planets& planet, double* cost);
-	bool IsTechAccessible(int element_id, 
+	bool IsTechAccessible(int element_id,
 		const table_planets& planet,
 		const table_users& user);
 	inline bool IsResearching(const table_users& user) const
 	{
 		return user.b_tech > 0;
 	}
-	inline bool HasLaboratory(const table_planets& planet) const 
+	inline bool HasLaboratory(const table_planets& planet) const
 	{
 		return planet.resource[31] > 0;
 	}
-	inline bool IsBuilding(const table_planets& planet) const 
+	inline bool IsBuilding(const table_planets& planet) const
 	{
 		return planet.b_building > 0;
 	}
@@ -199,16 +199,16 @@ public:
 
 	// HandleCommands
 	void SetName(create_info& st);
-	void SetLocation(create_info& st, 
-		const table_config* config, 
+	void SetLocation(create_info& st,
+		const table_config* config,
 		std::set<std::tuple<int, int, int>>& occupied_locations);
 	void CryptPassword(std::string& pass);
-	void SetEmailStartNum(); int bot_max_email_num_;
+	void SetEmailStartNum();
+	int bot_max_email_num_;
 	void SetEmail(create_info& st);
 	void SetImage(create_info& st);
 	void SetTemp(create_info& st);
 	// php helpers
 	PhpArray php_unserialize(const std::string& serialized_data);
 	std::string php_serialize(const PhpArray& arr);
-
 };
