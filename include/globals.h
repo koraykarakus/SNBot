@@ -35,31 +35,20 @@ struct table_vars_requirements
 
 struct table_config
 {
-	int uni;
-	unsigned long long game_speed;
-	int resource_multiplier;
-	int storage_multiplier;
-	int metal_basic_income;
-	int crystal_basic_income;
-	int deuterium_basic_income;
-	float max_overflow;
-	int energySpeed;
-	int max_galaxy;
-	int max_system;
-	int max_planet;
+	int uni = 0;
+	unsigned long long game_speed = 2500;
+	int resource_multiplier = 1;
+	int storage_multiplier = 1;
+	int metal_basic_income = 20;
+	int crystal_basic_income = 10;
+	int deuterium_basic_income = 0;
+	float max_overflow = 1.0;
+	int energySpeed = 1;
+	int max_galaxy = 9;
+	int max_system = 499;
+	int max_planet = 15;
+	
 	table_config()
-		: uni(0)
-		, game_speed(2500)
-		, resource_multiplier(1)
-		, storage_multiplier(1)
-		, metal_basic_income(20)
-		, crystal_basic_income(10)
-		, deuterium_basic_income(0)
-		, max_overflow(1.0)
-		, energySpeed(1)
-		, max_galaxy(9)
-		, max_system(499)
-		, max_planet(15)
 	{
 	}
 
@@ -71,53 +60,53 @@ struct table_config
 
 struct combat_caps 
 { 
-	double attack; 
-	double shield; 
+	double attack = 0.0; 
+	double shield = 0.0; 
 };
 
 struct bonus_data 
 { 
-	double value; 
-	int unit; 
+	double value = 0.0; 
+	int unit = 0; 
 };
 
 struct pricelist_data
 {
-	std::map<int, double> cost;
-	double factor;
-	int max;
-	double consumption;
-	double consumption2;
-	double speed;
-	double speed2;
-	double capacity;
-	int tech;
-	double time;
-	std::map<std::string_view, bonus_data> bonus;
+	std::map<int, double> cost = {};
+	double factor = 1.0;
+	int max = 0;
+	double consumption = 0.0;
+	double consumption2 = 0.0;
+	double speed = 0.0;
+	double speed2 = 0.0;
+	double capacity = 0.0;
+	int tech = 0;
+	double time = 0.0;
+	std::map<std::string_view, bonus_data> bonus = {};
 };
 
 struct prodgrid_data 
 {
-	std::map<int, std::string> production;
-	std::map<int, std::string> storage;
+	std::map<int, std::string> production = {};
+	std::map<int, std::string> storage = {};
 };
 
 struct reslist_data 
 {
-	std::vector<int> prod;
-	std::vector<int> storage;
-	std::vector<int> bonus;
-	std::vector<int> one;
-	std::vector<int> build;
-	std::vector<int> tech;
-	std::vector<int> fleet;
-	std::vector<int> defense;
-	std::vector<int> missile;
-	std::vector<int> officers;
-	std::vector<int> dmfunc;
-	std::map<int, std::vector<int>> allow;
-	std::vector<int> ressources;
-	std::map<int, std::vector<int>> resstype;
+	std::vector<int> prod = {};
+	std::vector<int> storage = {};
+	std::vector<int> bonus = {};
+	std::vector<int> one = {};
+	std::vector<int> build = {};
+	std::vector<int> tech = {};
+	std::vector<int> fleet = {};
+	std::vector<int> defense = {};
+	std::vector<int> missile = {};
+	std::vector<int> officers = {};
+	std::vector<int> dmfunc = {};
+	std::map<int, std::vector<int>> allow = {};
+	std::vector<int> ressources = {};
+	std::map<int, std::vector<int>> resstype = {};
 };
 
 struct settlement_data 

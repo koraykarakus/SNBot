@@ -1,10 +1,11 @@
 ﻿#pragma once
 
-#include <mysql/mysql.h>
-#include <string>
 #include "globals.h"
 #include "table_users.h"
 #include "bot_names.h"
+
+#include <mysql/mysql.h>
+#include <string>
 
 class CApplication;
 class CBotManager;

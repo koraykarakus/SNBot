@@ -1,8 +1,7 @@
 #pragma once
 
 #include <iostream>
-#include <csignal>
-
+#pragma once
 
 #include "CBotManager.h"
 #include "CDatabase.h"
@@ -12,6 +11,8 @@
 #include "globals.h"
 #include "table_fleets.h"
 #include "table_users.h"
+
+#include <csignal>
 
 class CApplication
 {

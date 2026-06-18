@@ -1,14 +1,15 @@
 ﻿#pragma once
+#include "globals.h"
+#include "table_users.h"
+#include "table_fleets.h"
+#include "bot_names.h"
+
 #include <vector>
 #include <unordered_map>
 #include <map>
 #include <queue>
 #include <mutex>
 #include <string>
-#include "globals.h"
-#include "table_users.h"
-#include "table_fleets.h"
-#include "bot_names.h"
 #include <set>
 #include <tuple>
 

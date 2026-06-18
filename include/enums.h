@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+// implemented for later use and cleanup, not used at the moment.
+
 // 0 - 100 buildings
 enum buildings_id {
     metal_mine = 1,

@@ -14,7 +14,6 @@ enum class lang
 	tr
 };
 
-
 class CLanguage
 {
 public:

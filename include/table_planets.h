@@ -6,42 +6,42 @@
 
 struct table_planets
 {
-    int id;
-    std::string name;
-    int id_owner;
-    uint8_t universe;
-    uint8_t galaxy;
-    uint16_t system;
-    uint8_t planet;
-    int last_update;
-    uint8_t planet_type;
-    uint8_t destroyed;
+    int id = 0;
+    std::string name = "";
+    int id_owner = 0;
+    uint8_t universe = 0;
+    uint8_t galaxy = 0;
+    uint16_t system = 0;
+    uint8_t planet = 0;
+    int last_update = 0;
+    uint8_t planet_type = 1;
+    uint8_t destroyed = 0;
 
-    int b_building;
-    std::string b_building_id;
-    int b_shipyard;
-    std::string b_shipyard_id;
-    int b_shipyard_plus;
-    std::string image;
+    int b_building = 0;
+    std::string b_building_id = "";
+    int b_shipyard = 0;
+    std::string b_shipyard_id = "";
+    int b_shipyard_plus = 0;
+    std::string image = "";
 
-    uint16_t diameter;
-    uint16_t field_current;
-    uint16_t field_max;
-    int temp_min;
-    int temp_max;
+    uint16_t diameter = 0;
+    uint16_t field_current = 0;
+    uint16_t field_max = 0;
+    int temp_min = 0;
+    int temp_max = 0;
 
-    std::string eco_hash;
-    double metal;
-    double metal_perhour;
-    double metal_max;
-    double crystal;
-    double crystal_perhour;
-    double crystal_max;
-    double deuterium;
-    double deuterium_perhour;
-    double deuterium_max;
-    double energy_used;
-    double energy;
+    std::string eco_hash = "";
+    double metal = 0.0;
+    double metal_perhour = 0.0;
+    double metal_max = 0.0;
+    double crystal = 0.0;
+    double crystal_perhour = 0.0;
+    double crystal_max = 0.0;
+    double deuterium = 0.0;
+    double deuterium_perhour = 0.0;
+    double deuterium_max = 0.0;
+    double energy_used = 0.0;
+    double energy = 0.0;
 
     // =========================================================================
     // all data related to planet, ships, buildings, defences, missiles
@@ -49,47 +49,27 @@ struct table_planets
     uint8_t resource[600] = { 0 };
 
     // production
-    std::string metal_mine_percent;
-    std::string crystal_mine_percent;
-    std::string deuterium_synthesizer_percent;
-    std::string solar_plant_percent;
-    std::string fusion_plant_percent;
-    std::string solar_satellite_percent;
+    std::string metal_mine_percent = "10";
+    std::string crystal_mine_percent = "10";
+    std::string deuterium_synthesizer_percent = "10";
+    std::string solar_plant_percent = "10";
+    std::string fusion_plant_percent = "10";
+    std::string solar_satellite_percent = "10";
 
-    int last_jump_time;
-    double debris_metal;
-    double debris_crystal;
-    int id_moon;
-    bool is_bot;
-    int last_relocate;
+    int last_jump_time = 0;
+    double debris_metal = 0.0;
+    double debris_crystal = 0.0;
+    int id_moon = 0;
+    uint8_t is_bot = 1;
+    int last_relocate = 0;
 
     // flag used to decide if planet needs an update.
-    bool need_update;
+    bool need_update = false;
     // flag used to state fleet action
-    bool need_fleet_colony;
+    bool need_fleet_colony = false;
 
     // Constructor
     table_planets()
-        : id(0), name(""), id_owner(0), universe(0)
-        , galaxy(0), system(0), planet(0), last_update(0)
-        , planet_type(1), destroyed(0), b_building(0)
-        , b_building_id(""), b_shipyard(0), b_shipyard_id("")
-        , b_shipyard_plus(0), image(""), diameter(0), field_current(0)
-        , field_max(0), temp_min(0), temp_max(0)
-        , eco_hash(""), metal(0.0), metal_perhour(0.0)
-        , metal_max(0.0), crystal(0.0), crystal_perhour(0.0)
-        , crystal_max(0.0), deuterium(0.0), deuterium_perhour(0.0)
-        , deuterium_max(0.0), energy_used(0.0), energy(0.0)
-        , metal_mine_percent("10"), crystal_mine_percent("10")
-        , deuterium_synthesizer_percent("10")
-        , solar_plant_percent("10"), fusion_plant_percent("10")
-        , solar_satellite_percent("10")
-        , last_jump_time(0), debris_metal(0.0)
-        , debris_crystal(0.0), id_moon(0)
-        , is_bot(false)
-        , last_relocate(0)
-        , need_update(false)
-        , need_fleet_colony(false)
     {
     }
 

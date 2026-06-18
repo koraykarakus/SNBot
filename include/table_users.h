@@ -51,74 +51,54 @@ struct play_time
 
 struct table_users
 {
-    int id;
-    int type;
-    std::string strUserName;
-    std::string email;
+    int id = 0;
+    int type = 0;
+    std::string strUserName = "";
+    std::string email = "";
 
-    int id_planet;
-    uint8_t universe;
-    uint8_t galaxy;
-    uint16_t system;
-    uint8_t planet;
+    int id_planet = 0;
+    uint8_t universe = 0;
+    uint8_t galaxy = 0;
+    uint16_t system = 0;
+    uint8_t planet = 0;
 
-    uint8_t vacation_mode;
-    int vacation_until;
+    uint8_t vacation_mode = 0;
+    int vacation_until = 0;
 
-    int b_tech_planet;
-    int b_tech;
-    int b_tech_id;
-    std::string b_tech_queue;
+    int b_tech_planet = 0;
+    int b_tech = 0;
+    int b_tech_id = 0;
+    std::string b_tech_queue = "";
 
     // technologies
-    uint8_t resource[200];
+    uint8_t resource[200] = { 0 };
 
     // commanders.
-    uint8_t rpg_geologist;
-    uint8_t rpg_admiral;
-    uint8_t rpg_engineer;
-    uint8_t rpg_technocrat;
-    uint8_t rpg_espion;
-    uint8_t rpg_constructor;
-    uint8_t rpg_scientist;
-    uint8_t rpg_commander;
-    uint8_t rpg_stocker;
-    uint8_t rpg_defender;
-    uint8_t rpg_destructor;
-    uint8_t rpg_general;
-    uint8_t rpg_bunker;
-    uint8_t rpg_raider;
-    uint8_t rpg_emperor;
+    uint8_t rpg_geologist = 0;
+    uint8_t rpg_admiral = 0;
+    uint8_t rpg_engineer = 0;
+    uint8_t rpg_technocrat = 0;
+    uint8_t rpg_espion = 0;
+    uint8_t rpg_constructor = 0;
+    uint8_t rpg_scientist = 0;
+    uint8_t rpg_commander = 0;
+    uint8_t rpg_stocker = 0;
+    uint8_t rpg_defender = 0;
+    uint8_t rpg_destructor = 0;
+    uint8_t rpg_general = 0;
+    uint8_t rpg_bunker = 0;
+    uint8_t rpg_raider = 0;
+    uint8_t rpg_emperor = 0;
 
-    uint8_t is_bot;
-    std::vector<table_planets> vecPlanets;
-    std::map<std::string_view,int> factor;
-    play_time playTime;
-    int onlinetime;
+    uint8_t is_bot = 1;
+    std::vector<table_planets> vecPlanets = {};
+    std::map<std::string_view, int> factor = {};
+    play_time playTime = {};
+    int onlinetime = 0;
 
     // update bot only if it needs update
-    bool need_update;
+    bool need_update = false;
     table_users()
-        : id(0)
-        , type(0)
-        , strUserName("")
-        , email("")
-        , id_planet(0)
-        , universe(0)
-        , galaxy(0)
-        , system(0)
-        , planet(0)
-        , vacation_mode(0)
-        , vacation_until(0)
-        , b_tech_planet(0)
-        , b_tech(0)
-        , b_tech_id(0)
-        , b_tech_queue("")
-        , is_bot(1)
-        , resource{0}
-        , factor{}
-        , onlinetime(0)
-        , need_update(false)
     {
         vecPlanets.reserve(15);
         // init factor..
@@ -207,7 +187,7 @@ struct table_users
         playTime.reset();
 		switch (type)
 		{
-            /*
+            
 		case 0:
             playTime.check_time = 5;
             playTime.play_start_time_1 = 8;
@@ -275,7 +255,7 @@ struct table_users
             playTime.play_start_time_1 = 8;
             playTime.play_end_time_1 = 4;
             break;
-            */
+            
 		default:
             playTime.check_time = 0;
             playTime.play_start_time_1 = 8;
@@ -286,7 +266,8 @@ struct table_users
 		}
     }
 
-    void Reset() {
+    void Reset() 
+    {
         *this = table_users();
     }
 };
