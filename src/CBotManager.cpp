@@ -48,7 +48,7 @@ bool CBotManager::IsInTimeRange(int start_time, int end_time) const
 		return (system_hour_ >= start_time && system_hour_ < end_time);
 	}
 
-	// 2: exceed midnight (exp: 23-1 arası)
+	// 2: exceed midnight (exp: 23-1)
 	return (system_hour_ >= start_time || system_hour_ < end_time);
 }
 
@@ -308,8 +308,7 @@ void CBotManager::LogResult()
 
 	logs_.clear();
 
-	// 5000 botun tüm bilgisini TEK BİR SEFERDE diske/konsola yazar.
-	// I/O işlemi 5000 kez değil, sadece 1 kez çağrılır!
+	// write all log at once
 	CLogger::Info(lang_->at("ids_build_logs_all"), fmt::to_string(buf));
 }
 
