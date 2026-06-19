@@ -109,7 +109,11 @@ void CBotManager::CreateBots(const cmd_queue& cmd)
 	}
 
 	// send vector to database to insert
-	database_->AddBots(bots);
+	if (database_->AddBots(bots))
+	{
+		database_->LoadBots();
+		database_->LoadSettlementData();
+	}
 }
 
 void CBotManager::RemoveBots()

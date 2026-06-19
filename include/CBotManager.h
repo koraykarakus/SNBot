@@ -143,7 +143,7 @@ public:
 	}
 
 	// console commands processing, such as add bot remove bot etc.
-	inline void PushCmdRequest(cmd_queue& st)
+	inline void PushCmdRequest(const cmd_queue& st)
 	{
 		std::lock_guard<std::mutex> lock(mutex_command_);
 		commands_.push(st);

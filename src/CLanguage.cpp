@@ -135,7 +135,10 @@ void CLanguage::CreateDefaultLangFile()
 						{"ids_wrong_lang_key", "Wrong language key, try:[de,en,es,fr,pl,pt,tr,ru] \n"},
 						{"ids_cmd_exit", "[Console] exitting...\n"},
 						{"ids_cmd_wrong", "Wrong command, type /help to display commands.\n"},
-						{"ids_addbot_received", "[Console]: {} bot add request accepted.\n"}
+						{"ids_addbot_received", "[Console]: {} bot add request accepted.\n"},
+						{"ids_addbot_wrong_count", "Wrong input for count {}\n"},
+						{"ids_addbot_null", "Cannot access botmanager pointer, it is null\n"},
+						{"ids_addbot_wrong_uni", "Cannot found config with entered uni id : {}\n"},
 
 					}}};
 

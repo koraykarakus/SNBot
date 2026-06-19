@@ -58,23 +58,37 @@ bool CCommandHandler::ProcessCommand(std::string& line, CApplication& app)
 
 		ss >> count;
 		ss >> universe;
-		if (count > 0)
+
+		if (count <= 0)
 		{
-			// into queue
-			if (bot_manager_ != nullptr)
-			{
-				info.type = 1;
-				info.count = count;
-				info.universe = universe;
-
-				if (app.IsStarted())
-					bot_manager_->PushCmdRequest(info);
-				else
-					bot_manager_->CreateBots(info);
-
-				CLogger::Info(lang_->at("ids_addbot_received"), count);
-			}
+			CLogger::Error(lang_->at("ids_addbot_wrong_count"), count);
+			return false;
 		}
+
+		if (bot_manager_ == nullptr)
+		{
+			CLogger::Error(lang_->at("ids_addbot_null"));
+			return false;
+		}
+
+		const table_config* config = bot_manager_->GetConfigByUniID(universe);
+		if (config == nullptr)
+		{
+			CLogger::Error(lang_->at("ids_addbot_wrong_uni"), universe);
+			return false;
+		}
+
+		// into queue
+		info.type = 1;
+		info.count = count;
+		info.universe = universe;
+
+		if (app.IsStarted())
+			bot_manager_->PushCmdRequest(info);
+		else
+			bot_manager_->CreateBots(info);
+
+		CLogger::Info(lang_->at("ids_addbot_received"), count);
 	}
 	else if (cmd == "/start")
 	{
