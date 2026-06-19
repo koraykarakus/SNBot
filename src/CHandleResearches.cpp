@@ -8,7 +8,7 @@ void CBotManager::HandleResearches(table_users& bot,
 {
 	if (IsResearching(bot))
 	{
-		log_.type = 11;
+		log_.type = log_type::researching_already;
 		logs_.push_back(log_);
 		return;
 	}
@@ -16,7 +16,7 @@ void CBotManager::HandleResearches(table_users& bot,
 	// has lab ?
 	if (!HasLaboratory(planet))
 	{
-		log_.type = 12;
+		log_.type = log_type::dont_have_lab;
 		logs_.push_back(log_);
 		return;
 	}
@@ -29,7 +29,7 @@ void CBotManager::HandleResearches(table_users& bot,
 	int tar_research_id = GetTargetResearchID(current_levels_tech);
 	if (tar_research_id == -1)
 	{
-		log_.type = 13;
+		log_.type = log_type::research_list_finished;
 		logs_.push_back(log_);
 		return;
 	}
@@ -38,7 +38,7 @@ void CBotManager::HandleResearches(table_users& bot,
 	const table_vars* element = GetVarsByID(tar_research_id);
 	if (element == nullptr)
 	{
-		log_.type = 14;
+		log_.type = log_type::research_elem_not_found;
 		log_.research_id = tar_research_id;
 		logs_.push_back(log_);
 		return;
@@ -47,7 +47,7 @@ void CBotManager::HandleResearches(table_users& bot,
 	// if tech accessible ? check
 	if (!IsTechAccessible(tar_research_id, planet, bot))
 	{
-		log_.type = 15;
+		log_.type = log_type::tech_not_accessible_research;
 		log_.research_id = tar_research_id;
 		logs_.push_back(log_);
 		return;
@@ -63,7 +63,7 @@ void CBotManager::HandleResearches(table_users& bot,
 
 	if (!HaveEnoughResources(planet, array_cost))
 	{
-		log_.type = 16;
+		log_.type = log_type::not_have_enough_resources_research;
 		log_.galaxy = planet.galaxy;
 		log_.system = planet.system;
 		log_.planet = planet.planet;
@@ -92,7 +92,7 @@ void CBotManager::HandleResearches(table_users& bot,
 	// todo : check this order
 	bot.b_tech_queue = "a:1:{i:0;a:5:{i:0;i:" + std::to_string(element->element_id) + ";i:1;i:" + std::to_string(level_up) + ";i:2;i:" + std::to_string(static_cast<int>(build_time)) + ";i:3;i:" + std::to_string(end_time) + ";i:4;i:" + std::to_string(planet.id) + ";}}";
 
-	log_.type = 17;
+	log_.type = log_type::research_success;
 	log_.research_name = element->name;
 	log_.research_level = level_up;
 	logs_.push_back(log_);

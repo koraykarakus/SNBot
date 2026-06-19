@@ -33,10 +33,32 @@ struct cmd_queue
 	int universe = 0;
 };
 
+enum class log_type
+{
+	none,
+	not_playing_now,
+	is_away,
+	in_vacation,
+	config_wrong,
+	building_already,
+	build_list_finished,
+	build_elem_not_found,
+	tech_not_accessible,
+	not_have_enough_resources,
+	building_success,
+	researching_already,
+	dont_have_lab,
+	research_list_finished,
+	research_elem_not_found,
+	tech_not_accessible_research,
+	not_have_enough_resources_research,
+	research_success,
+};
+
 // struct used to log.
 struct stlog
 {
-	int type = 0;
+	log_type type = log_type::none;
 	int bot_id = 0;
 	int id_planet = 0;
 	int universe = 0;

@@ -38,7 +38,7 @@ void CBotManager::HandleBuildings(table_users& bot,
 {
 	if (IsBuilding(planet))
 	{
-		log_.type = 5;
+		log_.type = log_type::building_already;
 		logs_.push_back(log_);
 		return;
 	}
@@ -51,7 +51,7 @@ void CBotManager::HandleBuildings(table_users& bot,
 	{
 		// todo, build list has finished,
 		// decide what to do with resource wrt game style
-		log_.type = 6;
+		log_.type = log_type::build_list_finished;
 		logs_.push_back(log_);
 		return;
 	}
@@ -60,7 +60,7 @@ void CBotManager::HandleBuildings(table_users& bot,
 	const table_vars* element = GetVarsByID(tar_building_id);
 	if (element == nullptr)
 	{
-		log_.type = 7;
+		log_.type = log_type::build_elem_not_found;
 		log_.building_id = tar_building_id;
 		logs_.push_back(log_);
 		return;
@@ -69,7 +69,7 @@ void CBotManager::HandleBuildings(table_users& bot,
 	// if tech accessible ? check
 	if (!IsTechAccessible(tar_building_id, planet, bot))
 	{
-		log_.type = 8;
+		log_.type = log_type::tech_not_accessible;
 		log_.research_id = tar_building_id;
 		logs_.push_back(log_);
 		return;
@@ -86,7 +86,7 @@ void CBotManager::HandleBuildings(table_users& bot,
 
 	if (!HaveEnoughResources(planet, array_cost))
 	{
-		log_.type = 9;
+		log_.type = log_type::not_have_enough_resources;
 		log_.galaxy = planet.galaxy;
 		log_.system = planet.system;
 		log_.planet = planet.planet;
@@ -112,7 +112,7 @@ void CBotManager::HandleBuildings(table_users& bot,
 
 	planet.b_building_id = "a:1:{i:0;a:5:{i:0;i:" + std::to_string(element->element_id) + ";i:1;i:" + std::to_string(level_up) + ";i:2;i:" + std::to_string(static_cast<int>(buildTime)) + ";i:3;i:" + std::to_string(endTime) + ";i:4;s:5:\"build\";}}";
 
-	log_.type = 10;
+	log_.type = log_type::building_success;
 	log_.building_name = element->name;
 	log_.building_level = level_up;
 	logs_.push_back(log_);
