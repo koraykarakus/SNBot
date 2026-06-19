@@ -1,0 +1,105 @@
+[strings]
+ids_addbot_received = '''[Konsol]: {} bot ekleme isteği kabul edildi.
+'''
+ids_already_building = '''atlandı - zaten inşa ediliyor. uid:{} - pid:{}
+'''
+ids_already_researching = '''atlandı - zaten araştırılıyor. uid:{} - pid:{}
+'''
+ids_bot_data_refreshed = '''bot verileri yenilendi
+'''
+ids_bot_in_vacation = '''atlandı - bot tatil modunda. uid:{} - pid:{}
+'''
+ids_bot_is_away = '''atlandı - bot {} saniyedir uzakta. uid:{} - pid:{}
+'''
+ids_bot_is_not_online = '''atlandı - bot şu anda çevrimiçi değil. uid:{} - pid:{}
+'''
+ids_bot_remove_succ = '''Tüm botlar ve gezegenleri veritabanından başarıyla silindi.
+'''
+ids_build_list_completed = '''atlandı - inşa listesi tamamlandı. uid:{} - pid:{}
+'''
+ids_build_logs_all = '''### İNŞA GÜNLÜKLERİ ###
+{}
+'''
+ids_cmd_exid = '''[Konsol] çıkılıyor...
+'''
+ids_cmd_wrong = '''Hatalı komut, komutları görüntülemek için /help yazın.
+'''
+ids_config_map_missing = '''atlandı - yapılandırma eşlemesi eksik : uni_id:{} bulunamadı. uid:{} - pid:{}
+'''
+ids_creating_bots = '''{} bot oluşturuluyor..
+'''
+ids_found_num_bots = '''[CDatabase] - Veritabanında {} bot bulundu.
+'''
+ids_help_addbots = '''100 adet botu 1. evrene eklemek için /add_bot 100 1 yazın
+'''
+ids_help_exit = '''kapatmak için /exit yazın
+'''
+ids_help_language_set = 'dili İngilizce yapmak için /language_set en yazın, diğer anahtarlar [de,tr,es,pt,pl,fr,ru]'
+ids_help_removebots = '''tüm botları ve gezegenlerini silmek için /remove_bots yazın
+'''
+ids_help_start = '''bot işlemlerini başlatmak için /start yazın
+'''
+ids_lang_change_success = '''Dil ayarları başarıyla değiştirildi.
+'''
+ids_load_config_succ = '''[CDatabase] - {} adet yapılandırma satırı yüklendi.
+'''
+ids_load_planet_bots_succ = '''[CDatabase] ### {} bot ve {} gezegen başarıyla yüklendi. ### [süre:{} us / {} ms]
+'''
+ids_load_settlement_succ = '''[CDatabase] - {} adet yerleşim verisi yüklendi.
+'''
+ids_load_vars_succ = '''[CDatabase] - Değişken Sayısı : {} (vars) başarıyla yüklendi.
+'''
+ids_load_varsreq_succ = '''[CDatabase] - Değişken_Gereksinim Sayısı : {} (vars_req) başarıyla yüklendi.
+'''
+ids_mysql_autocommit_fail = '''[CDatabase] - Otomatik onay kapatılamadı: {}
+'''
+ids_mysql_commit_fail = '''[CDatabase] - Commit Hatası: {}
+'''
+ids_mysql_conn_failed = '''[CDatabase] - MySQL Bağlantısı Başarısız. Hata: {} ({})
+'''
+ids_mysql_init_failed = '''[CDatabase] - mysql_init başarısız oldu
+'''
+ids_mysql_query_error = '''[CDatabase] - Sorgu Hatası {}
+'''
+ids_mysql_retrieve_error = '''[CDatabase] - Sonuç alma hatası {}
+'''
+ids_no_match_planet_bot = '''Gezegen ID {} sahibi ID {} olarak görünüyor ancak eşleşen bir bot bulunamadı!
+'''
+ids_not_enough_res = '''atlandı - [g{}:s{}:p{}] e-posta:[{}]}
+inşa için yeterli kaynak yok id:{}
+gerekli:[metal:{}|kristal:{}|deu:{}] mevcut:[metal:{}|kristal:{}|deu:{}]
+bid:{} - pid:{}
+'''
+ids_planet_dont_have_lab = '''atlandı - gezegende laboratuvar yok. uid:{} - pid:{}
+'''
+ids_process_handled = '''İşlem [{} mikrosaniye / {} milisaniye] içinde tamamlandı
+Bir sonraki çalışma {} saniye sonra.
+'''
+ids_research_list_complete = '''atlandı - bot için araştırma listesi tamamlandı. uid:{} - pid:{}
+'''
+ids_run_thread_finished = '''Bot çalışma iş parçacığı sona erdi.
+'''
+ids_settings_cannot_be_parsed = '''settings.toml ayrıştırılamıyor: {}
+'''
+ids_settings_cannot_be_saved = '''settings.toml kaydedilemiyor!
+'''
+ids_settings_not_found = '''settings.toml bulunamadı! Varsayılan yapılandırma dosyası oluşturuluyor
+'''
+ids_settings_read = '''[CDatabase] settings.toml dosyasından ayarlar okundu. Host: {}
+'''
+ids_ssl_is_active = '''ssl aktif
+'''
+ids_started_building = '''inşa başlatıldı - {}, seviye:{}. uid:{} - pid:{}
+'''
+ids_started_research = '''araştırma başlatıldı - {}, seviye:{}. uid:{} - pid:{}
+'''
+ids_tech_not_accessible = '''atlandı - teknoloji araştırma için erişilebilir değil id:[{}]. uid:{} - pid:{}
+'''
+ids_undef_log = '''Tanımsız günlük türü.
+'''
+ids_update_planet_bots_succ = '''[CDatabase] - {} bot ve {} gezegen veritabanında başarıyla güncellendi.- süre {}ms - {}us]
+'''
+ids_wrong_elem_id = '''atlandı - hatalı eleman id:[{}]. uid:{} - pid:{}
+'''
+ids_wrong_lang_key = '''Hatalı dil anahtarı, deneyin:[de,en,es,fr,pl,pt,tr,ru] 
+'''

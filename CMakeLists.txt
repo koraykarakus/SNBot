@@ -60,3 +60,5 @@ add_custom_command(TARGET SNBot POST_BUILD
     ${CMAKE_SOURCE_DIR}/language
     $<TARGET_FILE_DIR:SNBot>/language
 )
+
+add_compile_options(/utf-8)

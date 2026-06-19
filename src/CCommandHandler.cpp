@@ -6,10 +6,12 @@ CCommandHandler::CCommandHandler(CLanguage* language,
 	CBotManager* botManager)
 	: bot_manager_(nullptr)
 	, lang_(nullptr)
+	, language_(nullptr)
 {
 	if (language)
 	{
 		lang_ = language->GetLangStrings();
+		language_ = language;
 	}
 
 	if (botManager)
@@ -84,6 +86,7 @@ bool CCommandHandler::ProcessCommand(std::string& line, CApplication& app)
 		CLogger::Info(lang_->at("ids_help_exit"));
 		CLogger::Info(lang_->at("ids_help_addbots"));
 		CLogger::Info(lang_->at("ids_help_removebots"));
+		CLogger::Info(lang_->at("ids_help_set_lang"));
 	}
 	else if (cmd == "/remove_bots")
 	{
@@ -92,8 +95,29 @@ bool CCommandHandler::ProcessCommand(std::string& line, CApplication& app)
 	}
 	else if (cmd == "/exit")
 	{
-		CLogger::Info(lang_->at("ids_cmd_exid"));
+		CLogger::Info(lang_->at("ids_cmd_exit"));
 		app.Close();
+	}
+	else if (cmd == "/set_lang")
+	{
+		std::string lang_key = "en";
+		ss >> lang_key;
+		if (language_->ExistsLang(lang_key))
+		{
+			if (language_->LoadLangFile(lang_key))
+			{
+				lang_ = language_->GetLangStrings();
+				CLogger::Info(lang_->at("ids_lang_change_success"));
+			}
+			else
+			{
+				CLogger::Info("loading language file failed");
+			}
+		}
+		else
+		{
+			CLogger::Error(lang_->at("ids_wrong_lang_key"));
+		}
 	}
 	else
 	{

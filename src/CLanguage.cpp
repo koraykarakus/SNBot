@@ -39,9 +39,9 @@ void CLanguage::Init()
 	}
 }
 
-bool CLanguage::LoadLangFile()
+bool CLanguage::LoadLangFile(std::string lang_key /*= "en"*/)
 {
-	std::string fn = "language/lang_en.toml"; // default
+	std::string fn = "language/lang_" + lang_key + ".toml"; // default
 	std::filesystem::path lang_path =
 		std::filesystem::current_path() / fn;
 
@@ -55,6 +55,7 @@ bool CLanguage::LoadLangFile()
 		{
 			return false;
 		}
+		strings_.clear();
 		for (const auto& [key, value] : *strings)
 		{
 			if (auto str = value.value<std::string>())
@@ -65,7 +66,8 @@ bool CLanguage::LoadLangFile()
 	}
 	catch (const toml::parse_error& err)
 	{
-		CLogger::Error("Error parsing lang_en.toml: {}\n", err.description());
+		std::string str = "Error parsing lang_" + lang_key + ".toml: {}\n";
+		CLogger::Error(str, err.description());
 		return false;
 	}
 }
@@ -128,7 +130,10 @@ void CLanguage::CreateDefaultLangFile()
 						{"ids_help_exit", "type /exit to close\n"},
 						{"ids_help_addbots", "type /add_bot 100 1 -> to add 100 bots to universe 1\n"},
 						{"ids_help_removebots", "type /remove_bots -> to delete all bots and their planet\n"},
-						{"ids_cmd_exid", "[Console] exitting...\n"},
+						{"ids_help_set_lang", "type /set_lang en -> to set language as english, other keys [de,tr,es,pt,pl,fr,ru]"},
+						{"ids_lang_change_success", "Language settings have been changed by success.\n"},
+						{"ids_wrong_lang_key", "Wrong language key, try:[de,en,es,fr,pl,pt,tr,ru] \n"},
+						{"ids_cmd_exit", "[Console] exitting...\n"},
 						{"ids_cmd_wrong", "Wrong command, type /help to display commands.\n"},
 						{"ids_addbot_received", "[Console]: {} bot add request accepted.\n"}
 
@@ -149,36 +154,14 @@ void CLanguage::CreateDefaultLangFile()
 	}
 }
 
-std::string CLanguage::GetLangTail()
+bool CLanguage::ExistsLang(std::string& lang_key)
 {
-	std::string lang_tail = "en";
-	switch (lang_)
+	for (auto& key : s_lang_arr)
 	{
-		case lang::de:
-			lang_tail = "de";
-			break;
-		case lang::en:
-			lang_tail = "en";
-			break;
-		case lang::es:
-			lang_tail = "es";
-			break;
-		case lang::fr:
-			lang_tail = "fr";
-			break;
-		case lang::pl:
-			lang_tail = "pl";
-			break;
-		case lang::pt:
-			lang_tail = "pt";
-			break;
-		case lang::ru:
-			lang_tail = "ru";
-			break;
-		case lang::tr:
-			lang_tail = "tr";
-			break;
+		if (key == lang_key)
+		{
+			return true;
+		}
 	}
-
-	return lang_tail;
+	return false;
 }

@@ -1,7 +1,14 @@
 ﻿// main.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN 
+#include <windows.h>
+#endif
+
+#include <iostream>
 #include "CApplication.h"
+
 
 CApplication* g_pApp;
 
@@ -20,6 +27,12 @@ void SignalHandler(int signal)
 
 int main()
 {
+#ifdef _WIN32
+	// console output
+	SetConsoleOutputCP(CP_UTF8);
+	// console input
+	SetConsoleCP(CP_UTF8);
+#endif
 	// Ctrl + C
 	std::signal(SIGINT, SignalHandler);
 

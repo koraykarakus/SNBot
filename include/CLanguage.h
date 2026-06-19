@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <unordered_map>
+#include <array>
 
 enum class lang
 {
@@ -16,6 +17,9 @@ enum class lang
 
 class CLanguage
 {
+private:
+	const std::array<std::string,8> s_lang_arr {
+		"de", "en", "es", "fr", "pl", "pt", "tr", "ru"};
 public:
 	lang lang_;
 	std::unordered_map<std::string, std::string> strings_;
@@ -23,12 +27,12 @@ public:
 private:
 	void Init();
 	void CreateDefaultLangFile();
-	bool LoadLangFile();
-	std::string GetLangTail();
 
 public:
 	CLanguage();
 	~CLanguage();
+	bool ExistsLang(std::string& lang_key);
+	bool LoadLangFile(std::string lang_key = "en");
 	inline std::unordered_map<std::string, std::string>* GetLangStrings()
 	{
 		return &strings_;
