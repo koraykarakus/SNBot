@@ -2,6 +2,7 @@
 #include "CBotManager.h"
 #include "CLogger.h"
 #include "CDatabase.h"
+#include "CPhpHelper.h"
 
 void CBotManager::HandleResourceUpdate(table_users& bot, table_planets& planet)
 {
@@ -19,12 +20,13 @@ bool CBotManager::BuildingQueue(table_planets& planet)
 		return false;
 	}
 
-	PhpArray current_queue = php_unserialize(planet.b_building_id);
+	std::map<int, php_val> current_queue;
+	phphelper_->Unserialize(planet.b_building_id, current_queue);
 
-	int element = std::stoi(current_queue[0]);
+	int element = current_queue[0][0].numeric_val;
 
-	int build_end_time = std::stoi(current_queue[3]);
-	std::string build_mode = current_queue[4];
+	int build_end_time = current_queue[0][3].numeric_val;
+	std::string build_mode = current_queue[0][4].string_val;
 
 	if (build_mode == "build")
 	{
@@ -87,6 +89,11 @@ bool CBotManager::ResearchQueue(table_users& user)
 	user.b_tech_queue = "";
 	user.need_update = true;
 	return true;
+}
+
+bool CBotManager::ShipyardQueue(table_planets& planet)
+{
+	return false;
 }
 
 void CBotManager::UpdateResource(table_planets& planet, table_users& user)

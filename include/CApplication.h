@@ -8,6 +8,7 @@
 #include "CLogger.h"
 #include "CCommandHandler.h"
 #include "CLanguage.h"
+#include "CPhpHelper.h"
 #include "globals.h"
 #include "table_fleets.h"
 #include "table_users.h"
@@ -34,6 +35,7 @@ private:
 	std::unique_ptr<CLogger> logger_;
 	std::unique_ptr<CCommandHandler> command_handler_;
 	std::unique_ptr<CLanguage> language_;
+	std::unique_ptr<CPhpHelper> phphelper_;
 
 public:
 	CApplication();

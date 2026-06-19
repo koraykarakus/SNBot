@@ -89,8 +89,8 @@ struct stlog
 class CApplication;
 class CDatabase;
 class CLanguage;
+class CPhpHelper;
 
-using PhpArray = std::vector<std::string>;
 using time_var = std::chrono::steady_clock::time_point;
 class CBotManager
 {
@@ -109,6 +109,7 @@ private:
 	std::unordered_map<std::string, std::string>* lang_;
 
 	CDatabase* database_;
+	CPhpHelper* phphelper_;
 	std::unordered_map<int, table_vars>* vars_ptr_;
 	std::unordered_map<int, std::vector<table_vars_requirements>>* vars_requirements_ptr_;
 	// logging
@@ -119,7 +120,7 @@ private:
 	std::mutex mutex_command_;
 
 public:
-	CBotManager(CLanguage* language, CDatabase* database);
+	CBotManager(CLanguage* language, CDatabase* database, CPhpHelper* phphelper);
 	~CBotManager();
 	void Run(const CApplication& app);
 
@@ -204,6 +205,7 @@ public:
 	void HandleResourceUpdate(table_users& bot, table_planets& planet);
 	bool BuildingQueue(table_planets& planet);
 	bool ResearchQueue(table_users& user);
+	bool ShipyardQueue(table_planets& planet);
 	void UpdateResource(table_planets& planet, table_users& user);
 	void UpdateCache(table_planets& planet, table_users& user);
 	void ExecCalc(table_planets& planet, time_t production_time);
@@ -230,7 +232,4 @@ public:
 	void SetEmail(create_info& st);
 	void SetImage(create_info& st);
 	void SetTemp(create_info& st);
-	// php helpers
-	PhpArray php_unserialize(const std::string& serialized_data);
-	std::string php_serialize(const PhpArray& arr);
 };

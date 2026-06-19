@@ -8,13 +8,16 @@ CApplication::CApplication()
 	, started_(false)
 {
 	language_ = std::make_unique<CLanguage>();
+	phphelper_ = std::make_unique<CPhpHelper>();
 
 	database_ = std::make_unique<CDatabase>(
 		language_.get());
 
 	bot_manager_ = std::make_unique<CBotManager>(
 		language_.get(),
-		database_.get());
+		database_.get(),
+		phphelper_.get()
+	);
 
 	logger_ = std::make_unique<CLogger>();
 
