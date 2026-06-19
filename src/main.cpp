@@ -56,9 +56,6 @@ int main()
 	// --- safe shutdown ---
 	CLogger::Info("[Main] : server shutting down, please wait...\n");
 
-	// Bot thread'inin güvenli bir şekilde mevcut döngüsünü bitirmesini bekliyoruz.
-	// (Tabii Run() fonksiyonu içerisindeki döngü g_bRunning durumuna bakmalı)
-
 	g_pApp = nullptr;
 	// TODO: save user info and free memory if needed
 	CLogger::Info("[Main] : server shutdown complete. Exiting program.\n");
