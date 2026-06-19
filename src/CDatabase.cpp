@@ -624,7 +624,7 @@ bool CDatabase::LoadBots()
 		table_users* pTargetBot = GetBotRef(pl.id_owner);
 		if (pTargetBot != nullptr)
 		{
-			pTargetBot->vecPlanets.push_back(std::move(pl));
+			pTargetBot->all_planets.push_back(std::move(pl));
 			++iPlanetCounter;
 		}
 		else
@@ -1125,7 +1125,7 @@ bool CDatabase::UpdateBots()
 		{
 			auto& bot = temp_bots_[k];
 
-			for (auto& planet : bot.vecPlanets)
+			for (auto& planet : bot.all_planets)
 			{
 				if (!planet.need_update)
 				{

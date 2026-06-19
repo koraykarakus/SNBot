@@ -31,13 +31,13 @@ void CBotManager::HandleColonization()
 				continue;
 			}
 
-			bot.vecPlanets[iIndex].metal -= colonyship->cost901;
-			bot.vecPlanets[iIndex].crystal -= colonyship->cost902;
-			bot.vecPlanets[iIndex].deuterium -= colonyship->cost903;
+			bot.all_planets[iIndex].metal -= colonyship->cost901;
+			bot.all_planets[iIndex].crystal -= colonyship->cost902;
+			bot.all_planets[iIndex].deuterium -= colonyship->cost903;
 
 			// todo: add build list instead of just adding one.
-			bot.vecPlanets[iIndex].resource[208] += 1;
-			bot.vecPlanets[iIndex].need_update = true;
+			bot.all_planets[iIndex].resource[208] += 1;
+			bot.all_planets[iIndex].need_update = true;
 
 			continue;
 		}
@@ -50,11 +50,11 @@ void CBotManager::HandleColonization()
 		}
 
 		// update planet
-		bot.vecPlanets[index].resource[208] -= 1;
-		bot.vecPlanets[index].need_update = true;
+		bot.all_planets[index].resource[208] -= 1;
+		bot.all_planets[index].need_update = true;
 
 		// send fleet
-		bot.vecPlanets[index].need_fleet_colony = true;
+		bot.all_planets[index].need_fleet_colony = true;
 	}
 }
 
@@ -70,7 +70,7 @@ bool CBotManager::HaveSpotForNewPlanet(const table_users& user) const
 
 bool CBotManager::HaveColonyShip(const table_users& user) const
 {
-	for (const auto& p : user.vecPlanets)
+	for (const auto& p : user.all_planets)
 	{
 		if (p.resource[208] > 0)
 		{
@@ -83,7 +83,7 @@ bool CBotManager::HaveColonyShip(const table_users& user) const
 int CBotManager::FindFirstPlanetCanColonize(const table_users& user, const table_vars* data_colonyship) const
 {
 	int index = 0;
-	for (const auto& p : user.vecPlanets)
+	for (const auto& p : user.all_planets)
 	{
 		if (p.metal >= data_colonyship->cost901
 			&& p.crystal >= data_colonyship->cost902
@@ -99,7 +99,7 @@ int CBotManager::FindFirstPlanetCanColonize(const table_users& user, const table
 int CBotManager::GetFirstPlanetWithColonyShip(const table_users& user) const
 {
 	int index = 0;
-	for (auto& p : user.vecPlanets)
+	for (auto& p : user.all_planets)
 	{
 		if (p.resource[208] > 0)
 		{

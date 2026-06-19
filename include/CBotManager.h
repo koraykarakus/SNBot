@@ -191,7 +191,7 @@ public:
 	int GetPlanetCountMax(const table_users& user) const;
 	inline size_t GetPlanetCount(const table_users& user) const
 	{
-		return user.vecPlanets.size();
+		return user.all_planets.size();
 	}
 	bool HaveSpotForNewPlanet(const table_users& user) const;
 	int FindFirstPlanetCanColonize(const table_users& user, const table_vars* data_colonyship) const;

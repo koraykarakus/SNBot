@@ -91,7 +91,7 @@ struct table_users
 	uint8_t rpg_emperor = 0;
 
 	uint8_t is_bot = 1;
-	std::vector<table_planets> vecPlanets = {};
+	std::vector<table_planets> all_planets = {};
 	std::map<std::string_view, int> factor = {};
 	play_time playTime = {};
 	int onlinetime = 0;
@@ -100,7 +100,7 @@ struct table_users
 	bool need_update = false;
 	table_users()
 	{
-		vecPlanets.reserve(15);
+		all_planets.reserve(15);
 		// init factor..
 		for (const auto& bonus : bonus_list)
 		{

@@ -186,7 +186,7 @@ void CBotManager::HandleMain()
 		bot.onlinetime = static_cast<int>(system_time_);
 
 		// loop planets of the bot..
-		for (auto& planet : bot.vecPlanets)
+		for (auto& planet : bot.all_planets)
 		{
 			log_.id_planet = planet.id;
 
