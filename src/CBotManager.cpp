@@ -196,6 +196,8 @@ void CBotManager::HandleMain()
 			HandleBuildings(bot, planet, game_speed);
 			// 3- HandleResearches
 			HandleResearches(bot, planet, game_speed);
+			// 4- HandleColonization
+			HandleColonization(bot, config);
 		}
 	}
 

@@ -186,7 +186,7 @@ public:
 	void UpdateCache(table_planets& planet, table_users& user);
 	void ExecCalc(table_planets& planet, time_t production_time);
 	// colonization handler and its helpers
-	void HandleColonization();
+	void HandleColonization(table_users& bot, const table_config* config);
 	bool HaveColonyShip(const table_users& user) const;
 	int GetPlanetCountMax(const table_users& user) const;
 	inline size_t GetPlanetCount(const table_users& user) const

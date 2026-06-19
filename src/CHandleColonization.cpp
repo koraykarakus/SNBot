@@ -1,61 +1,46 @@
 // Implementation of CBotManager.h
 #include "CBotManager.h"
 
-void CBotManager::HandleColonization()
+void CBotManager::HandleColonization(table_users& bot,
+	const table_config* config)
 {
 	// get colony ship's database info..
 	const table_vars* colonyship = GetVarsByID(208);
-	if (colonyship == nullptr)
+	if (colonyship == nullptr) return;
+
+	if (config == nullptr) return;
+
+	if (!HaveSpotForNewPlanet(bot)) return;
+
+	if (!HaveColonyShip(bot))
 	{
+		// build colony ship and return..
+
+		int iIndex = FindFirstPlanetCanColonize(bot, colonyship);
+
+		if (iIndex == -1) return;
+
+		bot.all_planets[iIndex].metal -= colonyship->cost901;
+		bot.all_planets[iIndex].crystal -= colonyship->cost902;
+		bot.all_planets[iIndex].deuterium -= colonyship->cost903;
+
+		// todo: add build list instead of just adding one.
+		bot.all_planets[iIndex].resource[208] += 1;
+		bot.all_planets[iIndex].need_update = true;
+
 		return;
 	}
 
-	for (auto& bot : *bots_ptr_)
-	{
-		const table_config* config = GetConfigByUniID(bot.universe);
-		if (config == nullptr) continue;
+	int index = GetFirstPlanetWithColonyShip(bot);
 
-		if (!HaveSpotForNewPlanet(bot))
-		{
-			continue;
-		}
+	if (index == -1) return;
 
-		if (!HaveColonyShip(bot))
-		{
-			// build colony ship and continue..
+	// update planet
+	bot.all_planets[index].resource[208] -= 1;
+	bot.all_planets[index].need_update = true;
 
-			int iIndex = FindFirstPlanetCanColonize(bot, colonyship);
-
-			if (iIndex == -1)
-			{
-				continue;
-			}
-
-			bot.all_planets[iIndex].metal -= colonyship->cost901;
-			bot.all_planets[iIndex].crystal -= colonyship->cost902;
-			bot.all_planets[iIndex].deuterium -= colonyship->cost903;
-
-			// todo: add build list instead of just adding one.
-			bot.all_planets[iIndex].resource[208] += 1;
-			bot.all_planets[iIndex].need_update = true;
-
-			continue;
-		}
-
-		int index = GetFirstPlanetWithColonyShip(bot);
-
-		if (index == -1)
-		{
-			continue;
-		}
-
-		// update planet
-		bot.all_planets[index].resource[208] -= 1;
-		bot.all_planets[index].need_update = true;
-
-		// send fleet
-		bot.all_planets[index].need_fleet_colony = true;
-	}
+	// send fleet
+	bot.all_planets[index].need_fleet_colony = true;
 }
 
 int CBotManager::GetPlanetCountMax(const table_users& user) const
