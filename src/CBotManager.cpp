@@ -122,19 +122,27 @@ void CBotManager::Run(const CApplication& app)
 		HandleMain();
 		std::map<int,php_val> result;
 		std::string str =
-			"a:2:{i:0;a:5:{i:0;i:1;i:1;i:9;i:2;d:110;i:3;d:1781894897;i:4;s:5:\"build\";}i:1;a:5:{i:0;i:1;i:1;i:10;i:2;d:166;i:3;d:1781895063;i:4;s:5:\"build\";}}";
+			"a:1:{i:0;a:2:{i:0;i:202;i:1;d:9;}}";
 
 		phphelper_->Unserialize(str, result);
-		CLogger::Info("{}\n", result[0][0].numeric_val);
-		CLogger::Info("{}\n", result[0][1].numeric_val);
-		CLogger::Info("{}\n", result[0][2].numeric_val);
-		CLogger::Info("{}\n", result[0][3].numeric_val);
-		CLogger::Info("{}\n", result[0][4].string_val);
-		CLogger::Info("{}\n", result[1][0].numeric_val);
-		CLogger::Info("{}\n", result[1][1].numeric_val);
-		CLogger::Info("{}\n", result[1][2].numeric_val);
-		CLogger::Info("{}\n", result[1][3].numeric_val);
-		CLogger::Info("{}\n", result[1][4].string_val);
+		//CLogger::Info("{}\n", result[0][0].numeric_val);
+		//CLogger::Info("{}\n", result[0][1].numeric_val);
+		//CLogger::Info("{}\n", result[0][2].numeric_val);
+		//CLogger::Info("{}\n", result[0][3].numeric_val);
+		//CLogger::Info("{}\n", result[0][4].string_val);
+		//CLogger::Info("{}\n", result[1][0].numeric_val);
+		//CLogger::Info("{}\n", result[1][1].numeric_val);
+		//CLogger::Info("{}\n", result[1][2].numeric_val);
+		//CLogger::Info("{}\n", result[1][3].numeric_val);
+		//CLogger::Info("{}\n", result[1][4].string_val);
+
+		for (const auto& item : result)
+		{
+			php_val data = item.second;
+			CLogger::Info("{}\n", data[0].numeric_val);
+			// test
+		}
+
 		// save to db
 		database_->UpdateBots();
 		// reload from db

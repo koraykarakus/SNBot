@@ -205,10 +205,38 @@ public:
 	void HandleResourceUpdate(table_users& bot, table_planets& planet);
 	bool BuildingQueue(table_planets& planet);
 	bool ResearchQueue(table_users& user);
-	bool ShipyardQueue(table_planets& planet);
+	bool ShipyardQueue(table_users& bot, table_planets& planet);
 	void UpdateResource(table_planets& planet, table_users& user);
 	void UpdateCache(table_planets& planet, table_users& user);
 	void ExecCalc(table_planets& planet, time_t production_time);
+	// returns total metal + crystal amount needed.
+	double GetTotalBaseCost(const int element, uint8_t level);
+	int GetBuildingTime(table_users& bot, table_planets& planet, int element, bool for_destroy, bool for_level);
+	inline bool IsFleet(const int element_id) const
+	{
+		return element_id >= 200 
+			&& element_id < 400;
+	} 
+	inline bool IsDefence(const int element_id) const 
+	{
+		return element_id >= 400 
+			&& element_id < 500;
+	}
+	inline bool IsMissile(const int element_id) const
+	{
+		return element_id >= 500 
+			&& element_id < 600;
+	}
+	// is it building or not ?
+	inline bool IsStructure(const int element_id) const
+	{
+		return element_id < 100;
+	}
+	inline bool IsResearch(const int element_id) const
+	{
+		return element_id >= 100 
+			&& element_id < 200;
+	}
 	// colonization handler and its helpers
 	void HandleColonization(table_users& bot, const table_config* config);
 	bool HaveColonyShip(const table_users& user) const;

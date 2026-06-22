@@ -3,9 +3,12 @@
 #include "CLogger.h"
 #include "CDatabase.h"
 #include "CPhpHelper.h"
+#include <cassert>
 
 void CBotManager::HandleResourceUpdate(table_users& bot, table_planets& planet)
 {
+	// unfinished..
+	// ShipyardQueue(bot, planet);
 	BuildingQueue(planet);
 	ResearchQueue(bot);
 	UpdateResource(planet, bot);
@@ -91,8 +94,36 @@ bool CBotManager::ResearchQueue(table_users& user)
 	return true;
 }
 
-bool CBotManager::ShipyardQueue(table_planets& planet)
+bool CBotManager::ShipyardQueue(table_users& bot,table_planets& planet)
 {
+	if (planet.b_shipyard_id == "")
+	{
+		return false;
+	}
+
+	std::map<int, php_val> build_queue;
+	phphelper_->Unserialize(planet.b_shipyard_id, build_queue);
+
+	if (build_queue.empty())
+	{
+		planet.b_shipyard = 0;
+		planet.b_shipyard_id = "";
+		planet.need_update = true;
+		return false;
+	}
+
+	planet.b_shipyard += (system_time_ - planet.last_update);
+
+	for (const auto& item : build_queue)
+	{
+		php_val data = item.second;
+		
+		// element id..
+		int acum_time = GetBuildingTime(bot, 
+			planet, data[0].numeric_val, 
+			false, true);
+	}
+
 	return false;
 }
 
@@ -312,4 +343,42 @@ void CBotManager::ExecCalc(table_planets& planet, time_t production_time)
 	planet.metal = GetMax(planet.metal, static_cast<double>(0));
 	planet.crystal = GetMax(planet.crystal, static_cast<double>(0));
 	planet.deuterium = GetMax(planet.deuterium, static_cast<double>(0));
+}
+
+int CBotManager::GetBuildingTime(table_users& bot, 
+	table_planets& planet, 
+	int element, 
+	bool for_destroy, 
+	bool for_level)
+{
+	return 0;
+}
+
+double CBotManager::GetTotalBaseCost(const int element, uint8_t level)
+{
+	double total_price = 0;
+	
+	const std::unordered_map<int, pricelist_data>& pricelist = database_->GetPriceList();
+	auto itr = pricelist.find(element);
+	
+	assert(!(itr == pricelist.end()) && "GetTotalBaseCost not existing id\n");
+	
+	double cost_metal = itr->second.cost.at(901);
+	double cost_crystal = itr->second.cost.at(902);
+	double factor = itr->second.factor;
+
+	if (IsFleet(element) 
+		|| IsDefence(element)
+		|| IsMissile(element))
+	{
+		total_price = cost_metal + cost_crystal;
+	}
+	else if (IsStructure(element) 
+		|| IsResearch(element))
+	{
+		total_price = (cost_metal + cost_crystal) * factor;
+		total_price *= level;
+	}
+
+	return total_price;
 }

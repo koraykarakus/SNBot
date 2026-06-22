@@ -184,7 +184,7 @@ struct table_users
 		playTime.reset();
 		switch (type)
 		{
-			/*
+			
 			case 0:
 				playTime.check_time = 5;
 				playTime.play_start_time_1 = 8;
@@ -252,7 +252,7 @@ struct table_users
 				playTime.play_start_time_1 = 8;
 				playTime.play_end_time_1 = 4;
 				break;
-				*/
+				
 			default:
 				playTime.check_time = 0;
 				playTime.play_start_time_1 = 8;
