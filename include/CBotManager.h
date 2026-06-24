@@ -56,7 +56,7 @@ enum class log_type
 };
 
 // struct used to log.
-struct stlog
+struct log_data
 {
 	log_type type = log_type::none;
 	int bot_id = 0;
@@ -82,7 +82,7 @@ struct stlog
 
 	void Reset()
 	{
-		*this = stlog();
+		*this = log_data();
 	}
 };
 
@@ -112,8 +112,8 @@ private:
 	vars_umap* vars_ptr_;
 	vars_requirements_umap* vars_requirements_ptr_;
 	// logging
-	std::vector<stlog> logs_;
-	stlog log_;
+	std::vector<log_data> logs_;
+	log_data log_;
 
 	std::queue<cmd_queue> commands_;
 	std::mutex mutex_command_;
