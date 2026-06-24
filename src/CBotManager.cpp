@@ -7,6 +7,7 @@ CBotManager::CBotManager(CLanguage* language,
 	CDatabase* database, CPhpHelper* phphelper)
 	: bots_ptr_(nullptr)
 	, database_(nullptr)
+	, phphelper_(nullptr)
 	, lang_(nullptr)
 	, first_run_(true)
 	, time_last_run_(std::chrono::steady_clock::time_point {})
