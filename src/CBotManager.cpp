@@ -151,6 +151,8 @@ void CBotManager::HandleMain()
 	SetSystemTime();
 	SetHour();
 
+	const vars_data* colonyship_ptr = GetVarsByID(208);
+
 	for (auto& bot : *bots_ptr_)
 	{
 		// reset logs at the start..
@@ -204,7 +206,7 @@ void CBotManager::HandleMain()
 			// 3- HandleResearches
 			HandleResearches(bot, planet, game_speed);
 			// 4- HandleColonization
-			HandleColonization(bot, config);
+			HandleColonization(bot, config, colonyship_ptr);
 		}
 	}
 

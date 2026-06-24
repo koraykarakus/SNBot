@@ -2,11 +2,10 @@
 #include "CBotManager.h"
 
 void CBotManager::HandleColonization(table_users& bot,
-	const config_data* config)
+	const config_data* config,
+	const vars_data* colonyship_ptr)
 {
-	// get colony ship's database info..
-	const vars_data* colonyship = GetVarsByID(208);
-	if (colonyship == nullptr) return;
+	if (colonyship_ptr == nullptr) return;
 
 	if (config == nullptr) return;
 
@@ -16,13 +15,13 @@ void CBotManager::HandleColonization(table_users& bot,
 	{
 		// build colony ship and return..
 
-		int iIndex = FindFirstPlanetCanColonize(bot, colonyship);
+		int iIndex = FindFirstPlanetCanColonize(bot, colonyship_ptr);
 
 		if (iIndex == -1) return;
 
-		bot.all_planets[iIndex].metal -= colonyship->cost901;
-		bot.all_planets[iIndex].crystal -= colonyship->cost902;
-		bot.all_planets[iIndex].deuterium -= colonyship->cost903;
+		bot.all_planets[iIndex].metal -= colonyship_ptr->cost901;
+		bot.all_planets[iIndex].crystal -= colonyship_ptr->cost902;
+		bot.all_planets[iIndex].deuterium -= colonyship_ptr->cost903;
 
 		// todo: add build list instead of just adding one.
 		bot.all_planets[iIndex].resource[208] += 1;

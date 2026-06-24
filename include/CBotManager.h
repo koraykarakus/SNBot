@@ -239,7 +239,7 @@ public:
 			&& element_id < 200;
 	}
 	// colonization handler and its helpers
-	void HandleColonization(table_users& bot, const config_data* config);
+	void HandleColonization(table_users& bot, const config_data* config, const vars_data* colonyship_ptr);
 	bool HaveColonyShip(const table_users& user) const;
 	int GetPlanetCountMax(const table_users& user) const;
 	inline size_t GetPlanetCount(const table_users& user) const
