@@ -358,7 +358,7 @@ double CBotManager::GetTotalBaseCost(const int element, uint8_t level)
 {
 	double total_price = 0;
 	
-	const std::unordered_map<int, pricelist_data>& pricelist = database_->GetPriceList();
+	const pricelist_umap& pricelist = database_->GetPriceList();
 	auto itr = pricelist.find(element);
 	
 	assert(!(itr == pricelist.end()) && "GetTotalBaseCost not existing id\n");

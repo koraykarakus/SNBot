@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "globals.h"
+#include "types.h"
 #include "table_users.h"
 #include "table_fleets.h"
 #include "bot_names.h"
@@ -91,7 +91,6 @@ class CDatabase;
 class CLanguage;
 class CPhpHelper;
 
-using time_var = std::chrono::steady_clock::time_point;
 class CBotManager
 {
 private:
@@ -110,8 +109,8 @@ private:
 
 	CDatabase* database_;
 	CPhpHelper* phphelper_;
-	std::unordered_map<int, vars_data>* vars_ptr_;
-	std::unordered_map<int, std::vector<vars_requirements_data>>* vars_requirements_ptr_;
+	vars_umap* vars_ptr_;
+	vars_requirements_umap* vars_requirements_ptr_;
 	// logging
 	std::vector<stlog> logs_;
 	stlog log_;

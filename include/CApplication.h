@@ -1,7 +1,6 @@
 #pragma once
 
 #include <iostream>
-#pragma once
 
 #include "CBotManager.h"
 #include "CDatabase.h"
@@ -9,7 +8,6 @@
 #include "CCommandHandler.h"
 #include "CLanguage.h"
 #include "CPhpHelper.h"
-#include "globals.h"
 #include "table_fleets.h"
 #include "table_users.h"
 

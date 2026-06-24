@@ -1,6 +1,5 @@
 ﻿#pragma once
-
-#include "globals.h"
+#include "types.h"
 #include "table_users.h"
 #include "bot_names.h"
 
@@ -8,7 +7,6 @@
 #include <string>
 
 class CLanguage;
-using time_var = std::chrono::steady_clock::time_point;
 
 class CDatabase
 {
@@ -30,13 +28,13 @@ private:
 	// reload time of bots
 	int reload_time_;
 
-	std::unordered_map<int, vars_data> vars_;
-	std::unordered_map<int, std::vector<vars_requirements_data>> vars_requirements_;
-	std::unordered_map<int, std::string> resource_;
-	std::unordered_map<int, combat_caps_data> combatcaps_;
-	std::unordered_map<int, pricelist_data> pricelist_;
-	std::unordered_map<int, prodgrid_data> prodgrid_;
-	std::unordered_map<int, config_data> config_;
+	vars_umap vars_;
+	vars_requirements_umap vars_requirements_;
+	resource_umap resource_;
+	combatcaps_umap combatcaps_;
+	pricelist_umap pricelist_;
+	prodgrid_umap prodgrid_;
+	config_umap config_;
 	reslist_data reslist_;
 
 	std::vector<table_users> temp_bots_;
@@ -59,7 +57,7 @@ public:
 	bool UpdateBots();
 	bool RemoveBots();
 
-	inline std::unordered_map<int, vars_data>* GetVars()
+	inline vars_umap* GetVars()
 	{
 		return &vars_;
 	}
@@ -71,27 +69,27 @@ public:
 		return &vars_requirements_;
 	}
 
-	inline const std::unordered_map<int, std::string>& GetResource() const
+	inline const resource_umap& GetResource() const
 	{
 		return resource_;
 	}
 
-	inline const std::unordered_map<int, combat_caps_data>& GetCombatCaps() const
+	inline const combatcaps_umap& GetCombatCaps() const
 	{
 		return combatcaps_;
 	}
 
-	inline const std::unordered_map<int, pricelist_data>& GetPriceList() const
+	inline const pricelist_umap& GetPriceList() const
 	{
 		return pricelist_;
 	}
 
-	inline const std::unordered_map<int, prodgrid_data>& GetProdGrid() const
+	inline const prodgrid_umap& GetProdGrid() const
 	{
 		return prodgrid_;
 	}
 
-	inline const std::unordered_map<int, config_data>& GetConfig() const
+	inline const config_umap& GetConfig() const
 	{
 		return config_;
 	}

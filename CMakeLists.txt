@@ -38,7 +38,7 @@ add_executable(SNBot
     "include/CLanguage.h" 
     "include/bot_names.h"
     "deps/bcrypt/include/bcrypt.h"
- "include/CPhpHelper.h" "src/CPhpHelper.cpp")
+ "include/CPhpHelper.h" "src/CPhpHelper.cpp" "include/types.h")
 
 # additional include directories
 target_include_directories(SNBot PRIVATE 
