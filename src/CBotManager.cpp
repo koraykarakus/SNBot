@@ -40,7 +40,6 @@ CBotManager::CBotManager(CLanguage* language,
 
 CBotManager::~CBotManager()
 {
-	bots_ptr_ = nullptr;
 }
 
 bool CBotManager::IsInTimeRange(int start_time, int end_time) const
