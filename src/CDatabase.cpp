@@ -29,6 +29,7 @@ CDatabase::CDatabase(CLanguage* language)
 	, loop_time_(30)
 	, last_load_time_(std::chrono::steady_clock::time_point {})
 	, reload_time_(300)
+	, max_logs_(500)
 {
 	if (language)
 	{
@@ -61,7 +62,11 @@ void CDatabase::Init()
 							 {"db_name", "steemnova"},
 							 {"prefix", "uni1_"},
 							 {"ssl", false}}},
-			{"general", toml::table {{"loop_time", 30}, {"bot_reload_time", 300}}}};
+			{"general", toml::table {
+				{"loop_time", 30}, 
+			    {"bot_reload_time", 300}, 
+			    {"max_logs", 500}
+		}}};
 
 		// write file (std::ofstream )
 		std::ofstream out_file(config_path);
@@ -102,6 +107,7 @@ void CDatabase::Init()
 	// general settings
 	loop_time_ = config["general"]["loop_time"].value_or(30);
 	reload_time_ = config["general"]["bot_reload_time"].value_or(300);
+	max_logs_ = config["general"]["max_logs"].value_or(500);
 
 	CLogger::Info(lang_->at("ids_settings_read"), db_host_);
 }
@@ -228,7 +234,7 @@ bool CDatabase::LoadBots()
 
 		bot.id = row[i] ? std::stoi(row[i]) : 0;
 		i++;
-		bot.type = bot.id % 10;
+		bot.type = bot.id % bot_type_num;
 		bot.SetPlayStyle();
 
 		bot.strUserName = row[i] ? row[i] : "";

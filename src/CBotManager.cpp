@@ -18,6 +18,7 @@ CBotManager::CBotManager(CLanguage* language,
 	, vars_ptr_(nullptr)
 	, vars_requirements_ptr_(nullptr)
 	, bot_max_email_num_(0)
+	, max_logs_(500)
 {
 	if (language)
 	{
@@ -27,6 +28,7 @@ CBotManager::CBotManager(CLanguage* language,
 	if (database)
 	{
 		database_ = database;
+		max_logs_ = database->GetMaxLogsCount();
 	}
 
 	if (phphelper)
@@ -212,9 +214,17 @@ void CBotManager::HandleMain()
 void CBotManager::LogResult()
 {
 	fmt::memory_buffer buf;
+	bool short_log = false;
 
+	int log_count = 0;
 	for (const auto& log : logs_)
 	{
+		if (log_count >= max_logs_)
+		{
+			short_log = true;
+			break;
+		}
+
 		switch (log.type)
 		{
 			case log_type::not_playing_now:
@@ -311,12 +321,20 @@ void CBotManager::LogResult()
 				fmt::format_to(std::back_inserter(buf), fmt::runtime(lang_->at("ids_undef_log")));
 				break;
 		}
+
+		log_count++;
 	}
 
 	logs_.clear();
 
 	// write all log at once
-	CLogger::Info(lang_->at("ids_build_logs_all"), fmt::to_string(buf));
+	std::string msg = lang_->at("ids_build_logs_all");
+	if (short_log)
+	{
+		msg = lang_->at("ids_short_logs");
+	}
+
+	CLogger::Info(msg, fmt::to_string(buf));
 }
 
 bool CBotManager::HaveEnoughResources(const table_planets& planet, double* cost)

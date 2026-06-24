@@ -119,6 +119,7 @@ void CLanguage::CreateDefaultLangFile()
 						{"ids_started_research", "started research - {}, level:{}. uid:{} - pid:{}\n"},
 						{"ids_undef_log", "Undefined log type.\n"},
 						{"ids_build_logs_all", "### BUILD LOGS ###\n{}\n"},
+						{"ids_short_logs", "### Short logs, only one from each type of bot ###\n{}\n"},
 
 						// CHandleConsoleCommand
 

@@ -49,6 +49,7 @@ struct play_time
 	}
 };
 
+inline constexpr int bot_type_num = 10;
 struct table_users
 {
 	int id = 0;

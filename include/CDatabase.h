@@ -27,6 +27,8 @@ private:
 	time_var last_load_time_;
 	// reload time of bots
 	int reload_time_;
+	// number of bots to be logged on console screen
+	int max_logs_;
 
 	vars_umap vars_;
 	vars_requirements_umap vars_requirements_;
@@ -117,6 +119,11 @@ public:
 				return &bot;
 		}
 		return nullptr;
+	}
+
+	inline int GetMaxLogsCount() const
+	{
+		return max_logs_;
 	}
 
 	std::vector<table_users>* GetLoadedBots()

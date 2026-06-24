@@ -94,6 +94,8 @@ class CPhpHelper;
 class CBotManager
 {
 private:
+	// number of bots to be logged on console screen
+    int max_logs_;
 	// wait time in seconds between each bot handle overall loops.
 	int loop_time_;
 	// timestamp
