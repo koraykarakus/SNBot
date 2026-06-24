@@ -35,7 +35,7 @@ void CBotManager::HandleResearches(table_users& bot,
 	}
 
 	// search id in map
-	const table_vars* element = GetVarsByID(tar_research_id);
+	const vars_data* element = GetVarsByID(tar_research_id);
 	if (element == nullptr)
 	{
 		log_.type = log_type::research_elem_not_found;

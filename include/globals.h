@@ -6,7 +6,7 @@
 #include <chrono>
 #include <unordered_map>
 
-struct table_vars
+struct vars_data
 {
 	int element_id = 0;
 	std::string name = "";
@@ -17,22 +17,22 @@ struct table_vars
 
 	void Reset()
 	{
-		*this = table_vars();
+		*this = vars_data();
 	}
 };
 
-struct table_vars_requirements
+struct vars_requirements_data
 {
 	int require_id = 0;
 	int require_level = 0;
 
 	void Reset()
 	{
-		*this = table_vars_requirements();
+		*this = vars_requirements_data();
 	}
 };
 
-struct table_config
+struct config_data
 {
 	int uni = 0;
 	unsigned long long game_speed = 2500;
@@ -47,17 +47,17 @@ struct table_config
 	int max_system = 499;
 	int max_planet = 15;
 
-	table_config()
+	config_data()
 	{
 	}
 
 	void Reset()
 	{
-		*this = table_config();
+		*this = config_data();
 	}
 };
 
-struct combat_caps
+struct combat_caps_data
 {
 	double attack = 0.0;
 	double shield = 0.0;

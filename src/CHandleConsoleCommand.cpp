@@ -140,7 +140,7 @@ void CBotManager::SetName(create_info& st)
 }
 
 void CBotManager::SetLocation(create_info& st,
-	const table_config* config,
+	const config_data* config,
 	std::set<std::tuple<int, int, int>>& occupied_locations)
 {
 	if (!config

@@ -110,8 +110,8 @@ private:
 
 	CDatabase* database_;
 	CPhpHelper* phphelper_;
-	std::unordered_map<int, table_vars>* vars_ptr_;
-	std::unordered_map<int, std::vector<table_vars_requirements>>* vars_requirements_ptr_;
+	std::unordered_map<int, vars_data>* vars_ptr_;
+	std::unordered_map<int, std::vector<vars_requirements_data>>* vars_requirements_ptr_;
 	// logging
 	std::vector<stlog> logs_;
 	stlog log_;
@@ -155,9 +155,9 @@ public:
 	void CreateBots(const cmd_queue& cmd);
 	void RemoveBots();
 
-	const table_config* GetConfigByUniID(int uni) const;
+	const config_data* GetConfigByUniID(int uni) const;
 
-	const table_vars* GetVarsByID(int id) const;
+	const vars_data* GetVarsByID(int id) const;
 
 	// check if time is in player's daily play duration
 	bool IsPlayingNow(const table_users& bot) const;
@@ -238,7 +238,7 @@ public:
 			&& element_id < 200;
 	}
 	// colonization handler and its helpers
-	void HandleColonization(table_users& bot, const table_config* config);
+	void HandleColonization(table_users& bot, const config_data* config);
 	bool HaveColonyShip(const table_users& user) const;
 	int GetPlanetCountMax(const table_users& user) const;
 	inline size_t GetPlanetCount(const table_users& user) const
@@ -246,13 +246,13 @@ public:
 		return user.all_planets.size();
 	}
 	bool HaveSpotForNewPlanet(const table_users& user) const;
-	int FindFirstPlanetCanColonize(const table_users& user, const table_vars* data_colonyship) const;
+	int FindFirstPlanetCanColonize(const table_users& user, const vars_data* data_colonyship) const;
 	int GetFirstPlanetWithColonyShip(const table_users& user) const;
 
 	// HandleCommands
 	void SetName(create_info& st);
 	void SetLocation(create_info& st,
-		const table_config* config,
+		const config_data* config,
 		std::set<std::tuple<int, int, int>>& occupied_locations);
 	void CryptPassword(std::string& pass);
 	void SetEmailStartNum();

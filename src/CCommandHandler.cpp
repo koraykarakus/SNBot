@@ -71,7 +71,7 @@ bool CCommandHandler::ProcessCommand(std::string& line, CApplication& app)
 			return false;
 		}
 
-		const table_config* config = bot_manager_->GetConfigByUniID(universe);
+		const config_data* config = bot_manager_->GetConfigByUniID(universe);
 		if (config == nullptr)
 		{
 			CLogger::Error(lang_->at("ids_addbot_wrong_uni"), universe);

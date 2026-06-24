@@ -2,10 +2,10 @@
 #include "CBotManager.h"
 
 void CBotManager::HandleColonization(table_users& bot,
-	const table_config* config)
+	const config_data* config)
 {
 	// get colony ship's database info..
-	const table_vars* colonyship = GetVarsByID(208);
+	const vars_data* colonyship = GetVarsByID(208);
 	if (colonyship == nullptr) return;
 
 	if (config == nullptr) return;
@@ -65,7 +65,7 @@ bool CBotManager::HaveColonyShip(const table_users& user) const
 	return false;
 }
 
-int CBotManager::FindFirstPlanetCanColonize(const table_users& user, const table_vars* data_colonyship) const
+int CBotManager::FindFirstPlanetCanColonize(const table_users& user, const vars_data* data_colonyship) const
 {
 	int index = 0;
 	for (const auto& p : user.all_planets)

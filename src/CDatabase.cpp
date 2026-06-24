@@ -673,7 +673,7 @@ bool CDatabase::LoadVars()
 	MYSQL_ROW row;
 	int load_num = 0;
 
-	table_vars item;
+	vars_data item;
 	while ((row = mysql_fetch_row(result)))
 	{
 		// row[0] = element_id, row[1] = name
@@ -871,7 +871,7 @@ bool CDatabase::LoadVarsRequirements()
 	MYSQL_ROW row;
 	int load_num = 0;
 
-	table_vars_requirements item;
+	vars_requirements_data item;
 	while ((row = mysql_fetch_row(result)))
 	{
 		if (!row[0] 
@@ -930,7 +930,7 @@ bool CDatabase::LoadConfig()
 	MYSQL_ROW row;
 	int loaded_num = 0;
 
-	table_config item;
+	config_data item;
 	while ((row = mysql_fetch_row(result)))
 	{
 		size_t i = 0;

@@ -57,7 +57,7 @@ void CBotManager::HandleBuildings(table_users& bot,
 	}
 
 	// search id in unordered map
-	const table_vars* element = GetVarsByID(tar_building_id);
+	const vars_data* element = GetVarsByID(tar_building_id);
 	if (element == nullptr)
 	{
 		log_.type = log_type::build_elem_not_found;

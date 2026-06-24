@@ -177,7 +177,7 @@ void CBotManager::HandleMain()
 			continue;
 		}
 
-		const table_config* config = GetConfigByUniID(bot.universe);
+		const config_data* config = GetConfigByUniID(bot.universe);
 		if (config == nullptr)
 		{
 			log_.universe = bot.universe;
@@ -369,7 +369,7 @@ bool CBotManager::IsTechAccessible(int element_id,
 	return true;
 }
 
-const table_config* CBotManager::GetConfigByUniID(int uni) const
+const config_data* CBotManager::GetConfigByUniID(int uni) const
 {
 	const auto& config = database_->GetConfig();
 	auto it = config.find(uni);
@@ -380,7 +380,7 @@ const table_config* CBotManager::GetConfigByUniID(int uni) const
 	return &it->second;
 }
 
-const table_vars* CBotManager::GetVarsByID(int id) const
+const vars_data* CBotManager::GetVarsByID(int id) const
 {
 	auto* vars = database_->GetVars();
 

@@ -30,13 +30,13 @@ private:
 	// reload time of bots
 	int reload_time_;
 
-	std::unordered_map<int, table_vars> vars_;
-	std::unordered_map<int, std::vector<table_vars_requirements>> vars_requirements_;
+	std::unordered_map<int, vars_data> vars_;
+	std::unordered_map<int, std::vector<vars_requirements_data>> vars_requirements_;
 	std::unordered_map<int, std::string> resource_;
-	std::unordered_map<int, combat_caps> combatcaps_;
+	std::unordered_map<int, combat_caps_data> combatcaps_;
 	std::unordered_map<int, pricelist_data> pricelist_;
 	std::unordered_map<int, prodgrid_data> prodgrid_;
-	std::unordered_map<int, table_config> config_;
+	std::unordered_map<int, config_data> config_;
 	reslist_data reslist_;
 
 	std::vector<table_users> temp_bots_;
@@ -59,13 +59,13 @@ public:
 	bool UpdateBots();
 	bool RemoveBots();
 
-	inline std::unordered_map<int, table_vars>* GetVars()
+	inline std::unordered_map<int, vars_data>* GetVars()
 	{
 		return &vars_;
 	}
 
 	inline const std::unordered_map<int,
-		std::vector<table_vars_requirements>>*
+		std::vector<vars_requirements_data>>*
 	GetVarsRequirements() const
 	{
 		return &vars_requirements_;
@@ -76,7 +76,7 @@ public:
 		return resource_;
 	}
 
-	inline const std::unordered_map<int, combat_caps>& GetCombatCaps() const
+	inline const std::unordered_map<int, combat_caps_data>& GetCombatCaps() const
 	{
 		return combatcaps_;
 	}
@@ -91,7 +91,7 @@ public:
 		return prodgrid_;
 	}
 
-	inline const std::unordered_map<int, table_config>& GetConfig() const
+	inline const std::unordered_map<int, config_data>& GetConfig() const
 	{
 		return config_;
 	}

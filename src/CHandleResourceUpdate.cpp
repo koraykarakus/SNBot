@@ -158,7 +158,7 @@ void CBotManager::UpdateResource(table_planets& planet, table_users& user)
 
 void CBotManager::UpdateCache(table_planets& planet, table_users& user)
 {
-	const table_config* config = GetConfigByUniID(planet.universe);
+	const config_data* config = GetConfigByUniID(planet.universe);
 
 	if (config == nullptr)
 	{
@@ -296,7 +296,7 @@ void CBotManager::ExecCalc(table_planets& planet, time_t production_time)
 		return;
 	}
 
-	const table_config* config = GetConfigByUniID(planet.universe);
+	const config_data* config = GetConfigByUniID(planet.universe);
 
 	if (config == nullptr)
 	{
