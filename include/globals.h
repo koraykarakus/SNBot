@@ -46,6 +46,8 @@ struct config_data
 	int max_galaxy = 9;
 	int max_system = 499;
 	int max_planet = 15;
+	uint8_t max_elements_ships = 10;
+	uint64_t max_fleet_per_build = 1000000;
 
 	config_data()
 	{

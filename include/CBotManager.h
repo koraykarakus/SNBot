@@ -249,7 +249,9 @@ public:
 	bool HaveSpotForNewPlanet(const table_users& user) const;
 	int FindFirstPlanetCanColonize(const table_users& user, const vars_data* data_colonyship) const;
 	int GetFirstPlanetWithColonyShip(const table_users& user) const;
-
+	// add ships or defences to shipyard queue
+	void AddShipsToQueue(table_planets& planet, const config_data* config_ptr,
+		const vars_data* ship_ptr, const int count);
 	// HandleCommands
 	void SetName(create_info& st);
 	void SetLocation(create_info& st,

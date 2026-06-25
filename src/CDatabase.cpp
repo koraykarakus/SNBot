@@ -914,7 +914,8 @@ bool CDatabase::LoadConfig()
 		"SELECT `uni`, `game_speed`, `resource_multiplier`, "
 		"`storage_multiplier`, `metal_basic_income`, `crystal_basic_income`, "
 		"`deuterium_basic_income`, `max_galaxy`, `max_system`, "
-		"`max_planets`, `max_overflow`, `energySpeed` "
+		"`max_planets`, `max_overflow`, `energySpeed`, `max_elements_ships`, "
+		"`max_fleet_per_build` "
 		"FROM `{}config`",
 		db_uni_prefix_);
 
@@ -966,6 +967,10 @@ bool CDatabase::LoadConfig()
 		item.max_overflow = std::stod(row[i]);
 		i++;
 		item.energySpeed = std::stoi(row[i]);
+		i++;
+		item.max_elements_ships = std::stoi(row[i]);
+		i++;
+		item.max_fleet_per_build = std::stoi(row[i]);
 		i++;
 
 		config_.emplace(item.uni, item);
