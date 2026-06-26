@@ -104,8 +104,15 @@ bool CCommandHandler::ProcessCommand(std::string& line, CApplication& app)
 	}
 	else if (cmd == "/remove_bots")
 	{
-		info.type = 2;
-		bot_manager_->PushCmdRequest(info);
+		if (app.IsStarted())
+		{
+			info.type = 2;
+			bot_manager_->PushCmdRequest(info);
+		}
+		else
+		{
+			bot_manager_->RemoveBots();
+		}
 	}
 	else if (cmd == "/exit")
 	{
