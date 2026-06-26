@@ -157,7 +157,15 @@ void CBotManager::HandleMain()
 	{
 		// reset logs at the start..
 		log_.Reset();
+		
 		log_.bot_id = bot.id;
+		log_.email = bot.email;
+		log_.galaxy = bot.galaxy;
+		log_.system = bot.system;
+		log_.planet = bot.planet;
+		log_.type = log_type::title_user;
+
+		logs_.push_back(log_);
 
 		if (!IsPlayingNow(bot))
 		{
@@ -198,6 +206,11 @@ void CBotManager::HandleMain()
 		for (auto& planet : bot.all_planets)
 		{
 			log_.id_planet = planet.id;
+			log_.galaxy = planet.galaxy;
+			log_.system = planet.system;
+			log_.planet = planet.planet;
+			log_.type = log_type::title_planet;
+			logs_.push_back(log_);
 
 			// 1- HandleResourceUpdate
 			HandleResourceUpdate(bot, planet, config);
@@ -229,6 +242,16 @@ void CBotManager::LogResult()
 
 		switch (log.type)
 		{
+			case log_type::title_user:
+				fmt::format_to(std::back_inserter(buf),
+					fmt::runtime(lang_->at("ids_bot_title")),
+					log.bot_id, log.email, log.galaxy, log.system, log.planet);
+				break;
+			case log_type::title_planet:
+				fmt::format_to(std::back_inserter(buf),
+					fmt::runtime(lang_->at("ids_planet_title")),
+					log.id_planet, log.galaxy, log.system, log.planet);
+				break;
 			case log_type::not_playing_now:
 				fmt::format_to(std::back_inserter(buf),
 					fmt::runtime(lang_->at("ids_bot_is_not_online")),
@@ -252,73 +275,75 @@ void CBotManager::LogResult()
 			case log_type::building_already:
 				fmt::format_to(std::back_inserter(buf),
 					fmt::runtime(lang_->at("ids_already_building")),
-					log.bot_id, log.id_planet);
+					lang_->at("ids_building"));
 				break;
 			case log_type::build_list_finished:
 				fmt::format_to(std::back_inserter(buf),
 					fmt::runtime(lang_->at("ids_build_list_completed")),
-					log.bot_id, log.id_planet);
+					lang_->at("ids_building"));
 				break;
 			case log_type::build_elem_not_found:
 				fmt::format_to(std::back_inserter(buf),
-					fmt::runtime(lang_->at("ids_wrong_elem_id")),
-					log.building_id, log.bot_id, log.id_planet);
+					fmt::runtime(lang_->at("ids_wrong_building_id")),
+					lang_->at("ids_building"), log.building_id);
 				break;
 			case log_type::tech_not_accessible:
 				fmt::format_to(std::back_inserter(buf),
-					fmt::runtime(lang_->at("ids_tech_not_accessible")),
-					log.research_id, log.bot_id, log.id_planet);
+					fmt::runtime(lang_->at("ids_tech_not_accessible_building")),
+					lang_->at("ids_building"), log.research_id);
 				break;
 			case log_type::not_have_enough_resources:
 				fmt::format_to(std::back_inserter(buf),
-					fmt::runtime(lang_->at("ids_not_enough_res")),
-					log.galaxy, log.system, log.planet,
-					log.email, log.building_id, log.cost901, log.cost902, log.cost903,
-					log.planet_metal, log.planet_crystal, log.planet_deu,
-					log.bot_id, log.id_planet);
+					fmt::runtime(lang_->at("ids_not_enough_res_building")),
+					lang_->at("ids_building"), 
+					 log.building_id, log.cost901, log.cost902, log.cost903,
+					log.planet_metal, log.planet_crystal, log.planet_deu);
 				break;
 			case log_type::building_success:
 				fmt::format_to(std::back_inserter(buf),
 					fmt::runtime(lang_->at("ids_started_building")),
-					log.building_name, log.building_level, log.bot_id, log.id_planet);
+					lang_->at("ids_building"), 
+					log.building_name, log.building_level);
 				break;
 			case log_type::researching_already:
 				fmt::format_to(std::back_inserter(buf),
 					fmt::runtime(lang_->at("ids_already_researching")),
-					log.bot_id, log.id_planet);
+					lang_->at("ids_research"));
 				break;
 			case log_type::dont_have_lab:
 				fmt::format_to(std::back_inserter(buf),
 					fmt::runtime(lang_->at("ids_planet_dont_have_lab")),
-					log.bot_id, log.id_planet);
+					lang_->at("ids_research"));
 				break;
 			case log_type::research_list_finished:
 				fmt::format_to(std::back_inserter(buf),
 					fmt::runtime(lang_->at("ids_research_list_complete")),
-					log.bot_id, log.id_planet);
+					lang_->at("ids_research"));
 				break;
 			case log_type::research_elem_not_found:
 				fmt::format_to(std::back_inserter(buf),
-					fmt::runtime(lang_->at("ids_wrong_elem_id")),
-					log.building_id, log.bot_id, log.id_planet);
+					fmt::runtime(lang_->at("ids_wrong_research_id")),
+					lang_->at("ids_research"),
+					log.building_id);
 				break;
 			case log_type::tech_not_accessible_research:
 				fmt::format_to(std::back_inserter(buf),
-					fmt::runtime(lang_->at("ids_tech_not_accessible")),
-					log.research_id, log.bot_id, log.id_planet);
+					fmt::runtime(lang_->at("ids_tech_not_accessible_research")),
+					lang_->at("ids_research"),
+					log.research_id);
 				break;
 			case log_type::not_have_enough_resources_research:
 				fmt::format_to(std::back_inserter(buf),
-					fmt::runtime(lang_->at("ids_not_enough_res")),
-					log.galaxy, log.system, log.planet,
-					log.email, log.research_id, log.cost901, log.cost902, log.cost903,
-					log.planet_metal, log.planet_crystal, log.planet_deu,
-					log.bot_id, log.id_planet);
+					fmt::runtime(lang_->at("ids_not_enough_res_research")),
+					lang_->at("ids_research"),
+					log.research_id, log.cost901, log.cost902, log.cost903,
+					log.planet_metal, log.planet_crystal, log.planet_deu);
 				break;
 			case log_type::research_success:
 				fmt::format_to(std::back_inserter(buf),
 					fmt::runtime(lang_->at("ids_started_research")),
-					log.research_name, log.research_level, log.id_planet, log.bot_id);
+					lang_->at("ids_research"),
+					log.research_name, log.research_level);
 				break;
 			default:
 				fmt::format_to(std::back_inserter(buf), fmt::runtime(lang_->at("ids_undef_log")));
@@ -331,7 +356,7 @@ void CBotManager::LogResult()
 	logs_.clear();
 
 	// write all log at once
-	std::string msg = lang_->at("ids_build_logs_all");
+	std::string msg = lang_->at("ids_logs_title");
 	if (short_log)
 	{
 		msg = lang_->at("ids_short_logs");

@@ -87,10 +87,7 @@ void CBotManager::HandleBuildings(table_users& bot,
 	if (!HaveEnoughResources(planet, array_cost))
 	{
 		log_.type = log_type::not_have_enough_resources;
-		log_.galaxy = planet.galaxy;
-		log_.system = planet.system;
-		log_.planet = planet.planet;
-		log_.email = bot.email;
+		
 		log_.building_id = tar_building_id;
 		log_.cost901 = array_cost[0];
 		log_.cost902 = array_cost[1];

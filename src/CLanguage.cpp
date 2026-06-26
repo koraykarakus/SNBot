@@ -103,23 +103,36 @@ void CLanguage::CreateDefaultLangFile()
 						{"ids_bot_data_refreshed", "bot data has been refreshed\n"},
 						{"ids_process_handled", "Process handled in [{} microsec / {} millisec]\nNext run is in {} seconds.\n"},
 						{"ids_run_thread_finished", "Bot Run thread finished.\n"},
-						{"ids_bot_is_not_online", "skip - bot is not online now. uid:{} - pid:{}\n"},
-						{"ids_bot_is_away", "skip - bot is away for {} seconds. uid:{} - pid:{}\n"},
-						{"ids_bot_in_vacation", "skip - bot is in vacation mode. uid:{} - pid:{}\n"},
-						{"ids_config_map_missing", "skip - config map missing : uni_id:{} not found. uid:{} - pid:{}\n"},
-						{"ids_already_building", "skip - already building. uid:{} - pid:{}\n"},
-						{"ids_build_list_completed", "skip - building list has been completed. uid:{} - pid:{}\n"},
-						{"ids_wrong_elem_id", "skip - wrong element id:[{}]. uid:{} - pid:{}\n"},
-						{"ids_tech_not_accessible", "skip - tech is not accessible for research id:[{}]. uid:{} - pid:{}\n"},
-						{"ids_not_enough_res", "skip - [g{}:s{}:p{}] email:[{}]\nnot enough resources for build id:{}\nrequired:[metal:{}|crystal:{}|deu:{}] have:[metal:{}|crystal:{}|deu:{}]\nbid:{} - pid:{}\n"},
-						{"ids_started_building", "started building - {}, level:{}. uid:{} - pid:{}\n"},
-						{"ids_already_researching", "skip - already researching.. uid:{} - pid:{}\n"},
-						{"ids_planet_dont_have_lab", "skip - planet don't have laboratory. uid:{} - pid:{}\n"},
-						{"ids_research_list_complete", "skip - research list has been completed for bot. uid:{} - pid:{}\n"},
-						{"ids_started_research", "started research - {}, level:{}. uid:{} - pid:{}\n"},
+						
+						{"ids_bot_is_not_online", "- (skip), bot is not online now.\n"},
+						{"ids_bot_is_away", "- (skip), bot is away for {} seconds.\n"},
+						{"ids_bot_in_vacation", "- (skip), bot is in vacation mode.\n"},
+						{"ids_config_map_missing", "- (skip), config map missing : uni_id:{} not found.\n"},
+
+						{"ids_bot_title", "\n# Bot id:{}, email:{}, main:[{}:{}:{}]\n"},
+						{"ids_planet_title", "- Planet id:{} coordinate:[{}:{}:{}]\n"},
+						// HandleBuildings
+						{"ids_building", "  --building"},
+						{"ids_already_building", "{}: (skip), already building.\n"},
+						{"ids_build_list_completed", "{}: (skip), build list has been completed.\n"},
+						{"ids_wrong_building_id", "{}: (skip), wrong element id:[{}].\n"},
+						{"ids_tech_not_accessible_building", "{}: (skip), tech is not accessible for building id:[{}].\n"},
+						{"ids_not_enough_res_building", "{}: (skip), not enough resources for build id:{}\nrequired:[metal:{}|crystal:{}|deu:{}] have:[metal:{}|crystal:{}|deu:{}]\n"},
+						{"ids_started_building", "{}: (start) {}, level:{}.\n"},
+
+						// HandleResearch
+						{"ids_research", "  --research"},
+						{"ids_tech_not_accessible_research", "{}: (skip), tech is not accessible for research id:[{}].\n"},
+						{"ids_wrong_research_id", "{}: (skip), wrong element id:[{}].\n"},
+						{"ids_not_enough_res_research", "{}: (skip), not enough resources for research id:{}\nrequired:[metal:{}|crystal:{}|deu:{}] have:[metal:{}|crystal:{}|deu:{}]\n"},
+						{"ids_already_researching", "{}: (skip), already researching.\n"},
+						{"ids_planet_dont_have_lab", "{}: (skip), planet don't have laboratory.\n"},
+						{"ids_research_list_complete", "{}: (skip), research list has been completed for bot.\n"},
+						{"ids_started_research", "{}: (start), {}, level:{}.\n"},
+
 						{"ids_undef_log", "Undefined log type.\n"},
-						{"ids_build_logs_all", "### BUILD LOGS ###\n{}\n"},
-						{"ids_short_logs", "### Short logs ###\n{}\n"},
+						{"ids_logs_title", "### BOT LOGS ###\n{}\n"},
+						{"ids_short_logs", "### BOT LOGS [SHORT] ###\n{}\n"},
 
 						// CHandleConsoleCommand
 

@@ -36,6 +36,8 @@ struct cmd_queue
 enum class log_type
 {
 	none,
+	title_user,
+	title_planet,
 	not_playing_now,
 	is_away,
 	in_vacation,
