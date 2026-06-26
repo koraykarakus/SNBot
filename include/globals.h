@@ -48,6 +48,8 @@ struct config_data
 	int max_planet = 15;
 	uint8_t max_elements_ships = 10;
 	uint64_t max_fleet_per_build = 1000000;
+	uint8_t factor_university = 8;
+	uint8_t min_build_time = 1;
 
 	config_data()
 	{

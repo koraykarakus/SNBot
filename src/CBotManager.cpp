@@ -200,7 +200,7 @@ void CBotManager::HandleMain()
 			log_.id_planet = planet.id;
 
 			// 1- HandleResourceUpdate
-			HandleResourceUpdate(bot, planet);
+			HandleResourceUpdate(bot, planet, config);
 			// 2- HandleBuildings
 			HandleBuildings(bot, planet, game_speed);
 			// 3- HandleResearches
@@ -310,9 +310,10 @@ void CBotManager::LogResult()
 			case log_type::not_have_enough_resources_research:
 				fmt::format_to(std::back_inserter(buf),
 					fmt::runtime(lang_->at("ids_not_enough_res")),
-					log.bot_id, log.id_planet, log.galaxy, log.system, log.planet,
-					log.email, log.building_id, log.cost901, log.cost902, log.cost903,
-					log.planet_metal, log.planet_crystal, log.planet_deu);
+					log.galaxy, log.system, log.planet,
+					log.email, log.research_id, log.cost901, log.cost902, log.cost903,
+					log.planet_metal, log.planet_crystal, log.planet_deu,
+					log.bot_id, log.id_planet);
 				break;
 			case log_type::research_success:
 				fmt::format_to(std::back_inserter(buf),

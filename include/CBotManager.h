@@ -203,16 +203,17 @@ public:
 	}
 	void LogResult();
 	// resource update and its helpers
-	void HandleResourceUpdate(table_users& bot, table_planets& planet);
+	void HandleResourceUpdate(table_users& bot, table_planets& planet, const config_data* config_ptr);
 	bool BuildingQueue(table_planets& planet);
 	bool ResearchQueue(table_users& user);
-	bool ShipyardQueue(table_users& bot, table_planets& planet);
+	bool ShipyardQueue(table_users& bot, table_planets& planet, const config_data* config_ptr);
 	void UpdateResource(table_planets& planet, table_users& user);
 	void UpdateCache(table_planets& planet, table_users& user);
 	void ExecCalc(table_planets& planet, time_t production_time);
 	// returns total metal + crystal amount needed.
 	double GetTotalBaseCost(const int element, uint8_t level);
-	int GetBuildingTime(table_users& bot, table_planets& planet, int element, bool for_destroy, bool for_level);
+	int GetBuildingTime(table_users& bot, table_planets& planet, const config_data* config_ptr,
+		int element, bool for_destroy = false);
 	inline bool IsFleet(const int element_id) const
 	{
 		return element_id >= 200 

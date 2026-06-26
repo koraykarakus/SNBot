@@ -22,7 +22,6 @@ void CBotManager::HandleColonization(table_users& bot,
 		bot.all_planets[iIndex].crystal -= colonyship_ptr->cost902;
 		bot.all_planets[iIndex].deuterium -= colonyship_ptr->cost903;
 
-		// todo: add build list instead of just adding one.
 		AddShipsToQueue(bot.all_planets[iIndex], config, colonyship_ptr, 1);
 		bot.all_planets[iIndex].need_update = true;
 
@@ -34,7 +33,7 @@ void CBotManager::HandleColonization(table_users& bot,
 	if (index == -1) return;
 
 	// update planet
-	bot.all_planets[index].resource[208] -= 1;
+	// bot.all_planets[index].resource[208] -= 1;
 	bot.all_planets[index].need_update = true;
 
 	// send fleet

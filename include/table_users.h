@@ -5,6 +5,7 @@
 #include <array>
 #include <map>
 #include <string_view>
+#include <algorithm>
 #include "table_planets.h"
 
 inline constexpr std::array<std::string_view, 18> bonus_list = {
@@ -96,6 +97,7 @@ struct table_users
 	std::map<std::string_view, int> factor = {};
 	play_time playTime = {};
 	int onlinetime = 0;
+	int research_lab_inter = 0;
 
 	// update bot only if it needs update
 	bool need_update = false;
@@ -177,6 +179,38 @@ struct table_users
 					}
 				}
 			}
+		}
+	}
+
+	// total research labs for intergalactic research
+	void SetResearchLabInter()
+	{
+		if (resource[123] == 0)
+		{
+			return;
+		}
+
+		int res_lab_levels[15] = {0};
+		int i = 0;
+		for (const auto& p : all_planets)
+		{
+			if (i >= 15) break;
+			res_lab_levels[i] = p.resource[31];
+			i++;
+		}
+
+        std::sort(res_lab_levels, res_lab_levels + i, std::greater<int>());
+		
+		int counted = 0;
+		for (const auto& arr : res_lab_levels)
+		{
+			if (resource[123] <= counted) break;
+
+			if (arr > 0)
+			{
+				research_lab_inter += arr;
+				counted++;
+			}		
 		}
 	}
 

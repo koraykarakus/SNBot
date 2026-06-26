@@ -111,7 +111,7 @@ void CLanguage::CreateDefaultLangFile()
 						{"ids_build_list_completed", "skip - building list has been completed. uid:{} - pid:{}\n"},
 						{"ids_wrong_elem_id", "skip - wrong element id:[{}]. uid:{} - pid:{}\n"},
 						{"ids_tech_not_accessible", "skip - tech is not accessible for research id:[{}]. uid:{} - pid:{}\n"},
-						{"ids_not_enough_res", "skip - [g{}:s{}:p{}] email:[{}]}\nnot enough resources for build id:{}\nrequired:[metal:{}|crystal:{}|deu:{}] have:[metal:{}|crystal:{}|deu:{}]\nbid:{} - pid:{}\n"},
+						{"ids_not_enough_res", "skip - [g{}:s{}:p{}] email:[{}]\nnot enough resources for build id:{}\nrequired:[metal:{}|crystal:{}|deu:{}] have:[metal:{}|crystal:{}|deu:{}]\nbid:{} - pid:{}\n"},
 						{"ids_started_building", "started building - {}, level:{}. uid:{} - pid:{}\n"},
 						{"ids_already_researching", "skip - already researching.. uid:{} - pid:{}\n"},
 						{"ids_planet_dont_have_lab", "skip - planet don't have laboratory. uid:{} - pid:{}\n"},

@@ -641,6 +641,13 @@ bool CDatabase::LoadBots()
 
 	mysql_free_result(pl_result);
 
+	// calculate and write intergalactic research level.
+	for (auto& bot : temp_bots_)
+	{
+		bot.SetResearchLabInter();
+	}
+
+
 	last_load_time_ = std::chrono::steady_clock::now();
 
 	auto end = GetTimeNow();
@@ -915,7 +922,7 @@ bool CDatabase::LoadConfig()
 		"`storage_multiplier`, `metal_basic_income`, `crystal_basic_income`, "
 		"`deuterium_basic_income`, `max_galaxy`, `max_system`, "
 		"`max_planets`, `max_overflow`, `energySpeed`, `max_elements_ships`, "
-		"`max_fleet_per_build` "
+		"`max_fleet_per_build`, `factor_university`,`min_build_time` "
 		"FROM `{}config`",
 		db_uni_prefix_);
 
@@ -971,6 +978,10 @@ bool CDatabase::LoadConfig()
 		item.max_elements_ships = std::stoi(row[i]);
 		i++;
 		item.max_fleet_per_build = std::stoi(row[i]);
+		i++;
+		item.factor_university = std::stoi(row[i]);
+		i++;
+		item.min_build_time = std::stoi(row[i]);
 		i++;
 
 		config_.emplace(item.uni, item);

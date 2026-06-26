@@ -5,10 +5,11 @@
 #include "CPhpHelper.h"
 #include <cassert>
 
-void CBotManager::HandleResourceUpdate(table_users& bot, table_planets& planet)
+void CBotManager::HandleResourceUpdate(table_users& bot, 
+	table_planets& planet, 
+	const config_data* config_ptr)
 {
-	// unfinished..
-	// ShipyardQueue(bot, planet);
+	ShipyardQueue(bot, planet, config_ptr);
 	BuildingQueue(planet);
 	ResearchQueue(bot);
 	UpdateResource(planet, bot);
@@ -94,12 +95,11 @@ bool CBotManager::ResearchQueue(table_users& user)
 	return true;
 }
 
-bool CBotManager::ShipyardQueue(table_users& bot,table_planets& planet)
+bool CBotManager::ShipyardQueue(table_users& bot, 
+	table_planets& planet, 
+	const config_data* config_ptr)
 {
-	if (planet.b_shipyard_id == "")
-	{
-		return false;
-	}
+	if (planet.b_shipyard_id == "") return false;
 
 	std::map<int, php_val> build_queue;
 	phphelper_->Unserialize(planet.b_shipyard_id, build_queue);
@@ -113,18 +113,108 @@ bool CBotManager::ShipyardQueue(table_users& bot,table_planets& planet)
 	}
 
 	planet.b_shipyard += (system_time_ - planet.last_update);
+	
+	struct st_build
+	{
+		int id = 0;
+		int count = 0;
+		int time = 0;
+	};
+
+	std::vector<st_build> build_array = {};
 
 	for (const auto& item : build_queue)
 	{
 		php_val data = item.second;
-		
+		int element_id = data[0].numeric_val;
+		int element_count = data[1].numeric_val;
 		// element id..
 		int acum_time = GetBuildingTime(bot, 
-			planet, data[0].numeric_val, 
-			false, true);
+			planet, config_ptr, element_id);
+		
+		st_build info;
+		info.id = element_id;
+		info.count = element_count;
+		info.time = acum_time;
+
+		build_array.push_back(info);
 	}
 
-	return false;
+	bool done = false;
+	std::vector<st_build> new_queue = {};
+	for (const auto& item: build_array)
+	{
+		int element = item.id;
+		int count = item.count;
+		if (!done)
+		{
+			int build_time = item.time;
+			if (build_time == 0)
+			{
+				planet.resource[element] += count;
+				continue;
+			}
+
+			int build = GetMax(GetMin(std::floor(planet.b_shipyard / build_time), (double) count), (double) 0);
+
+			if (build == 0)
+			{
+				st_build q;
+				q.id = element;
+				q.count = count;
+				new_queue.push_back(q);
+				done = true;
+				continue;
+			}
+
+			planet.b_shipyard -= (build * build_time);
+			if (planet.b_shipyard < 0)
+			{
+				planet.b_shipyard = 0;
+			}
+			planet.resource[element] += build;
+			count -= build;
+
+			if (count <= 0)
+			{
+				continue;
+			}
+			else
+			{
+				done = true;
+			}
+		}
+
+		st_build q;
+		q.id = element;
+		q.count = count;
+		new_queue.push_back(q);
+	}
+
+	if (new_queue.size() > 0)
+	{
+		std::string str = "a:";
+		str += std::to_string(new_queue.size());
+		str += ":{";
+		int index = 0;
+		for (const auto& q : new_queue)
+		{
+			str += "i:" + std::to_string(index) + ";";
+			str += "a:2:{i:0;i:" + std::to_string(q.id) + ";i:1;d:" + std::to_string(q.count) + ";}";
+			index++;
+		}
+		str += "}";
+
+		planet.b_shipyard_id = str;
+	}
+	else
+	{
+		planet.b_shipyard_id = "";
+		planet.b_shipyard = 0;
+	}
+	
+	planet.need_update = true;
+	return true;
 }
 
 void CBotManager::UpdateResource(table_planets& planet, table_users& user)
@@ -346,12 +436,51 @@ void CBotManager::ExecCalc(table_planets& planet, time_t production_time)
 }
 
 int CBotManager::GetBuildingTime(table_users& bot, 
-	table_planets& planet, 
+	table_planets& planet,
+	const config_data* config_ptr,
 	int element, 
-	bool for_destroy, 
-	bool for_level)
+	bool for_destroy/*= false*/)
 {
-	return 0;
+	double element_cost = 0;
+	int time = 0;
+
+	if (IsStructure(element))
+	{
+		element_cost = GetTotalBaseCost(element, planet.resource[element]);
+		time = element_cost / (config_ptr->game_speed * (1 + planet.resource[14])) * pow(0.5, planet.resource[15]) * (1 + bot.factor["BuildTime"]);
+	}
+	else if(IsFleet(element))
+	{
+		element_cost = GetTotalBaseCost(element, 1);
+		time = element_cost / (config_ptr->game_speed * (1 + planet.resource[21])) * pow(0.5, planet.resource[15]) * (1 + bot.factor["ShipTime"]);
+	}
+	else if(IsDefence(element))
+	{
+		element_cost = GetTotalBaseCost(element, 1);
+		time = element_cost / (config_ptr->game_speed * (1 + planet.resource[21])) * pow(0.5, planet.resource[15]) * (1 + bot.factor["DefensiveTime"]);
+	}
+	else if(IsMissile(element))
+	{
+		element_cost = GetTotalBaseCost(element, 1);
+		time = element_cost / (config_ptr->game_speed * (1 + planet.resource[21])) * pow(0.5, planet.resource[15]) * (1 + bot.factor["DefensiveTime"]);
+	}
+	else if (IsResearch(element))
+	{
+		element_cost = GetTotalBaseCost(element, bot.resource[element]);
+		int level = bot.research_lab_inter;
+		time = element_cost / (1000 * (1 + level)) / (config_ptr->game_speed / 2500) * pow(1 - config_ptr->factor_university / 100, planet.resource[6]) * (1 + bot.factor["ResearchTime"]);
+	}
+
+	if (for_destroy)
+	{
+		time = std::floor(time * 1300);
+	}
+	else
+	{
+		time = std::floor(time * 3600);
+	}
+
+	return GetMax(time, (int) config_ptr->min_build_time);
 }
 
 double CBotManager::GetTotalBaseCost(const int element, uint8_t level)
