@@ -20,6 +20,9 @@ private:
 	std::string db_host_;
 	std::string db_name_;
 	std::string db_uni_prefix_;
+
+	std::string bots_pass_;
+
 	bool db_ssl_;
 	// loop time in seconds
 	int loop_time_;
@@ -129,6 +132,11 @@ public:
 	std::vector<table_users>* GetLoadedBots()
 	{
 		return &temp_bots_;
+	}
+
+	std::string& GetBotsPass() 
+	{
+		return bots_pass_;
 	}
 
 	// create bots related

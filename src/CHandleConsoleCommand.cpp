@@ -80,7 +80,7 @@ void CBotManager::CreateBots(const cmd_queue& cmd)
 	std::vector<create_info> bots;
 	bots.reserve(cmd.count);
 	SetEmailStartNum();
-	std::string password = "12345678";
+	std::string password = database_->GetBotsPass();
 	CryptPassword(password);
 	for (size_t i = 0; i < cmd.count; i++)
 	{
