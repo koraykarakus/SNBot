@@ -140,10 +140,10 @@ void CLanguage::CreateDefaultLangFile()
 						{"ids_bot_remove_succ", "All bots and their planet removed from database by success.\n"},
 
 						// CCommandHandler
-						{"ids_help_start", "type /start to start bot processing\n"},
-						{"ids_help_exit", "type /exit to close\n"},
-						{"ids_help_addbots", "type /add_bot 100 1 -> to add 100 bots to universe 1\n"},
-						{"ids_help_removebots", "type /remove_bots -> to delete all bots and their planet\n"},
+						{"ids_help_start", "type /start to start bot processing"},
+						{"ids_help_exit", "type /exit to close"},
+						{"ids_help_addbots", "type /add_bot 100 1 -> to add 100 bots to universe 1"},
+						{"ids_help_removebots", "type /remove_bots -> to delete all bots and their planet"},
 						{"ids_help_set_lang", "type /set_lang en -> to set language as english, other keys [de,tr,es,pt,pl,fr,ru]"},
 						{"ids_lang_change_success", "Language settings have been changed by success.\n"},
 						{"ids_wrong_lang_key", "Wrong language key, try:[de,en,es,fr,pl,pt,tr,ru] \n"},
