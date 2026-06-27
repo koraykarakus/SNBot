@@ -127,6 +127,7 @@ void CLanguage::CreateDefaultLangFile()
 						{"ids_not_enough_res_research", "{}: (skip), not enough resources for research id:{}\nrequired:[metal:{}|crystal:{}|deu:{}] have:[metal:{}|crystal:{}|deu:{}]\n"},
 						{"ids_already_researching", "{}: (skip), already researching.\n"},
 						{"ids_planet_dont_have_lab", "{}: (skip), planet don't have laboratory.\n"},
+						{"ids_lab_in_progress", "{}: (skip), user building research lab.\n"},
 						{"ids_research_list_complete", "{}: (skip), research list has been completed for bot.\n"},
 						{"ids_started_research", "{}: (start), {}, level:{}.\n"},
 

@@ -1,6 +1,7 @@
 // implementation of CBotManager.h
 
 #include "CBotManager.h"
+#include "CPhpHelper.h"
 
 void CBotManager::HandleResearches(table_users& bot,
 	table_planets& planet,
@@ -17,6 +18,13 @@ void CBotManager::HandleResearches(table_users& bot,
 	if (!HasLaboratory(planet))
 	{
 		log_.type = log_type::dont_have_lab;
+		logs_.push_back(log_);
+		return;
+	}
+
+	if (IsLabInProgress(bot))
+	{
+		log_.type = log_type::lab_in_progress;
 		logs_.push_back(log_);
 		return;
 	}
@@ -97,4 +105,26 @@ void CBotManager::HandleResearches(table_users& bot,
 	// update it
 	bot.need_update = true;    // research q
 	planet.need_update = true; // removecost
+}
+
+// carry this to database, and use flags
+bool CBotManager::IsLabInProgress(const table_users& user)
+{
+	std::map<int, php_val> queue = {};
+
+	for (const auto& p : user.all_planets)
+	{
+		queue.clear();
+		phphelper_->Unserialize(p.b_building_id, queue);
+		for (const auto& q : queue)
+		{
+			const php_val& data = q.second;
+			if (data[0].numeric_val == 31)
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
 }

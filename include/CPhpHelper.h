@@ -26,6 +26,11 @@ struct php_val
 		return array_val[index];
 	}
 
+	const php_val& operator[](int index) const
+	{
+		return array_val.at(index);
+	}
+
 };
 
 class CPhpHelper

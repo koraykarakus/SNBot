@@ -50,6 +50,7 @@ enum class log_type
 	building_success,
 	researching_already,
 	dont_have_lab,
+	lab_in_progress,
 	research_list_finished,
 	research_elem_not_found,
 	tech_not_accessible_research,
@@ -207,6 +208,9 @@ public:
 	{
 		return planet.b_building > 0;
 	}
+	
+	bool IsLabInProgress(const table_users& user);
+
 	void LogResult();
 	// resource update and its helpers
 	void HandleResourceUpdate(table_users& bot, table_planets& planet, const config_data* config_ptr);

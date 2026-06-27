@@ -315,6 +315,11 @@ void CBotManager::LogResult()
 					fmt::runtime(lang_->at("ids_planet_dont_have_lab")),
 					lang_->at("ids_research"));
 				break;
+			case log_type::lab_in_progress:
+				fmt::format_to(std::back_inserter(buf),
+					fmt::runtime(lang_->at("ids_lab_in_progress")),
+					lang_->at("ids_research"));
+				break;
 			case log_type::research_list_finished:
 				fmt::format_to(std::back_inserter(buf),
 					fmt::runtime(lang_->at("ids_research_list_complete")),
