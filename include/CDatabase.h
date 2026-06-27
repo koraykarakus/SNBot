@@ -22,6 +22,10 @@ private:
 	std::string db_uni_prefix_;
 
 	std::string bots_pass_;
+	int metal_start_;
+	int crystal_start_;
+	int deu_start_;
+	int dm_start_;
 
 	bool db_ssl_;
 	// loop time in seconds
@@ -137,6 +141,26 @@ public:
 	std::string& GetBotsPass() 
 	{
 		return bots_pass_;
+	}
+
+	inline const int GetMetalStart() const
+	{
+		return metal_start_;
+	}
+
+	inline const int GetCrystalStart() const
+	{
+		return crystal_start_;
+	}
+
+	inline const int GetDeuStart() const
+	{
+		return deu_start_;
+	}
+
+	inline const int GetDmStart() const
+	{
+		return dm_start_;
 	}
 
 	// create bots related

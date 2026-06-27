@@ -82,6 +82,11 @@ void CBotManager::CreateBots(const cmd_queue& cmd)
 	SetEmailStartNum();
 	std::string password = database_->GetBotsPass();
 	CryptPassword(password);
+	int metal_start = database_->GetMetalStart();
+	int crystal_start = database_->GetCrystalStart();
+	int deu_start = database_->GetDeuStart();
+	int dm_start = database_->GetDmStart();
+
 	for (size_t i = 0; i < cmd.count; i++)
 	{
 		info.Reset();
@@ -93,7 +98,10 @@ void CBotManager::CreateBots(const cmd_queue& cmd)
 		SetLocation(info, config_ptr, occupied_locations);
 		SetImage(info);
 		SetTemp(info);
-		info.darkmatter = 0;
+		info.metal = metal_start;
+		info.crystal = crystal_start;
+		info.deuterium = deu_start;
+		info.darkmatter = dm_start;
 		info.register_time = static_cast<int>(time_now);
 		info.onlinetime = static_cast<int>(time_now);
 		info.is_bot = 1;

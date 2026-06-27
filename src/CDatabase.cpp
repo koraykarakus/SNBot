@@ -31,6 +31,10 @@ CDatabase::CDatabase(CLanguage* language)
 	, reload_time_(300)
 	, max_logs_(500)
 	, bots_pass_()
+	, metal_start_(10000)
+	, crystal_start_(10000)
+	, deu_start_(0)
+	, dm_start_(0)
 {
 	if (language)
 	{
@@ -56,7 +60,7 @@ void CDatabase::Init()
 
 		// defaults
 		config = toml::table {
-			
+
 			{"database", toml::table {
 							 {"host", "localhost"},
 							 {"user", "username"},
@@ -65,14 +69,13 @@ void CDatabase::Init()
 							 {"prefix", "uni1_"},
 							 {"ssl", false}}},
 
-			{"general", toml::table {
-				{"loop_time", 30}, 
-			    {"bot_reload_time", 300}, 
-			    {"max_logs", 500}}},
+			{"general", toml::table {{"loop_time", 30}, {"bot_reload_time", 300}, {"max_logs", 500}}},
 
-			{"bots", toml::table {
-				{"password", "default_pass"}}}
-		};
+			{"bots", toml::table {{"password", "default_pass"}, 
+			{"metal_start", 10000}, 
+			{"crystal_start", 10000}, 
+			{"deu_start", 0}, 
+			{"dm_start", 5000}}}};
 
 		// write file (std::ofstream )
 		std::ofstream out_file(config_path);
@@ -116,6 +119,11 @@ void CDatabase::Init()
 	max_logs_ = config["general"]["max_logs"].value_or(500);
 
 	bots_pass_ = config["bots"]["password"].value_or(""sv);
+	metal_start_ = config["bots"]["metal_start"].value_or(0);
+	crystal_start_ = config["bots"]["crystal_start"].value_or(0);
+	deu_start_ = config["bots"]["deu_start"].value_or(0);
+	dm_start_ = config["bots"]["dm_start"].value_or(0);
+
 
 	CLogger::Info(lang_->at("ids_settings_read"), db_host_);
 }
