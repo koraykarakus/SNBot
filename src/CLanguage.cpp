@@ -145,6 +145,11 @@ void CLanguage::CreateDefaultLangFile()
 						{"ids_help_addbots", "type /add_bot 100 1 -> to add 100 bots to universe 1"},
 						{"ids_help_removebots", "type /remove_bots -> to delete all bots and their planet"},
 						{"ids_help_set_lang", "type /set_lang en -> to set language as english, other keys [de,tr,es,pt,pl,fr,ru]"},
+						{"ids_help_add_metal", "type /add_metal 100 -> to add 100 metal all bots"},
+						{"ids_help_add_crystal", "type /add_crystal 100 -> to add 100 crystal all bots"},
+						{"ids_help_add_deu", "type /add_deu 100 -> to add 100 deu all bots"},
+						{"ids_help_add_dm", "type /add_dm 100 -> to add 100 darkmatter all bots"},
+
 						{"ids_lang_change_success", "Language settings have been changed by success.\n"},
 						{"ids_wrong_lang_key", "Wrong language key, try:[de,en,es,fr,pl,pt,tr,ru] \n"},
 						{"ids_cmd_exit", "[Console] exitting...\n"},
@@ -153,7 +158,10 @@ void CLanguage::CreateDefaultLangFile()
 						{"ids_addbot_wrong_count", "Wrong input for count {}\n"},
 						{"ids_addbot_null", "Cannot access botmanager pointer, it is null\n"},
 						{"ids_addbot_wrong_uni", "Cannot found config with entered uni id : {}\n"},
-
+						{"ids_add_metal_suc", "{} metal has been added to all bots."},
+						{"ids_add_crystal_suc", "{} crystal has been added to all bots."},
+						{"ids_add_deu_suc", "{} deu has been added to all bots."},
+						{"ids_add_dm_suc", "{} darkmatter has been added to all bots."},
 					}}};
 
 	std::string fn = "language/lang_en.toml"; // default

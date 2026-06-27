@@ -37,6 +37,22 @@ bool CBotManager::ProcessPendingRequests()
 			case 2:
 				RemoveBots();
 				break;
+			// add metal
+			case 3:
+				AddMetal(cmd);
+				break;
+			// add crystal
+			case 4:
+				AddCrystal(cmd);
+				break;
+			// add deuterium
+			case 5:
+				AddDeu(cmd);
+				break;
+			// add dm
+			case 6:
+				AddDm(cmd);
+				break;
 			default:
 				break;
 		}
@@ -131,6 +147,67 @@ void CBotManager::RemoveBots()
 		bots_ptr_ = database_->GetLoadedBots();
 		CLogger::Info(lang_->at("ids_bot_remove_succ"));
 	}
+}
+
+void CBotManager::AddMetal(const cmd_queue& cmd)
+{
+	if (database_ == nullptr || bots_ptr_ == nullptr) return;
+	for (auto& bot: *bots_ptr_)
+	{
+		for (auto& p: bot.all_planets)
+		{
+			p.metal += cmd.count;
+			p.need_update = true;
+		}
+	}
+	database_->UpdateBots();
+	database_->LoadBots();
+	CLogger::Info(lang_->at("ids_add_metal_suc"), cmd.count);
+}
+
+void CBotManager::AddCrystal(const cmd_queue& cmd)
+{
+	if (database_ == nullptr || bots_ptr_ == nullptr) return;
+	for (auto& bot : *bots_ptr_)
+	{
+		for (auto& p : bot.all_planets)
+		{
+			p.crystal += cmd.count;
+			p.need_update = true;
+		}
+	}
+	database_->UpdateBots();
+	database_->LoadBots();
+	CLogger::Info(lang_->at("ids_add_crystal_suc"), cmd.count);
+}
+
+void CBotManager::AddDeu(const cmd_queue& cmd)
+{
+	if (database_ == nullptr || bots_ptr_ == nullptr) return;
+	for (auto& bot : *bots_ptr_)
+	{
+		for (auto& p : bot.all_planets)
+		{
+			p.deuterium += cmd.count;
+			p.need_update = true;
+		}
+	}
+	database_->UpdateBots();
+	database_->LoadBots();
+	CLogger::Info(lang_->at("ids_add_deu_suc"), cmd.count);
+}
+
+void CBotManager::AddDm(const cmd_queue& cmd)
+{
+	if (database_ == nullptr || bots_ptr_ == nullptr) return;
+	for (auto& bot : *bots_ptr_)
+	{
+		bot.darkmatter += cmd.count;
+		bot.need_update = true;
+	}
+	database_->UpdateBots();
+	database_->LoadBots();
+	CLogger::Info(lang_->at("ids_add_dm_suc"), cmd.count);
 }
 
 void CBotManager::SetName(create_info& st)

@@ -92,6 +92,8 @@ struct table_users
 	uint8_t rpg_raider = 0;
 	uint8_t rpg_emperor = 0;
 
+	double darkmatter = 0;
+
 	uint8_t is_bot = 1;
 	std::vector<table_planets> all_planets = {};
 	std::map<std::string_view, int> factor = {};

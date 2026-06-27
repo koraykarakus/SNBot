@@ -157,6 +157,10 @@ public:
 	bool ProcessPendingRequests();
 	void CreateBots(const cmd_queue& cmd);
 	void RemoveBots();
+	void AddMetal(const cmd_queue& cmd);
+	void AddCrystal(const cmd_queue& cmd);
+	void AddDeu(const cmd_queue& cmd);
+	void AddDm(const cmd_queue& cmd);
 
 	const config_data* GetConfigByUniID(int uni) const;
 

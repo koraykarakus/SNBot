@@ -201,7 +201,7 @@ bool CDatabase::LoadBots()
 		"`rpg_constructor`, `rpg_scientist`, `rpg_commander`, "
 		"`rpg_stocker`, `rpg_defender`, `rpg_destructor`, "
 		"`rpg_general`, `rpg_bunker`, `rpg_raider`, "
-		"`rpg_emperor` "
+		"`rpg_emperor`, `darkmatter` "
 		"FROM {}users "
 		"WHERE is_bot = 1",
 		db_uni_prefix_);
@@ -356,6 +356,8 @@ bool CDatabase::LoadBots()
 		bot.rpg_raider = row[i] ? std::stoi(row[i]) : 0;
 		i++;
 		bot.rpg_emperor = row[i] ? std::stoi(row[i]) : 0;
+		i++;
+		bot.darkmatter = row[i] ? std::stod(row[i]) : 0;
 		i++;
 
 		// column is_bot to simplify
@@ -1131,7 +1133,7 @@ bool CDatabase::UpdateBots()
 												"military_tech, armor_tech, shield_tech, energy_tech, hyperspace_tech, "
 												"combustion_tech, impulse_motor_tech, hyperspace_motor_tech, laser_tech, "
 												"ion_tech, plasma_tech, intergalactic_tech, expedition_tech, "
-												"metal_proc_tech, crystal_proc_tech, deuterium_proc_tech, graviton_tech, onlinetime) VALUES ",
+												"metal_proc_tech, crystal_proc_tech, deuterium_proc_tech, graviton_tech, onlinetime, darkmatter) VALUES ",
 		db_uni_prefix_);
 
 	const std::string user_footer = " ON DUPLICATE KEY UPDATE "
@@ -1141,7 +1143,7 @@ bool CDatabase::UpdateBots()
 									"impulse_motor_tech = VALUES(impulse_motor_tech), hyperspace_motor_tech = VALUES(hyperspace_motor_tech), laser_tech = VALUES(laser_tech), "
 									"ion_tech = VALUES(ion_tech), plasma_tech = VALUES(plasma_tech), intergalactic_tech = VALUES(intergalactic_tech), expedition_tech = VALUES(expedition_tech), "
 									"metal_proc_tech = VALUES(metal_proc_tech), crystal_proc_tech = VALUES(crystal_proc_tech), deuterium_proc_tech = VALUES(deuterium_proc_tech), "
-									"graviton_tech = VALUES(graviton_tech), onlinetime = VALUES(onlinetime);";
+									"graviton_tech = VALUES(graviton_tech), onlinetime = VALUES(onlinetime), darkmatter = VALUES(darkmatter);";
 
 	// store all planets in same vector
 	std::vector<table_planets*> all_planets;
@@ -1186,7 +1188,7 @@ bool CDatabase::UpdateBots()
 
 			fmt::format_to(
 				std::back_inserter(query),
-				"({}, {}, {}, {}, '{}', {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}), ",
+				"({}, {}, {}, {}, '{}', {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}), ",
 				bot.id,
 				bot.b_tech_planet,
 				bot.b_tech,
@@ -1211,7 +1213,8 @@ bool CDatabase::UpdateBots()
 				bot.resource[132],
 				bot.resource[133],
 				bot.resource[199],
-				bot.onlinetime);
+				bot.onlinetime,
+				bot.darkmatter);
 
 			bot.need_update = false;
 			++bot_counter;

@@ -101,6 +101,10 @@ bool CCommandHandler::ProcessCommand(std::string& line, CApplication& app)
 		CLogger::Info(lang_->at("ids_help_addbots"));
 		CLogger::Info(lang_->at("ids_help_removebots"));
 		CLogger::Info(lang_->at("ids_help_set_lang"));
+		CLogger::Info(lang_->at("ids_help_add_metal"));
+		CLogger::Info(lang_->at("ids_help_add_crystal"));
+		CLogger::Info(lang_->at("ids_help_add_deu"));
+		CLogger::Info(lang_->at("ids_help_add_dm"));
 	}
 	else if (cmd == "/remove_bots")
 	{
@@ -139,6 +143,66 @@ bool CCommandHandler::ProcessCommand(std::string& line, CApplication& app)
 		{
 			CLogger::Error(lang_->at("ids_wrong_lang_key"));
 		}
+	}
+	else if (cmd == "/add_metal")
+	{
+		int count = 0;
+		ss >> count;
+		if (count <= 0) return false;
+
+		// into queue
+		info.type = 3;
+		info.count = count;
+
+		if (app.IsStarted())
+			bot_manager_->PushCmdRequest(info);
+		else
+			bot_manager_->AddMetal(info);
+	}
+	else if (cmd == "/add_crystal")
+	{
+		int count = 0;
+		ss >> count;
+		if (count <= 0) return false;
+
+		// into queue
+		info.type = 4;
+		info.count = count;
+
+		if (app.IsStarted())
+			bot_manager_->PushCmdRequest(info);
+		else
+			bot_manager_->AddCrystal(info);
+	}
+	else if (cmd == "/add_deu")
+	{
+		int count = 0;
+		ss >> count;
+		if (count <= 0) return false;
+
+		// into queue
+		info.type = 5;
+		info.count = count;
+
+		if (app.IsStarted())
+			bot_manager_->PushCmdRequest(info);
+		else
+			bot_manager_->AddDeu(info);
+	}
+	else if (cmd == "/add_dm")
+	{
+		int count = 0;
+		ss >> count;
+		if (count <= 0) return false;
+
+		// into queue
+		info.type = 6;
+		info.count = count;
+
+		if (app.IsStarted())
+			bot_manager_->PushCmdRequest(info);
+		else
+			bot_manager_->AddDm(info);
 	}
 	else
 	{
