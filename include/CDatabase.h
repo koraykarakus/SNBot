@@ -7,10 +7,13 @@
 #include <string>
 
 class CLanguage;
+class CPhpHelper;
 
 class CDatabase
 {
 private:
+	CPhpHelper* phphelper_;
+
 	std::unordered_map<std::string, std::string>* lang_;
 	static const int BATCH_SIZE = 300;
 	MYSQL* conn_;
@@ -50,7 +53,7 @@ private:
 	std::vector<settlement_data> settlement_data_;
 
 public:
-	CDatabase(CLanguage* language);
+	CDatabase(CLanguage* language, CPhpHelper* phphelper);
 	~CDatabase();
 	void Init();
 

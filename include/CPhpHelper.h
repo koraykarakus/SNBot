@@ -116,9 +116,11 @@ private:
 
 			case 'a':
 				return ParseArray();
+			default:
+				CLogger::Error("parse error check ParseValue !");
+				return ParseString();
 		}
 
-		CLogger::Error("parse error check ParseValue !");
 
 	}
 

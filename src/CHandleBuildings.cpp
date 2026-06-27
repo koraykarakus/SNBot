@@ -114,6 +114,12 @@ void CBotManager::HandleBuildings(table_users& bot,
 	log_.building_level = level_up;
 	logs_.push_back(log_);
 
+	if (element->element_id == 31 
+		|| element->element_id == 6)
+	{
+		planet.building_lab = true;
+	}
+
 	bot.need_update = true;
 }
 

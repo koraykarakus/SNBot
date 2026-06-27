@@ -305,6 +305,10 @@ void CBotManager::LogResult()
 					lang_->at("ids_building"), 
 					log.building_name, log.building_level);
 				break;
+			case log_type::not_main_planet:
+				fmt::format_to(std::back_inserter(buf),
+					fmt::runtime(lang_->at("ids_not_main_planet")),
+					lang_->at("ids_research"));
 			case log_type::researching_already:
 				fmt::format_to(std::back_inserter(buf),
 					fmt::runtime(lang_->at("ids_already_researching")),

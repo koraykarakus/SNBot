@@ -57,6 +57,13 @@ bool CBotManager::BuildingQueue(table_planets& planet)
 	planet.b_building = 0;
 	planet.b_building_id = "";
 	planet.need_update = true;
+
+	if (element == 31 
+		|| element == 6)
+	{
+		planet.building_lab = false;
+	}
+
 	return true;
 	/* multi queue not really needed
 	array_shift($current_queue);

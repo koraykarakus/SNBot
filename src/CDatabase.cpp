@@ -6,10 +6,11 @@
 #include "CDatabase.h"
 #include "CLogger.h"
 #include "CLanguage.h"
+#include "CPhpHelper.h"
 
 using namespace std::literals;
 
-CDatabase::CDatabase(CLanguage* language)
+CDatabase::CDatabase(CLanguage* language, CPhpHelper* phphelper)
 	: conn_(nullptr)
 	, db_user_()
 	, db_pass_()
@@ -40,6 +41,12 @@ CDatabase::CDatabase(CLanguage* language)
 	{
 		lang_ = language->GetLangStrings();
 	}
+
+	if (phphelper)
+	{
+		phphelper_ = phphelper;
+	}
+
 	Init();
 }
 
@@ -663,6 +670,32 @@ bool CDatabase::LoadBots()
 	for (auto& bot : temp_bots_)
 	{
 		bot.SetResearchLabInter();
+	}
+
+	std::map<int, php_val> queue = {};
+	for (auto& bot : temp_bots_)
+	{
+		for (auto& p : bot.all_planets)
+		{
+			if (p.b_building_id == "") continue;
+				
+			phphelper_->Unserialize(p.b_building_id, queue);
+
+			if (queue.empty()) continue;
+
+			for (auto& q : queue)
+			{
+				const php_val& data = q.second;
+				const int id = data[0].numeric_val;
+				if (id == 31
+					|| id == 6)
+				{
+					p.building_lab = true;
+				}
+				// check only first
+				break;
+			}
+		}
 	}
 
 

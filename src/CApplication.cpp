@@ -11,7 +11,8 @@ CApplication::CApplication()
 	phphelper_ = std::make_unique<CPhpHelper>();
 
 	database_ = std::make_unique<CDatabase>(
-		language_.get());
+		language_.get(), 
+		phphelper_.get());
 
 	bot_manager_ = std::make_unique<CBotManager>(
 		language_.get(),

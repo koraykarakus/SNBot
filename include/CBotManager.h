@@ -48,6 +48,7 @@ enum class log_type
 	tech_not_accessible,
 	not_have_enough_resources,
 	building_success,
+	not_main_planet,
 	researching_already,
 	dont_have_lab,
 	lab_in_progress,
@@ -196,6 +197,10 @@ public:
 	bool IsTechAccessible(int element_id,
 		const table_planets& planet,
 		const table_users& user);
+	inline bool IsMainPlanet(const table_users& user, const table_planets& planet) 
+	{
+		return planet.id == user.id_planet;
+	}
 	inline bool IsResearching(const table_users& user) const
 	{
 		return user.b_tech > 0;
@@ -209,7 +214,18 @@ public:
 		return planet.b_building > 0;
 	}
 	
-	bool IsLabInProgress(const table_users& user);
+	inline bool IsLabInProgress(const table_users& bot)
+	{
+		for (const auto& p : bot.all_planets)
+		{
+			if (p.building_lab)
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
 
 	void LogResult();
 	// resource update and its helpers

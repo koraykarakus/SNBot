@@ -7,6 +7,13 @@ void CBotManager::HandleResearches(table_users& bot,
 	table_planets& planet,
 	const uint64_t game_speed)
 {
+	if (!IsMainPlanet(bot, planet))
+	{
+		log_.type = log_type::not_main_planet;
+		logs_.push_back(log_);
+		return;
+	}
+
 	if (IsResearching(bot))
 	{
 		log_.type = log_type::researching_already;
@@ -22,6 +29,7 @@ void CBotManager::HandleResearches(table_users& bot,
 		return;
 	}
 
+	// todo : this should not chain loop
 	if (IsLabInProgress(bot))
 	{
 		log_.type = log_type::lab_in_progress;
@@ -105,26 +113,4 @@ void CBotManager::HandleResearches(table_users& bot,
 	// update it
 	bot.need_update = true;    // research q
 	planet.need_update = true; // removecost
-}
-
-// carry this to database, and use flags
-bool CBotManager::IsLabInProgress(const table_users& user)
-{
-	std::map<int, php_val> queue = {};
-
-	for (const auto& p : user.all_planets)
-	{
-		queue.clear();
-		phphelper_->Unserialize(p.b_building_id, queue);
-		for (const auto& q : queue)
-		{
-			const php_val& data = q.second;
-			if (data[0].numeric_val == 31)
-			{
-				return true;
-			}
-		}
-	}
-
-	return false;
 }

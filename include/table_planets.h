@@ -65,6 +65,10 @@ struct table_planets
 
 	// flag used to decide if planet needs an update.
 	bool need_update = false;
+
+	// is planet building lab or univercity in any of its planets
+	bool building_lab = false;
+
 	// flag used to state fleet action
 	bool need_fleet_colony = false;
 
